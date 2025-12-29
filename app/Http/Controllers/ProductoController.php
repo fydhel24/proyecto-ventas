@@ -7,6 +7,7 @@ use App\Models\Marca;
 use App\Models\Categoria;
 use App\Models\Color;
 use App\Http\Requests\ProductoRequest;
+use App\Models\Foto;
 use Inertia\Inertia;
 
 class ProductoController extends Controller
@@ -14,7 +15,7 @@ class ProductoController extends Controller
     public function index()
     {
         return Inertia::render('Productos/Index', [
-            'productos' => Producto::with(['marca', 'categoria', 'color'])
+            'productos' => Producto::with(['marca', 'categoria'])
                 ->latest()
                 ->paginate(10),
         ]);
@@ -25,13 +26,24 @@ class ProductoController extends Controller
         return Inertia::render('Productos/Create', [
             'marcas' => Marca::all(),
             'categorias' => Categoria::all(),
-            'colores' => Color::all(),
         ]);
     }
 
     public function store(ProductoRequest $request)
     {
-        Producto::create($request->validated());
+        $producto = Producto::create($request->validated());
+
+        if ($request->hasFile('fotos')) {
+            foreach ($request->file('fotos') as $file) {
+                $path = $file->store('productos', 'public');
+
+                $foto = Foto::create([
+                    'url' => $path,
+                ]);
+
+                $producto->fotos()->attach($foto->id);
+            }
+        }
 
         return redirect()
             ->route('productos.index')

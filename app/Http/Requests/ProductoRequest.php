@@ -21,7 +21,6 @@ class ProductoRequest extends FormRequest
             'caracteristicas' => 'nullable|string',
             'marca_id' => 'required|exists:marcas,id',
             'categoria_id' => 'required|exists:categorias,id',
-            'color_id' => 'required|exists:colors,id',
             'stock' => 'required|integer|min:0',
             'estado' => 'required|boolean',
             'fecha' => 'required|date',
@@ -29,6 +28,7 @@ class ProductoRequest extends FormRequest
             'precio_1' => 'required|numeric|min:0',
             'precio_2' => 'nullable|numeric|min:0',
             'precio_3' => 'nullable|numeric|min:0',
+            'fotos.*' => 'image',
         ];
     }
 }

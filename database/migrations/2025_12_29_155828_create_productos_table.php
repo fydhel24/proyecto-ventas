@@ -23,8 +23,8 @@ return new class extends Migration
             $table->foreignId('categoria_id')
                 ->constrained('categorias');
 
-            $table->foreignId('color_id')
-                ->constrained('colors')->nullable();
+            $table->foreignId('color_id')->nullable()
+                ->constrained('colors');
 
             $table->integer('stock')->default(0);
             $table->string('estado');
