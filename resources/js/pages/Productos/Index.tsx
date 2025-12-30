@@ -75,6 +75,7 @@ export default function Index({ productos }: any) {
                         </TableBody>
                     </Table>
                 </CardContent>
+                
             </Card>
         </AppLayout>
     );

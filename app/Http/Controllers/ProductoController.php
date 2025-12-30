@@ -50,23 +50,37 @@ class ProductoController extends Controller
             ->with('success', 'Producto creado correctamente');
     }
 
+
     public function edit(Producto $producto)
     {
         return Inertia::render('Productos/Edit', [
             'producto' => $producto,
             'marcas' => Marca::all(),
             'categorias' => Categoria::all(),
-            'colores' => Color::all(),
+            'fotos' => $producto->fotos, // Asumiendo que tienes la relación fotos()
         ]);
     }
-
     public function update(ProductoRequest $request, Producto $producto)
     {
+        // Actualizar datos del producto
         $producto->update($request->validated());
+
+        // Si se suben nuevas fotos, adjuntarlas
+        if ($request->hasFile('fotos')) {
+            foreach ($request->file('fotos') as $file) {
+                $path = $file->store('productos', 'public');
+
+                $foto = Foto::create([
+                    'url' => $path,
+                ]);
+
+                $producto->fotos()->attach($foto->id);
+            }
+        }
 
         return redirect()
             ->route('productos.index')
-            ->with('success', 'Producto actualizado');
+            ->with('success', 'Producto actualizado correctamente');
     }
 
     public function destroy(Producto $producto)
