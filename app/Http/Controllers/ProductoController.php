@@ -8,16 +8,28 @@ use App\Models\Categoria;
 use App\Models\Color;
 use App\Http\Requests\ProductoRequest;
 use App\Models\Foto;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ProductoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $query = Producto::with(['marca', 'categoria']);
+
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nombre', 'like', "%{$search}%")
+                    ->orWhereHas('marca', fn($q) => $q->where('nombre_marca', 'like', "%{$search}%"))
+                    ->orWhereHas('categoria', fn($q) => $q->where('nombre_cat', 'like', "%{$search}%"));
+            });
+        }
+
+        $productos = $query->latest()->paginate(10);
+
         return Inertia::render('Productos/Index', [
-            'productos' => Producto::with(['marca', 'categoria'])
-                ->latest()
-                ->paginate(10),
+            'productos' => $productos,
+            'filters' => ['search' => $search ?? ''],
         ]);
     }
 
