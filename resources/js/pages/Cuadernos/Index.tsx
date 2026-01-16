@@ -1,4 +1,5 @@
 // resources/js/Pages/Cuadernos/Index.tsx
+import AddProductoModal from '@/components/AddProductoModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -12,7 +13,6 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
-import AddProductoModal from '@/components/AddProductoModal';
 import { PlusIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -20,6 +20,16 @@ interface Producto {
     id: number;
     nombre: string;
     marca?: { nombre_marca: string };
+    pivot: {
+        cantidad: number;
+        precio_venta: string;
+    };
+}
+
+interface ProductoModal {
+    id: number;
+    nombre: string;
+    stock: number;
 }
 
 interface Cuaderno {
@@ -48,7 +58,7 @@ export default function CuadernosIndex({
     productos,
 }: {
     cuadernos: Cuaderno[];
-    productos: Producto[];
+    productos: ProductoModal[];
 }) {
     const [localState, setLocalState] = useState<LocalState>({});
     const [modalOpen, setModalOpen] = useState(false);
@@ -270,11 +280,20 @@ export default function CuadernosIndex({
                                                                         {
                                                                             p.nombre
                                                                         }{' '}
-                                                                        (
-                                                                        {p.marca
-                                                                            ?.nombre_marca ||
-                                                                            'Sin marca'}
-                                                                        )
+                                                                        -
+                                                                        Cantidad:{' '}
+                                                                        {
+                                                                            p
+                                                                                .pivot
+                                                                                .cantidad
+                                                                        }{' '}
+                                                                        -
+                                                                        Precio:{' '}
+                                                                        {
+                                                                            p
+                                                                                .pivot
+                                                                                .precio_venta
+                                                                        }
                                                                     </div>
                                                                 ),
                                                             )}
@@ -325,4 +344,3 @@ export default function CuadernosIndex({
         </AppLayout>
     );
 }
-
