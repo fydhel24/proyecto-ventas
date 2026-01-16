@@ -6,6 +6,8 @@ use App\Models\Cuaderno;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use FPDF;
+use Illuminate\Support\Facades\Storage;
 
 class CuadernoController extends Controller
 {
@@ -111,16 +113,7 @@ class CuadernoController extends Controller
         $celular = preg_replace('/[^0-9]/', '', $request->celular);
         $hoy = now()->toDateString();
 
-        // Verificar si ya existe pedido hoy
-        $dosDiasAtras = now()->subDays(2)->startOfHour();
-
-        $cuadernoExistente = Cuaderno::where('celular', $request->celular)
-            ->where(function ($query) use ($dosDiasAtras) {
-                $query->where('created_at', '>=', $dosDiasAtras)
-                    ->orWhere('estado', '1');
-            })
-            ->orderBy('created_at', 'desc')
-            ->first();
+        
 
         
 
@@ -171,32 +164,177 @@ class CuadernoController extends Controller
             }
         }
         $this->guardarPdfDePedido($cuaderno->id);
-        // ¡IMPORTANTE! Solo generamos y enviamos PDF si WhatsApp está conectado
-        if ($this->isWhatsAppConnected()) {
+        
+    }
+    private function guardarPdfDePedido($cuadernoId)
+    {
+        // Obtener el cuaderno
+        $cuaderno = \App\Models\Cuaderno::with('productos')->findOrFail($cuadernoId);
 
-            $this->enviarPdfPorNestApi($cuaderno->id, $request->celular);
+        $totalCantidad = 0;
+        $totalPrecio = 0;
+        foreach ($cuaderno->productos as $p) {
+            $totalCantidad += $p->pivot->cantidad;
+            $totalPrecio += ($p->pivot->cantidad * $p->pivot->precio_venta);
         }
 
-        // Determinar estado de WhatsApp una sola vez
-        $whatsappConnected = $this->isWhatsAppConnected();
-
-        $responseData = [
-            'success' => true,
-            'message' => 'Pedido creado exitosamente',
-            'data' => $cuaderno->load(['productos', 'imagenes']),
-            'pedido_id' => $cuaderno->id,
-            'whatsapp_connected' => $whatsappConnected,
+        // Preparar los datos
+        $cuadernoData = [
+            'id' => $cuaderno->id,
+            'nombre_cliente' => $cuaderno->nombre,
+            'ci' => $cuaderno->ci,
+            'celular' => $cuaderno->celular,
+            'fecha' => $cuaderno->created_at ? $cuaderno->created_at->format('Y-m-d H:i') : date('Y-m-d H:i'),
+            'cantidad' => $totalCantidad,
+            'productos' => $cuaderno->productos,
+            'detalle' => $cuaderno->detalle,
+            'total' => $totalPrecio,
+            'qr' => 0,
+            'efectivo' => 0,
+            'forma_pago' => 'Pendiente',
         ];
 
-        // 👇 Solo incluir PDF si WhatsApp está DESCONECTADO
-        if (!$whatsappConnected) {
-            $pdfPath = "pedidospdf/{$cuaderno->id}.pdf";
-            if (Storage::disk('public')->exists($pdfPath)) {
-                $pdfContent = Storage::disk('public')->get($pdfPath);
-                $responseData['pdf_base64'] = base64_encode($pdfContent);
-            }
+        // Crear PDF en memoria
+        $pdf = new FPDF('P', 'mm', 'Letter');
+        $pdf->AddPage();
+        $marginTop = 10;
+        $this->datos($pdf, $cuadernoData, $marginTop);
+
+        // Guardar en storage/app/public/pedidospdf/
+        $filename = "pedidospdf/{$cuadernoId}.pdf";
+        $output = $pdf->Output('S');
+
+        Storage::disk('public')->put($filename, $output);
+
+        return $filename;
+    }
+
+    public function datos($pdf, $pedido, $marginTop)
+    {
+        $fucsia = [242, 39, 93];
+        $morado = [69, 23, 115];
+        $turquesa = [23, 191, 191];
+
+        $imgWatermark = public_path('images/logo_old.png');
+        if (file_exists($imgWatermark)) {
+            $pdf->Image($imgWatermark, 5, 40, 220, 0, 'PNG');
         }
 
-        return response()->json($responseData, 201);
+        $pdf->SetY($marginTop);
+
+        $imgLogo = public_path('images/logo.png');
+        if (file_exists($imgLogo)) {
+            $pdf->Image($imgLogo, 12, 12, 35);
+        }
+
+        $pdf->SetX(50);
+        $pdf->SetFont('Arial', 'B', 20);
+        $pdf->SetTextColor($morado[0], $morado[1], $morado[2]);
+        $pdf->Cell(0, 10, utf8_decode('IMPORTADORA MIRANDA S.A.'), 0, 1, 'R');
+
+        $pdf->SetX(50);
+        $pdf->SetFont('Arial', 'I', 11);
+        $pdf->SetTextColor($fucsia[0], $fucsia[1], $fucsia[2]);
+        $pdf->Cell(0, 5, utf8_decode('A un Click del Producto que Necesita!!'), 0, 1, 'R');
+
+        $pdf->SetX(50);
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->SetTextColor(80, 80, 80);
+        $pdf->Cell(0, 5, utf8_decode('WhatsApp: 70621016 | Caparazon Mall Center, Local 29'), 0, 1, 'R');
+
+        $pdf->Ln(15);
+
+        $pdf->SetFillColor($morado[0], $morado[1], $morado[2]);
+        $pdf->SetTextColor(255, 255, 255);
+        $pdf->SetFont('Arial', 'B', 14);
+        $pdf->Cell(0, 12, utf8_decode('   COMPROBANTE DE PEDIDO #' . ($pedido['id'] ?? '000')), 0, 1, 'L', true);
+
+        $pdf->SetFillColor($turquesa[0], $turquesa[1], $turquesa[2]);
+        $pdf->Cell(0, 1.5, '', 0, 1, 'L', true);
+
+        $pdf->Ln(8);
+
+        $pdf->SetTextColor(40, 40, 40);
+        $yActual = $pdf->GetY();
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->SetTextColor($morado[0], $morado[1], $morado[2]);
+        $pdf->Text(12, $yActual + 5, 'DATOS DEL CLIENTE');
+
+        $pdf->SetTextColor(60, 60, 60);
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->SetXY(12, $yActual + 10);
+        $pdf->Cell(25, 6, 'Nombre:', 0, 0);
+        $pdf->SetFont('Arial', '', 10);
+        $pdf->Cell(70, 6, utf8_decode(strtoupper($pedido['nombre_cliente'])), 0, 1);
+
+        $pdf->SetX(12);
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->Cell(25, 6, 'CI / NIT:', 0, 0);
+        $pdf->SetFont('Arial', '', 10);
+        $pdf->Cell(70, 6, utf8_decode($pedido['ci']), 0, 1);
+
+        $pdf->SetXY(110, $yActual + 10);
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->Cell(25, 6, 'Celular:', 0, 0);
+        $pdf->SetTextColor($turquesa[0], $turquesa[1], $turquesa[2]);
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->Cell(0, 6, utf8_decode($pedido['celular']), 0, 1);
+
+        $pdf->SetXY(110, $yActual + 16);
+        $pdf->SetTextColor(60, 60, 60);
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->Cell(25, 6, 'Fecha:', 0, 0);
+        $pdf->SetFont('Arial', '', 10);
+        $pdf->Cell(0, 6, utf8_decode($pedido['fecha'] ?? date('Y-m-d H:i')), 0, 1);
+
+        $pdf->Ln(15);
+
+        $pdf->SetDrawColor($turquesa[0], $turquesa[1], $turquesa[2]);
+        $pdf->SetLineWidth(0.8);
+        $pdf->Rect(75, $pdf->GetY(), 64, 77);
+
+        $pdf->SetY($pdf->GetY() + 5);
+        $urlEscaneo = "https://shop.importadoramiranda.com/qr?id={$pedido['id']}&ci={$pedido['ci']}&celular={$pedido['celular']}";
+        $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($urlEscaneo);
+        $qrPath = storage_path("app/temp/qr_cua_{$pedido['id']}.png");
+
+        if (! file_exists(storage_path('app/temp'))) {
+            mkdir(storage_path('app/temp'), 0777, true);
+        }
+
+        try {
+            $qrImage = @file_get_contents($qrApiUrl);
+            if ($qrImage) {
+                file_put_contents($qrPath, $qrImage);
+                $pdf->Image($qrPath, 82, $pdf->GetY(), 50, 50, 'PNG');
+                $pdf->Ln(55);
+                @unlink($qrPath);
+            }
+        } catch (\Exception $e) {
+            $pdf->Ln(20);
+        }
+
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->SetTextColor($morado[0], $morado[1], $morado[2]);
+        $pdf->Cell(0, 5, utf8_decode('ESCANEA ESTE CÓDIGO QR PARA'), 0, 1, 'C');
+        $pdf->Cell(0, 5, utf8_decode('VER TU PEDIDO EN TIEMPO REAL'), 0, 1, 'C');
+
+        $pdf->SetFont('Arial', 'B', 11);
+        $pdf->SetTextColor(60, 60, 60);
+        $pdf->Cell(0, 7, utf8_decode('shop.importadoramiranda.com/qr'), 0, 1, 'C');
+
+        $pdf->SetY(-65);
+        $pdf->SetDrawColor($fucsia[0], $fucsia[1], $fucsia[2]);
+        $pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
+        $pdf->Ln(5);
+
+        $pdf->SetFont('Arial', 'I', 9);
+        $pdf->SetTextColor(100, 100, 100);
+        $pdf->MultiCell(0, 5, utf8_decode('Este documento sirve como comprobante de su solicitud. Puede verificar los detalles legales y técnicos escaneando el código QR superior. Agradecemos su preferencia por nuestros productos.'), 0, 'C');
+
+        $pdf->Ln(3);
+        $pdf->SetFont('Arial', 'B', 13);
+        $pdf->SetTextColor($fucsia[0], $fucsia[1], $fucsia[2]);
+        $pdf->Cell(0, 10, utf8_decode('¡GRACIAS POR TU PEDIDO!'), 0, 1, 'C');
     }
 }
