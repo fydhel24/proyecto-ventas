@@ -3,6 +3,7 @@
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\MarcaController;
 use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\CuadernoController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -18,10 +19,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
     Route::resource('productos', ProductoController::class)
-    ->names('productos');
-// Rutas para crear marcas y categorías desde los modales
-Route::post('/marcas', [MarcaController::class, 'store']);
-Route::post('/categorias', [CategoriaController::class, 'store']);
+        ->names('productos');
+    // Rutas para crear marcas y categorías desde los modales
+    Route::post('/marcas', [MarcaController::class, 'store']);
+    Route::post('/categorias', [CategoriaController::class, 'store']);
+
+    Route::get('/cuadernos', [CuadernoController::class, 'index'])->name('cuadernos.index');
+    
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

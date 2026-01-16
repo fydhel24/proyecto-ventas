@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import productos from '@/routes/productos';
+import cuadernos from '@/routes/cuadernos';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
@@ -26,6 +27,11 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Productos',
         href: productos.index(),
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Cuaderno',
+        href: cuadernos.index(),
         icon: LayoutGrid,
     },
 ];
