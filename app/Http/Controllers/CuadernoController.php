@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Cuaderno;
 use App\Models\Producto;
+use App\Models\Imagene;
+use App\Models\ImagenCuaderno;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use FPDF;
