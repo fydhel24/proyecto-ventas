@@ -25,7 +25,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/categorias', [CategoriaController::class, 'store']);
 
     Route::get('/cuadernos', [CuadernoController::class, 'index'])->name('cuadernos.index');
-    
+    Route::patch('/cuadernos/{cuaderno}', [CuadernoController::class, 'update'])->name('cuadernos.update');
 });
 
 require __DIR__ . '/settings.php';
