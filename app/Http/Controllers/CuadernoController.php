@@ -54,14 +54,21 @@ class CuadernoController extends Controller
             'celular' => 'nullable|string|max:20',
             'departamento' => 'nullable|string|max:50',
             'provincia' => 'nullable|string|max:50',
+            'estado' => 'nullable|string|max:50',
         ]);
 
         $cuaderno->update($request->only([
             'la_paz', 'enviado', 'p_listo', 'p_pendiente',
-            'nombre', 'ci', 'celular', 'departamento', 'provincia'
+            'nombre', 'ci', 'celular', 'departamento', 'provincia', 'estado'
         ]));
 
         return back();
+    }
+
+    public function destroy(Cuaderno $cuaderno)
+    {
+        $cuaderno->delete();
+        return back()->with('success', 'Cuaderno eliminado correctamente');
     }
 
     public function addProducto(Request $request, Cuaderno $cuaderno)

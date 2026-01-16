@@ -31,7 +31,9 @@ import {
     ChevronLeft,
     ChevronRight,
     ChevronsLeft,
-    ChevronsRight
+    ChevronsRight,
+    Trash2,
+    Check
 } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from '@inertiajs/react'; // Import Link for pagination
@@ -210,6 +212,21 @@ export default function CuadernosIndex({
             },
         );
     };
+    const handleConfirm = (id: number) => {
+        if (confirm('¿Confirmar pedido? Esto marcará el estado como Confirmado y Enviado.')) {
+            router.patch(`/cuadernos/${id}`, {
+                estado: 'Confirmado',
+                enviado: true,
+            });
+        }
+    };
+
+    const handleDelete = (id: number) => {
+        if (confirm('¿Estás seguro de eliminar este registro?')) {
+            router.delete(`/cuadernos/${id}`);
+        }
+    };
+
 
     return (
         <AppLayout>
@@ -252,6 +269,7 @@ export default function CuadernosIndex({
                                         <TableHead className="min-w-[180px]">Ubicación</TableHead>
                                         <TableHead>Productos</TableHead>
                                         <TableHead>Estado</TableHead>
+                                        <TableHead className="text-right">Acciones</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -277,7 +295,7 @@ export default function CuadernosIndex({
 
                                                     <TableCell className="text-center">
                                                         <Checkbox
-                                                            className="mx-auto"
+                                                            className="mx-auto data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
                                                             checked={la_paz}
                                                             onCheckedChange={(
                                                                 checked,
@@ -295,7 +313,7 @@ export default function CuadernosIndex({
 
                                                     <TableCell className="text-center">
                                                         <Checkbox
-                                                            className="mx-auto"
+                                                            className="mx-auto data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
                                                             checked={enviado}
                                                             onCheckedChange={(
                                                                 checked,
@@ -313,7 +331,7 @@ export default function CuadernosIndex({
 
                                                     <TableCell className="text-center">
                                                         <Checkbox
-                                                            className="mx-auto"
+                                                            className="mx-auto data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
                                                             checked={p_listo}
                                                             onCheckedChange={(
                                                                 checked,
@@ -331,7 +349,7 @@ export default function CuadernosIndex({
 
                                                     <TableCell className="text-center">
                                                         <Checkbox
-                                                            className="mx-auto"
+                                                            className="mx-auto data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
                                                             checked={p_pendiente}
                                                             onCheckedChange={(
                                                                 checked,
@@ -441,13 +459,35 @@ export default function CuadernosIndex({
                                                             {cuaderno.estado}
                                                         </Badge>
                                                     </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <div className="flex justify-end gap-1">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-green-500 hover:text-green-600 hover:bg-green-100"
+                                                                onClick={() => handleConfirm(cuaderno.id)}
+                                                                title="Confirmar"
+                                                            >
+                                                                <Check className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-100"
+                                                                onClick={() => handleDelete(cuaderno.id)}
+                                                                title="Eliminar"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
                                                 </TableRow>
                                             );
                                         })
                                     ) : (
                                         <TableRow>
                                             <TableCell
-                                                colSpan={11}
+                                                colSpan={12}
                                                 className="text-center"
                                             >
                                                 No hay cuadernos registrados.
