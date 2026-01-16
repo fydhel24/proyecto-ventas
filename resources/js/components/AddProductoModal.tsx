@@ -1,6 +1,14 @@
 // resources/js/components/AddProductoModal.tsx
 import { Button } from '@/components/ui/button';
 import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from '@/components/ui/command';
+import {
     Dialog,
     DialogContent,
     DialogFooter,
@@ -10,12 +18,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { useState } from 'react';
 
 interface Producto {
@@ -37,20 +45,23 @@ function AddProductoModal({
     onSave,
     productos,
 }: AddProductoModalProps) {
-    const [productoId, setProductoId] = useState<string>('');
+    const [openPopover, setOpenPopover] = useState(false);
+    const [selectedProducto, setSelectedProducto] = useState<Producto | null>(
+        null,
+    );
     const [cantidad, setCantidad] = useState<string>('');
     const [precioVenta, setPrecioVenta] = useState<string>('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!productoId || !cantidad || !precioVenta) return;
+        if (!selectedProducto || !cantidad || !precioVenta) return;
 
         onSave(
-            parseInt(productoId),
+            selectedProducto.id,
             parseInt(cantidad),
             parseFloat(precioVenta),
         );
-        setProductoId('');
+        setSelectedProducto(null);
         setCantidad('');
         setPrecioVenta('');
         onClose();
@@ -65,25 +76,60 @@ function AddProductoModal({
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     <div>
                         <Label htmlFor="producto">Producto</Label>
-                        <Select
-                            value={productoId}
-                            onValueChange={setProductoId}
+                        <Popover
+                            open={openPopover}
+                            onOpenChange={setOpenPopover}
                         >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Selecciona un producto" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {productos.map((producto) => (
-                                    <SelectItem
-                                        key={producto.id}
-                                        value={producto.id.toString()}
-                                    >
-                                        {producto.nombre} (Stock:{' '}
-                                        {producto.stock})
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={openPopover}
+                                    className="w-full justify-between"
+                                >
+                                    {selectedProducto
+                                        ? `${selectedProducto.nombre} (Stock: ${selectedProducto.stock})`
+                                        : 'Selecciona un producto...'}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                                <Command>
+                                    <CommandInput placeholder="Buscar producto..." />
+                                    <CommandList>
+                                        <CommandEmpty>
+                                            No se encontraron productos.
+                                        </CommandEmpty>
+                                        <CommandGroup>
+                                            {productos.map((producto) => (
+                                                <CommandItem
+                                                    key={producto.id}
+                                                    value={producto.nombre}
+                                                    onSelect={() => {
+                                                        setSelectedProducto(
+                                                            producto,
+                                                        );
+                                                        setOpenPopover(false);
+                                                    }}
+                                                >
+                                                    <Check
+                                                        className={cn(
+                                                            'mr-2 h-4 w-4',
+                                                            selectedProducto?.id ===
+                                                                producto.id
+                                                                ? 'opacity-100'
+                                                                : 'opacity-0',
+                                                        )}
+                                                    />
+                                                    {producto.nombre} (Stock:{' '}
+                                                    {producto.stock})
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
                     </div>
                     <div>
                         <Label htmlFor="cantidad">Cantidad</Label>

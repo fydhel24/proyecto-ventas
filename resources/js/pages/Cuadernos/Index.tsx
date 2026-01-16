@@ -157,10 +157,8 @@ export default function CuadernosIndex({
                                     <TableHead>Enviado</TableHead>
                                     <TableHead>P. Listo</TableHead>
                                     <TableHead>P. Pendiente</TableHead>
-                                    <TableHead>Nombre</TableHead>
-                                    <TableHead>CI</TableHead>
-                                    <TableHead>Celular</TableHead>
-                                    <TableHead>Departamento</TableHead>
+                                    <TableHead>Cliente</TableHead>
+                                    <TableHead>Ubicación</TableHead>
                                     <TableHead>Productos</TableHead>
                                     <TableHead>Estado</TableHead>
                                 </TableRow>
@@ -255,16 +253,17 @@ export default function CuadernosIndex({
                                                 </TableCell>
 
                                                 <TableCell>
-                                                    {cuaderno.nombre}
+                                                    <div className="text-sm">
+                                                        <div><strong>Nombre:</strong> {cuaderno.nombre}</div>
+                                                        <div><strong>CI:</strong> {cuaderno.ci}</div>
+                                                        <div><strong>Celular:</strong> {cuaderno.celular}</div>
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    {cuaderno.ci}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {cuaderno.celular}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {cuaderno.departamento}
+                                                    <div className="text-sm">
+                                                        <div><strong>Departamento:</strong> {cuaderno.departamento}</div>
+                                                        <div><strong>Provincia:</strong> {cuaderno.provincia}</div>
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex items-center gap-2">
