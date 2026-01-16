@@ -1,8 +1,10 @@
 // resources/js/Pages/Cuadernos/Index.tsx
 import AddProductoModal from '@/components/AddProductoModal';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import {
     Table,
     TableBody,
@@ -12,9 +14,27 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
+import { cn } from '@/lib/utils';
 import { Head, router } from '@inertiajs/react';
-import { PlusIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import {
+    MapPin,
+    Phone,
+    User,
+    Package,
+    Truck,
+    CheckCircle,
+    Clock,
+    Map as MapIcon,
+    PlusIcon,
+    Search,
+    IdCard,
+    ChevronLeft,
+    ChevronRight,
+    ChevronsLeft,
+    ChevronsRight
+} from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { Link } from '@inertiajs/react'; // Import Link for pagination
 
 interface Producto {
     id: number;
@@ -53,23 +73,62 @@ interface Cuaderno {
 // Estado local para optimizar la UX
 type LocalState = Record<number, Partial<Cuaderno>>;
 
+// Pagination interfaces
+interface Link {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+interface PaginatedResponse<T> {
+    data: T[];
+    links: Link[];
+    current_page: number;
+    last_page: number;
+    from: number;
+    to: number;
+    total: number;
+    prev_page_url: string | null;
+    next_page_url: string | null;
+}
+
 export default function CuadernosIndex({
     cuadernos,
     productos,
+    filters,
 }: {
-    cuadernos: Cuaderno[];
+    cuadernos: PaginatedResponse<Cuaderno>;
     productos: ProductoModal[];
+    filters: { search?: string };
 }) {
     const [localState, setLocalState] = useState<LocalState>({});
     const [modalOpen, setModalOpen] = useState(false);
-    const [selectedCuadernoId, setSelectedCuadernoId] = useState<number | null>(
-        null,
-    );
+    const [selectedCuadernoId, setSelectedCuadernoId] = useState<number | null>(null);
+    const [search, setSearch] = useState(filters.search || '');
 
-    // Sincroniza el estado local con los datos iniciales
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (search !== (filters.search || '')) {
+                router.get(
+                    window.location.pathname,
+                    { search },
+                    {
+                        preserveState: true,
+                        preserveScroll: true,
+                        replace: true,
+                    },
+                );
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [search]);
+
+    // Update local state when cuadernos data changes
     useEffect(() => {
         const initialState: LocalState = {};
-        cuadernos.forEach((c) => {
+        cuadernos.data.forEach((c) => {
             initialState[c.id] = {
                 la_paz: c.la_paz,
                 enviado: c.enviado,
@@ -78,14 +137,14 @@ export default function CuadernosIndex({
             };
         });
         setLocalState(initialState);
-    }, [cuadernos]);
+    }, [cuadernos.data]);
 
-    const updateCuadernoField = (
+    // Actualiza solo el estado local (para inputs de texto)
+    const updateLocalState = (
         id: number,
         field: keyof Cuaderno,
-        value: boolean,
+        value: string | boolean,
     ) => {
-        // 1. Actualiza el estado local inmediatamente (optimistic UI)
         setLocalState((prev) => ({
             ...prev,
             [id]: {
@@ -93,28 +152,40 @@ export default function CuadernosIndex({
                 [field]: value,
             },
         }));
+    };
 
-        // 2. Envía al servidor
+    // Envía los cambios al servidor
+    const persistChange = (
+        id: number,
+        field: keyof Cuaderno,
+        value: string | boolean,
+    ) => {
         router.patch(
             `/cuadernos/${id}`,
             { [field]: value },
             {
                 preserveState: true,
                 preserveScroll: true,
-                // Si falla, revertimos el cambio
                 onError: () => {
-                    setLocalState((prev) => ({
-                        ...prev,
-                        [id]: {
-                            ...prev[id],
-                            [field]: !value, // revertir
-                        },
-                    }));
+                    // Revertimos en caso de error buscando el valor original
+                    const original = cuadernos.data.find((c) => c.id === id);
+                    if (original) {
+                        // @ts-ignore - Dynamic access is safe here given the context
+                        updateLocalState(id, field, original[field]);
+                    }
                 },
-                // Opcional: si quieres asegurar que el estado del servidor se impone
-                // onSuccess: () => {}, // no es necesario si usas preserveState
             },
         );
+    };
+
+    // Helper para actualizar y guardar inmediatamente (para checkboxes)
+    const updateAndSave = (
+        id: number,
+        field: keyof Cuaderno,
+        value: boolean,
+    ) => {
+        updateLocalState(id, field, value);
+        persistChange(id, field, value);
     };
 
     const handleAddProducto = (
@@ -144,195 +215,276 @@ export default function CuadernosIndex({
         <AppLayout>
             <Head title="Cuadernos" />
             <div className="container mx-auto py-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Cuadernos Registrados</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>ID</TableHead>
-                                    <TableHead>La Paz</TableHead>
-                                    <TableHead>Enviado</TableHead>
-                                    <TableHead>P. Listo</TableHead>
-                                    <TableHead>P. Pendiente</TableHead>
-                                    <TableHead>Cliente</TableHead>
-                                    <TableHead>Ubicación</TableHead>
-                                    <TableHead>Productos</TableHead>
-                                    <TableHead>Estado</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {cuadernos.length > 0 ? (
-                                    cuadernos.map((cuaderno) => {
-                                        const local =
-                                            localState[cuaderno.id] || {};
-                                        const la_paz =
-                                            local.la_paz ?? cuaderno.la_paz;
-                                        const enviado =
-                                            local.enviado ?? cuaderno.enviado;
-                                        const p_listo =
-                                            local.p_listo ?? cuaderno.p_listo;
-                                        const p_pendiente =
-                                            local.p_pendiente ??
-                                            cuaderno.p_pendiente;
+                <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-2">
+                        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Gestión de Cuadernos</h1>
+                        <p className="text-muted-foreground">Administra las ventas, clientes y estados de los pedidos.</p>
+                    </div>
 
-                                        return (
-                                            <TableRow key={cuaderno.id}>
-                                                <TableCell>
-                                                    {cuaderno.id}
-                                                </TableCell>
+                    <Card className="border-none shadow-md">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <div>
+                                <CardTitle className="text-xl">Listado de Ordenes</CardTitle>
+                                <CardDescription>Gestiona el seguimiento y detalles de cada venta.</CardDescription>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="relative w-64">
+                                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Buscar por nombre, CI, celular..."
+                                        className="pl-8 h-9"
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="bg-muted/50 hover:bg-muted/50">
+                                        <TableHead className="w-[50px]">ID</TableHead>
+                                        <TableHead className="text-center w-[60px]" title="La Paz"><MapPin className="w-4 h-4 mx-auto text-blue-500" /></TableHead>
+                                        <TableHead className="text-center w-[60px]" title="Enviado"><Truck className="w-4 h-4 mx-auto text-orange-500" /></TableHead>
+                                        <TableHead className="text-center w-[60px]" title="Listo"><CheckCircle className="w-4 h-4 mx-auto text-green-500" /></TableHead>
+                                        <TableHead className="text-center w-[60px]" title="Pendiente"><Clock className="w-4 h-4 mx-auto text-red-500" /></TableHead>
+                                        <TableHead className="min-w-[200px]">Cliente</TableHead>
+                                        <TableHead className="min-w-[180px]">Ubicación</TableHead>
+                                        <TableHead>Productos</TableHead>
+                                        <TableHead>Estado</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {cuadernos.data.length > 0 ? (
+                                        cuadernos.data.map((cuaderno) => {
+                                            const local =
+                                                localState[cuaderno.id] || {};
+                                            const la_paz =
+                                                local.la_paz ?? cuaderno.la_paz;
+                                            const enviado =
+                                                local.enviado ?? cuaderno.enviado;
+                                            const p_listo =
+                                                local.p_listo ?? cuaderno.p_listo;
+                                            const p_pendiente =
+                                                local.p_pendiente ??
+                                                cuaderno.p_pendiente;
 
-                                                <TableCell>
-                                                    <Checkbox
-                                                        checked={la_paz}
-                                                        onCheckedChange={(
-                                                            checked,
-                                                        ) => {
-                                                            updateCuadernoField(
-                                                                cuaderno.id,
-                                                                'la_paz',
-                                                                Boolean(
-                                                                    checked,
-                                                                ),
-                                                            );
-                                                        }}
-                                                    />
-                                                </TableCell>
+                                            return (
+                                                <TableRow key={cuaderno.id} className="group hover:bg-muted/30 transition-colors">
+                                                    <TableCell className="font-medium text-muted-foreground text-xs">
+                                                        #{cuaderno.id}
+                                                    </TableCell>
 
-                                                <TableCell>
-                                                    <Checkbox
-                                                        checked={enviado}
-                                                        onCheckedChange={(
-                                                            checked,
-                                                        ) => {
-                                                            updateCuadernoField(
-                                                                cuaderno.id,
-                                                                'enviado',
-                                                                Boolean(
-                                                                    checked,
-                                                                ),
-                                                            );
-                                                        }}
-                                                    />
-                                                </TableCell>
-
-                                                <TableCell>
-                                                    <Checkbox
-                                                        checked={p_listo}
-                                                        onCheckedChange={(
-                                                            checked,
-                                                        ) => {
-                                                            updateCuadernoField(
-                                                                cuaderno.id,
-                                                                'p_listo',
-                                                                Boolean(
-                                                                    checked,
-                                                                ),
-                                                            );
-                                                        }}
-                                                    />
-                                                </TableCell>
-
-                                                <TableCell>
-                                                    <Checkbox
-                                                        checked={p_pendiente}
-                                                        onCheckedChange={(
-                                                            checked,
-                                                        ) => {
-                                                            updateCuadernoField(
-                                                                cuaderno.id,
-                                                                'p_pendiente',
-                                                                Boolean(
-                                                                    checked,
-                                                                ),
-                                                            );
-                                                        }}
-                                                    />
-                                                </TableCell>
-
-                                                <TableCell>
-                                                    <div className="text-sm">
-                                                        <div><strong>Nombre:</strong> {cuaderno.nombre}</div>
-                                                        <div><strong>CI:</strong> {cuaderno.ci}</div>
-                                                        <div><strong>Celular:</strong> {cuaderno.celular}</div>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="text-sm">
-                                                        <div><strong>Departamento:</strong> {cuaderno.departamento}</div>
-                                                        <div><strong>Provincia:</strong> {cuaderno.provincia}</div>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-2">
-                                                        <div>
-                                                            {cuaderno.productos.map(
-                                                                (p) => (
-                                                                    <div
-                                                                        key={
-                                                                            p.id
-                                                                        }
-                                                                        className="text-sm"
-                                                                    >
-                                                                        {
-                                                                            p.nombre
-                                                                        }{' '}
-                                                                        -
-                                                                        Cantidad:{' '}
-                                                                        {
-                                                                            p
-                                                                                .pivot
-                                                                                .cantidad
-                                                                        }{' '}
-                                                                        -
-                                                                        Precio:{' '}
-                                                                        {
-                                                                            p
-                                                                                .pivot
-                                                                                .precio_venta
-                                                                        }
-                                                                    </div>
-                                                                ),
-                                                            )}
-                                                        </div>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => {
-                                                                setSelectedCuadernoId(
+                                                    <TableCell className="text-center">
+                                                        <Checkbox
+                                                            className="mx-auto"
+                                                            checked={la_paz}
+                                                            onCheckedChange={(
+                                                                checked,
+                                                            ) => {
+                                                                updateAndSave(
                                                                     cuaderno.id,
-                                                                );
-                                                                setModalOpen(
-                                                                    true,
+                                                                    'la_paz',
+                                                                    Boolean(
+                                                                        checked,
+                                                                    ),
                                                                 );
                                                             }}
-                                                        >
-                                                            <PlusIcon className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {cuaderno.estado}
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })
-                                ) : (
-                                    <TableRow>
-                                        <TableCell
-                                            colSpan={11}
-                                            className="text-center"
+                                                        />
+                                                    </TableCell>
+
+                                                    <TableCell className="text-center">
+                                                        <Checkbox
+                                                            className="mx-auto"
+                                                            checked={enviado}
+                                                            onCheckedChange={(
+                                                                checked,
+                                                            ) => {
+                                                                updateAndSave(
+                                                                    cuaderno.id,
+                                                                    'enviado',
+                                                                    Boolean(
+                                                                        checked,
+                                                                    ),
+                                                                );
+                                                            }}
+                                                        />
+                                                    </TableCell>
+
+                                                    <TableCell className="text-center">
+                                                        <Checkbox
+                                                            className="mx-auto"
+                                                            checked={p_listo}
+                                                            onCheckedChange={(
+                                                                checked,
+                                                            ) => {
+                                                                updateAndSave(
+                                                                    cuaderno.id,
+                                                                    'p_listo',
+                                                                    Boolean(
+                                                                        checked,
+                                                                    ),
+                                                                );
+                                                            }}
+                                                        />
+                                                    </TableCell>
+
+                                                    <TableCell className="text-center">
+                                                        <Checkbox
+                                                            className="mx-auto"
+                                                            checked={p_pendiente}
+                                                            onCheckedChange={(
+                                                                checked,
+                                                            ) => {
+                                                                updateAndSave(
+                                                                    cuaderno.id,
+                                                                    'p_pendiente',
+                                                                    Boolean(
+                                                                        checked,
+                                                                    ),
+                                                                );
+                                                            }}
+                                                        />
+                                                    </TableCell>
+
+                                                    <TableCell>
+                                                        <div className="flex flex-col gap-2 min-w-[180px]">
+                                                            <div className="relative">
+                                                                <User className="absolute left-2 top-1.5 h-3.5 w-3.5 text-muted-foreground" />
+                                                                <Input
+                                                                    className="h-7 pl-7 text-xs border-transparent bg-transparent hover:bg-muted focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-input transition-all"
+                                                                    placeholder="Nombre"
+                                                                    value={local.nombre ?? cuaderno.nombre ?? ''}
+                                                                    onChange={(e) => updateLocalState(cuaderno.id, 'nombre', e.target.value)}
+                                                                    onBlur={(e) => persistChange(cuaderno.id, 'nombre', e.target.value)}
+                                                                />
+                                                            </div>
+                                                            <div className="relative">
+                                                                <IdCard className="absolute left-2 top-1.5 h-3.5 w-3.5 text-muted-foreground" />
+                                                                <Input
+                                                                    className="h-7 pl-7 text-xs border-transparent bg-transparent hover:bg-muted focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-input transition-all"
+                                                                    placeholder="CI"
+                                                                    value={local.ci ?? cuaderno.ci ?? ''}
+                                                                    onChange={(e) => updateLocalState(cuaderno.id, 'ci', e.target.value)}
+                                                                    onBlur={(e) => persistChange(cuaderno.id, 'ci', e.target.value)}
+                                                                />
+                                                            </div>
+                                                            <div className="relative">
+                                                                <Phone className="absolute left-2 top-1.5 h-3.5 w-3.5 text-muted-foreground" />
+                                                                <Input
+                                                                    className="h-7 pl-7 text-xs border-transparent bg-transparent hover:bg-muted focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-input transition-all"
+                                                                    placeholder="Celular"
+                                                                    value={local.celular ?? cuaderno.celular ?? ''}
+                                                                    onChange={(e) => updateLocalState(cuaderno.id, 'celular', e.target.value)}
+                                                                    onBlur={(e) => persistChange(cuaderno.id, 'celular', e.target.value)}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex flex-col gap-2 min-w-[160px]">
+                                                            <div className="relative">
+                                                                <MapIcon className="absolute left-2 top-1.5 h-3.5 w-3.5 text-muted-foreground" />
+                                                                <Input
+                                                                    className="h-7 pl-7 text-xs border-transparent bg-transparent hover:bg-muted focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-input transition-all"
+                                                                    placeholder="Departamento"
+                                                                    value={local.departamento ?? cuaderno.departamento ?? ''}
+                                                                    onChange={(e) => updateLocalState(cuaderno.id, 'departamento', e.target.value)}
+                                                                    onBlur={(e) => persistChange(cuaderno.id, 'departamento', e.target.value)}
+                                                                />
+                                                            </div>
+                                                            <div className="relative">
+                                                                <MapPin className="absolute left-2 top-1.5 h-3.5 w-3.5 text-muted-foreground" />
+                                                                <Input
+                                                                    className="h-7 pl-7 text-xs border-transparent bg-transparent hover:bg-muted focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-input transition-all"
+                                                                    placeholder="Provincia"
+                                                                    value={local.provincia ?? cuaderno.provincia ?? ''}
+                                                                    onChange={(e) => updateLocalState(cuaderno.id, 'provincia', e.target.value)}
+                                                                    onBlur={(e) => persistChange(cuaderno.id, 'provincia', e.target.value)}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex flex-col gap-2 min-w-[200px]">
+                                                            <div className="flex flex-col gap-1.5">
+                                                                {cuaderno.productos.map((p) => (
+                                                                    <div key={p.id} className="flex items-center justify-between text-xs p-1.5 rounded-md bg-muted/50 border border-transparent hover:border-border transition-colors group/item">
+                                                                        <span className="font-medium truncate max-w-[100px]" title={p.nombre}>{p.nombre}</span>
+                                                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                                                            <span className="bg-background px-1.5 rounded border text-[10px]">x{p.pivot.cantidad}</span>
+                                                                            <span className="font-mono text-[10px]">{p.pivot.precio_venta} Bs</span>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="w-full h-7 text-xs gap-1 dashed border-dashed text-muted-foreground hover:text-primary"
+                                                                onClick={() => {
+                                                                    setSelectedCuadernoId(cuaderno.id);
+                                                                    setModalOpen(true);
+                                                                }}
+                                                            >
+                                                                <PlusIcon className="h-3 w-3" />
+                                                                Agregar
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={
+                                                            cuaderno.estado === 'Entregado' ? 'default' :
+                                                                cuaderno.estado === 'Pendiente' ? 'destructive' :
+                                                                    'outline'
+                                                        }>
+                                                            {cuaderno.estado}
+                                                        </Badge>
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell
+                                                colSpan={11}
+                                                className="text-center"
+                                            >
+                                                No hay cuadernos registrados.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                            {/* Pagination */}
+                            <div className="flex items-center justify-between mt-4">
+                                <div className="text-sm text-muted-foreground">
+                                    Mostrando {cuadernos.from} a {cuadernos.to} de {cuadernos.total} resultados
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    {cuadernos.links.map((link, i) => (
+                                        <Button
+                                            key={i}
+                                            variant={link.active ? "default" : "outline"}
+                                            size="sm"
+                                            className={cn("h-8 w-8 p-0", !link.url && "opacity-50 cursor-not-allowed")}
+                                            asChild={!!link.url}
+                                            disabled={!link.url}
                                         >
-                                            No hay cuadernos registrados.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
+                                            {link.url ? (
+                                                <Link href={link.url} preserveState preserveScroll>
+                                                    <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                                                </Link>
+                                            ) : (
+                                                <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                                            )}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
             <AddProductoModal
                 open={modalOpen}

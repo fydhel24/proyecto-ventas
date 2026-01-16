@@ -9,23 +9,37 @@ use Inertia\Inertia;
 
 class CuadernoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->input('search');
+
         $cuadernos = Cuaderno::with([
             'productos:id,nombre,marca_id,categoria_id,color_id',
             'productos.marca:id,nombre_marca',
             'productos.categoria:id,nombre_cat',
             'productos.color:id,codigo_color'
         ])
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nombre', 'like', "%{$search}%")
+                        ->orWhere('ci', 'like', "%{$search}%")
+                        ->orWhere('celular', 'like', "%{$search}%")
+                        ->orWhere('departamento', 'like', "%{$search}%")
+                        ->orWhere('provincia', 'like', "%{$search}%")
+                        ->orWhere('id', 'like', "%{$search}%");
+                });
+            })
             ->select('id', 'nombre', 'ci', 'celular', 'departamento', 'provincia', 'tipo', 'estado', 'detalle', 'la_paz', 'enviado', 'p_listo', 'p_pendiente', 'created_at')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(20)
+            ->withQueryString();
 
         $productos = Producto::get(['id', 'nombre', 'stock']);
 
         return Inertia::render('Cuadernos/Index', [
             'cuadernos' => $cuadernos,
             'productos' => $productos,
+            'filters' => $request->only(['search']),
         ]);
     }
     public function update(Request $request, Cuaderno $cuaderno)
@@ -35,9 +49,17 @@ class CuadernoController extends Controller
             'enviado' => 'nullable|boolean',
             'p_listo' => 'nullable|boolean',
             'p_pendiente' => 'nullable|boolean',
+            'nombre' => 'nullable|string|max:255',
+            'ci' => 'nullable|string|max:20',
+            'celular' => 'nullable|string|max:20',
+            'departamento' => 'nullable|string|max:50',
+            'provincia' => 'nullable|string|max:50',
         ]);
 
-        $cuaderno->update($request->only(['la_paz', 'enviado', 'p_listo', 'p_pendiente']));
+        $cuaderno->update($request->only([
+            'la_paz', 'enviado', 'p_listo', 'p_pendiente',
+            'nombre', 'ci', 'celular', 'departamento', 'provincia'
+        ]));
 
         return back();
     }
@@ -57,4 +79,5 @@ class CuadernoController extends Controller
 
         return back()->with('success', 'Producto agregado correctamente');
     }
+    
 }
