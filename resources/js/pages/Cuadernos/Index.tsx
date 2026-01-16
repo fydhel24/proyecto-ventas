@@ -37,6 +37,12 @@ import {
 } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from '@inertiajs/react'; // Import Link for pagination
+import { Image as ImageIcon } from 'lucide-react';
+
+interface Imagen {
+    id: number;
+    url: string;
+}
 
 interface Producto {
     id: number;
@@ -70,6 +76,7 @@ interface Cuaderno {
     p_pendiente: boolean;
     created_at: string;
     productos: Producto[];
+    imagenes?: Imagen[];
 }
 
 // Estado local para optimizar la UX
@@ -268,6 +275,7 @@ export default function CuadernosIndex({
                                         <TableHead className="min-w-[200px]">Cliente</TableHead>
                                         <TableHead className="min-w-[180px]">Ubicación</TableHead>
                                         <TableHead>Productos</TableHead>
+                                        <TableHead>Imágenes</TableHead>
                                         <TableHead>Estado</TableHead>
                                         <TableHead className="text-right">Acciones</TableHead>
                                     </TableRow>
@@ -448,6 +456,22 @@ export default function CuadernosIndex({
                                                                 <PlusIcon className="h-3 w-3" />
                                                                 Agregar
                                                             </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex flex-wrap gap-1 min-w-[100px]">
+                                                            {cuaderno.imagenes && cuaderno.imagenes.length > 0 ? (
+                                                                cuaderno.imagenes.map((img) => (
+                                                                    <a key={img.id} href={img.url} target="_blank" rel="noopener noreferrer" className="block w-10 h-10 rounded border overflow-hidden hover:opacity-80 transition-opacity">
+                                                                        <img src={img.url} alt="Cuaderno" className="w-full h-full object-cover" />
+                                                                    </a>
+                                                                ))
+                                                            ) : (
+                                                                <div className="w-full text-center text-muted-foreground text-xs py-2 flex flex-col items-center gap-1">
+                                                                    <ImageIcon className="w-4 h-4 opacity-50" />
+                                                                    <span className="text-[10px]">Sin fotos</span>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </TableCell>
                                                     <TableCell>

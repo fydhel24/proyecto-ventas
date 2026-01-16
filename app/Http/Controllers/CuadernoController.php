@@ -17,7 +17,8 @@ class CuadernoController extends Controller
             'productos:id,nombre,marca_id,categoria_id,color_id',
             'productos.marca:id,nombre_marca',
             'productos.categoria:id,nombre_cat',
-            'productos.color:id,codigo_color'
+            'productos.color:id,codigo_color',
+            'imagenes:id,url'
         ])
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -87,4 +88,115 @@ class CuadernoController extends Controller
         return back()->with('success', 'Producto agregado correctamente');
     }
     
+    public function pedidos(Request $request)
+    {
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'ci' => 'nullable|string|max:20',
+            'celular' => 'required|string|max:20',
+            'departamento' => 'required|string|max:100',
+            'provincia' => 'required|string|max:100',
+            'tipo' => 'nullable|string|max:50',
+            'estado' => 'nullable|string|max:50',
+            'productos' => 'nullable|array',
+            'productos.*.producto_id' => 'required_with:productos|exists:productos,id',
+            'productos.*.cantidad' => 'required_with:productos|integer|min:1',
+            'productos.*.precio_venta' => 'required_with:productos|numeric|min:0',
+            'imagenes' => 'nullable|array',
+            'imagenes.*' => 'image|mimes:jpeg,png,jpg,gif',
+            'tipos_imagenes' => 'nullable|array',
+            'tipos_imagenes.*' => 'required_with:imagenes|string|in:producto,comprobante',
+        ]);
+
+        $celular = preg_replace('/[^0-9]/', '', $request->celular);
+        $hoy = now()->toDateString();
+
+        // Verificar si ya existe pedido hoy
+        $dosDiasAtras = now()->subDays(2)->startOfHour();
+
+        $cuadernoExistente = Cuaderno::where('celular', $request->celular)
+            ->where(function ($query) use ($dosDiasAtras) {
+                $query->where('created_at', '>=', $dosDiasAtras)
+                    ->orWhere('estado', '1');
+            })
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        
+
+        $departamento = strtolower(trim($request->departamento));
+        $provincia = strtolower(trim($request->provincia));
+
+        $esLaPaz = $departamento === 'la paz' && $provincia === 'recojo en tienda';
+        $cuaderno = Cuaderno::create([
+            'nombre' => $request->nombre,
+            'ci' => $request->ci,
+            'celular' => $request->celular,
+            'departamento' => $request->departamento,
+            'provincia' => $request->provincia,
+            'tipo' => $request->tipo,
+            'estado' => $request->estado ?? '1',
+            'la_paz' => $esLaPaz,
+        ]);
+
+        // Asociar productos
+        if ($request->has('productos') && is_array($request->productos)) {
+            $productosData = [];
+            foreach ($request->productos as $item) {
+                $productosData[$item['producto_id']] = [
+                    'cantidad' => $item['cantidad'],
+                    'precio_venta' => $item['precio_venta'],
+                ];
+            }
+            $cuaderno->productos()->attach($productosData);
+        }
+
+        // Subir imágenes
+        if ($request->hasFile('imagenes') && $request->has('tipos_imagenes')) {
+            $imagenes = $request->file('imagenes');
+            $tipos = $request->input('tipos_imagenes', []);
+            $total = min(count($imagenes), count($tipos));
+            for ($i = 0; $i < $total; $i++) {
+                $imagen = $imagenes[$i];
+                $tipo = $tipos[$i];
+                if ($imagen && $imagen->isValid()) {
+                    $ruta = $imagen->store('imagenes', 'public');
+                    $imagenModel = Imagene::create(['url' => $ruta]);
+                    ImagenCuaderno::create([
+                        'cuaderno_id' => $cuaderno->id,
+                        'imagen_id' => $imagenModel->id,
+                        'tipo' => $tipo,
+                    ]);
+                }
+            }
+        }
+        $this->guardarPdfDePedido($cuaderno->id);
+        // ¡IMPORTANTE! Solo generamos y enviamos PDF si WhatsApp está conectado
+        if ($this->isWhatsAppConnected()) {
+
+            $this->enviarPdfPorNestApi($cuaderno->id, $request->celular);
+        }
+
+        // Determinar estado de WhatsApp una sola vez
+        $whatsappConnected = $this->isWhatsAppConnected();
+
+        $responseData = [
+            'success' => true,
+            'message' => 'Pedido creado exitosamente',
+            'data' => $cuaderno->load(['productos', 'imagenes']),
+            'pedido_id' => $cuaderno->id,
+            'whatsapp_connected' => $whatsappConnected,
+        ];
+
+        // 👇 Solo incluir PDF si WhatsApp está DESCONECTADO
+        if (!$whatsappConnected) {
+            $pdfPath = "pedidospdf/{$cuaderno->id}.pdf";
+            if (Storage::disk('public')->exists($pdfPath)) {
+                $pdfContent = Storage::disk('public')->get($pdfPath);
+                $responseData['pdf_base64'] = base64_encode($pdfContent);
+            }
+        }
+
+        return response()->json($responseData, 201);
+    }
 }

@@ -27,6 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/cuadernos', [CuadernoController::class, 'index'])->name('cuadernos.index');
     Route::patch('/cuadernos/{cuaderno}', [CuadernoController::class, 'update'])->name('cuadernos.update');
     Route::post('/cuadernos/{cuaderno}/productos', [CuadernoController::class, 'addProducto'])->name('cuadernos.addProducto');
+    Route::delete('/cuadernos/{cuaderno}', [CuadernoController::class, 'destroy'])->name('cuadernos.destroy');
 });
 
 require __DIR__ . '/settings.php';
