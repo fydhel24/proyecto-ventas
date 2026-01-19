@@ -10,11 +10,13 @@ class ImagenCuaderno extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
     protected $table = 'imagen_cuadernos';
 
     protected $fillable = [
         'cuaderno_id',
         'imagen_id',
         'tipo',
+        'cantidad',
     ];
 }

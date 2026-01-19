@@ -50,6 +50,7 @@ interface Imagen {
     url: string;
     pivot: {
         tipo: string;
+        cantidad: number;
     };
 }
 
@@ -473,20 +474,26 @@ export default function CuadernosIndex({
                                                         <div className="flex flex-wrap gap-1 min-w-[100px]">
                                                             {cuaderno.imagenes && cuaderno.imagenes.length > 0 ? (
                                                                 cuaderno.imagenes.map((img) => (
-                                                                    <Button
-                                                                        key={img.id}
-                                                                        variant="outline"
-                                                                        size="sm"
-                                                                        className="h-7 text-xs px-2"
-                                                                        onClick={() => {
-                                                                            setCurrentImage(img.url);
-                                                                            setImageModalOpen(true);
-                                                                        }}
-                                                                    >
-                                                                        {img.pivot?.tipo === 'producto' ? 'Producto' :
-                                                                            img.pivot?.tipo === 'comprobante' ? 'Comprobante' :
-                                                                                'Ver Imagen'}
-                                                                    </Button>
+                                                                    <div key={img.id} className="flex items-center gap-1">
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            className="h-7 text-xs px-2"
+                                                                            onClick={() => {
+                                                                                setCurrentImage(img.url);
+                                                                                setImageModalOpen(true);
+                                                                            }}
+                                                                        >
+                                                                            {img.pivot?.tipo === 'producto' ? 'Producto' :
+                                                                                img.pivot?.tipo === 'comprobante' ? 'Comprobante' :
+                                                                                    'Ver Imagen'}
+                                                                        </Button>
+                                                                        {img.pivot?.tipo === 'producto' && img.pivot?.cantidad > 0 && (
+                                                                            <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full border border-purple-200">
+                                                                                {img.pivot.cantidad}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
                                                                 ))
                                                             ) : (
                                                                 <div className="w-full text-center text-muted-foreground text-xs py-2 flex flex-col items-center gap-1">

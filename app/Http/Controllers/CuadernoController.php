@@ -3,21 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cuaderno;
-use App\Models\Producto;
-use App\Models\Imagene;
 use App\Models\ImagenCuaderno;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
+use App\Models\Imagene;
+use App\Models\Producto;
 use FPDF;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class CuadernoController extends Controller
 {
     public function createPedido()
     {
         $productos = Producto::select('id', 'nombre', 'stock', 'precio_1')->where('stock', '>', 0)->get();
+
         return Inertia::render('Pedidos/Create', [
-            'productos' => $productos
+            'productos' => $productos,
         ]);
     }
 
@@ -30,7 +31,7 @@ class CuadernoController extends Controller
             'productos.marca:id,nombre_marca',
             'productos.categoria:id,nombre_cat',
             'productos.color:id,codigo_color',
-            'imagenes'
+            'imagenes',
         ])
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -55,6 +56,7 @@ class CuadernoController extends Controller
             'filters' => $request->only(['search']),
         ]);
     }
+
     public function update(Request $request, Cuaderno $cuaderno)
     {
         $request->validate([
@@ -72,7 +74,7 @@ class CuadernoController extends Controller
 
         $cuaderno->update($request->only([
             'la_paz', 'enviado', 'p_listo', 'p_pendiente',
-            'nombre', 'ci', 'celular', 'departamento', 'provincia', 'estado'
+            'nombre', 'ci', 'celular', 'departamento', 'provincia', 'estado',
         ]));
 
         return back();
@@ -81,6 +83,7 @@ class CuadernoController extends Controller
     public function destroy(Cuaderno $cuaderno)
     {
         $cuaderno->delete();
+
         return back()->with('success', 'Cuaderno eliminado correctamente');
     }
 
@@ -99,7 +102,7 @@ class CuadernoController extends Controller
 
         return back()->with('success', 'Producto agregado correctamente');
     }
-    
+
     public function pedidos(Request $request)
     {
         $request->validate([
@@ -118,14 +121,12 @@ class CuadernoController extends Controller
             'imagenes.*' => 'image|mimes:jpeg,png,jpg,gif',
             'tipos_imagenes' => 'nullable|array',
             'tipos_imagenes.*' => 'required_with:imagenes|string|in:producto,comprobante',
+            'cantidades_imagenes' => 'nullable|array',
+            'cantidades_imagenes.*' => 'required_with:imagenes|integer|min:1',
         ]);
 
         $celular = preg_replace('/[^0-9]/', '', $request->celular);
         $hoy = now()->toDateString();
-
-        
-
-        
 
         $departamento = strtolower(trim($request->departamento));
         $provincia = strtolower(trim($request->provincia));
@@ -138,7 +139,7 @@ class CuadernoController extends Controller
             'departamento' => $request->departamento,
             'provincia' => $request->provincia,
             'tipo' => $request->tipo,
-            'estado' => $request->estado ?? '1',
+            'estado' => $request->estado ?? 'pendiente',
             'la_paz' => $esLaPaz,
         ]);
 
@@ -158,10 +159,12 @@ class CuadernoController extends Controller
         if ($request->hasFile('imagenes') && $request->has('tipos_imagenes')) {
             $imagenes = $request->file('imagenes');
             $tipos = $request->input('tipos_imagenes', []);
+            $cantidades = $request->input('cantidades_imagenes', []);
             $total = min(count($imagenes), count($tipos));
             for ($i = 0; $i < $total; $i++) {
                 $imagen = $imagenes[$i];
                 $tipo = $tipos[$i];
+                $cantidad = $cantidades[$i] ?? 1;
                 if ($imagen && $imagen->isValid()) {
                     $ruta = $imagen->store('imagenes', 'public');
                     $imagenModel = Imagene::create(['url' => $ruta]);
@@ -169,17 +172,19 @@ class CuadernoController extends Controller
                         'cuaderno_id' => $cuaderno->id,
                         'imagen_id' => $imagenModel->id,
                         'tipo' => $tipo,
+                        'cantidad' => $cantidad,
                     ]);
                 }
             }
         }
         $this->guardarPdfDePedido($cuaderno->id);
-        
+
         return response()->json([
             'message' => 'Pedido registrado correctamente',
-            'id' => $cuaderno->id
+            'id' => $cuaderno->id,
         ]);
     }
+
     private function guardarPdfDePedido($cuadernoId)
     {
         // Obtener el cuaderno
@@ -261,7 +266,7 @@ class CuadernoController extends Controller
         $pdf->SetFillColor($morado[0], $morado[1], $morado[2]);
         $pdf->SetTextColor(255, 255, 255);
         $pdf->SetFont('Arial', 'B', 14);
-        $pdf->Cell(0, 12, utf8_decode('   COMPROBANTE DE PEDIDO #' . ($pedido['id'] ?? '000')), 0, 1, 'L', true);
+        $pdf->Cell(0, 12, utf8_decode('   COMPROBANTE DE PEDIDO #'.($pedido['id'] ?? '000')), 0, 1, 'L', true);
 
         $pdf->SetFillColor($turquesa[0], $turquesa[1], $turquesa[2]);
         $pdf->Cell(0, 1.5, '', 0, 1, 'L', true);
@@ -309,7 +314,7 @@ class CuadernoController extends Controller
 
         $pdf->SetY($pdf->GetY() + 5);
         $urlEscaneo = "https://shop.importadoramiranda.com/qr?id={$pedido['id']}&ci={$pedido['ci']}&celular={$pedido['celular']}";
-        $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($urlEscaneo);
+        $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='.urlencode($urlEscaneo);
         $qrPath = storage_path("app/temp/qr_cua_{$pedido['id']}.png");
 
         if (! file_exists(storage_path('app/temp'))) {

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('cuaderno_id')->constrained('cuadernos')->cascadeOnDelete();
             $table->foreignId('imagen_id')->constrained('imagenes')->cascadeOnDelete();
             $table->string('tipo'); 
+            $table->integer('cantidad')->nullable(); 
             $table->timestamps();
             $table->softDeletes();
         });

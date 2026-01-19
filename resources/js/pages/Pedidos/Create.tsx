@@ -26,7 +26,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Loader2, Upload, User, CheckCircle, Image as ImageIcon, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Interfaces - Simplified
+interface ProductImage {
+    file: File;
+    quantity: number;
+}
+
 interface PedidosCreateProps {
     // No props needed now
 }
@@ -54,7 +58,7 @@ const formSchema = z.object({
 });
 
 export default function Create() {
-    const [productImages, setProductImages] = useState<File[]>([]);
+    const [productImages, setProductImages] = useState<ProductImage[]>([]);
     const [receiptImages, setReceiptImages] = useState<File[]>([]);
     const [productImagesError, setProductImagesError] = useState<string | null>(null);
     const [receiptImagesError, setReceiptImagesError] = useState<string | null>(null);
@@ -86,7 +90,8 @@ export default function Create() {
     // Image Handlers
     const handleProductImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            setProductImages([...productImages, ...Array.from(e.target.files)]);
+            const newFiles = Array.from(e.target.files).map(file => ({ file, quantity: 1 }));
+            setProductImages([...productImages, ...newFiles]);
             setProductImagesError(null);
         }
     };
@@ -96,6 +101,12 @@ export default function Create() {
             setReceiptImages([e.target.files[0]]);
             setReceiptImagesError(null);
         }
+    };
+
+    const updateProductQuantity = (index: number, quantity: number) => {
+        const newImages = [...productImages];
+        newImages[index].quantity = Math.max(1, quantity);
+        setProductImages(newImages);
     };
 
     const removeProductImage = (index: number) => {
@@ -138,9 +149,10 @@ export default function Create() {
         let globalIndex = 0;
 
         // Product Images
-        productImages.forEach((file) => {
-            formData.append(`imagenes[${globalIndex}]`, file);
+        productImages.forEach((item) => {
+            formData.append(`imagenes[${globalIndex}]`, item.file);
             formData.append(`tipos_imagenes[${globalIndex}]`, 'producto');
+            formData.append(`cantidades_imagenes[${globalIndex}]`, item.quantity.toString());
             globalIndex++;
         });
 
@@ -148,6 +160,7 @@ export default function Create() {
         receiptImages.forEach((file) => {
             formData.append(`imagenes[${globalIndex}]`, file);
             formData.append(`tipos_imagenes[${globalIndex}]`, 'comprobante');
+            formData.append(`cantidades_imagenes[${globalIndex}]`, '1');
             globalIndex++;
         });
 
@@ -351,18 +364,30 @@ export default function Create() {
 
                                     {productImages.length > 0 && (
                                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 animate-in fade-in zoom-in duration-300">
-                                            {productImages.map((file, index) => (
-                                                <div key={index} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200">
-                                                    <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeProductImage(index)}
-                                                        className="absolute top-1 right-1 bg-white/80 p-1 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
-                                                    >
-                                                        <Loader2 className="w-4 h-4 hidden" /> {/* Dummy for import usage */}
-                                                        <span className="sr-only">Eliminar</span>
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash-2 w-4 h-4"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
-                                                    </button>
+                                            {productImages.map((item, index) => (
+                                                <div key={index} className="flex flex-col gap-2">
+                                                    <div className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200">
+                                                        <img src={URL.createObjectURL(item.file)} alt="" className="w-full h-full object-cover" />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeProductImage(index)}
+                                                            className="absolute top-1 right-1 bg-white/80 p-1 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+                                                        >
+                                                            <Loader2 className="w-4 h-4 hidden" /> {/* Dummy for import usage */}
+                                                            <span className="sr-only">Eliminar</span>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash-2 w-4 h-4"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
+                                                        </button>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 px-1">
+                                                        <span className="text-xs font-semibold text-gray-500 uppercase">Cant:</span>
+                                                        <Input
+                                                            type="number"
+                                                            min="1"
+                                                            value={item.quantity}
+                                                            onChange={(e) => updateProductQuantity(index, parseInt(e.target.value) || 1)}
+                                                            className="h-8 text-xs text-center"
+                                                        />
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>

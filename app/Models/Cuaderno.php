@@ -51,7 +51,7 @@ class Cuaderno extends Model
     public function imagenes(): BelongsToMany
     {
         return $this->belongsToMany(Imagene::class, 'imagen_cuadernos', 'cuaderno_id', 'imagen_id')
-                    ->withPivot('tipo')
+                    ->withPivot('tipo', 'cantidad')
                     ->withTimestamps();
     }
 }
