@@ -13,6 +13,14 @@ use Illuminate\Support\Facades\Storage;
 
 class CuadernoController extends Controller
 {
+    public function createPedido()
+    {
+        $productos = Producto::select('id', 'nombre', 'stock', 'precio_1')->where('stock', '>', 0)->get();
+        return Inertia::render('Pedidos/Create', [
+            'productos' => $productos
+        ]);
+    }
+
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -167,6 +175,10 @@ class CuadernoController extends Controller
         }
         $this->guardarPdfDePedido($cuaderno->id);
         
+        return response()->json([
+            'message' => 'Pedido registrado correctamente',
+            'id' => $cuaderno->id
+        ]);
     }
     private function guardarPdfDePedido($cuadernoId)
     {
