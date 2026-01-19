@@ -48,13 +48,10 @@ export const useWhatsApp = () => {
         }
     }, []);
 
-    const toggleAutoResponder = useCallback(async (sessionId: string, status: boolean) => {
+    const toggleAutoResponder = useCallback(async (sessionName: string, enable: boolean) => {
         setLoading(true);
         try {
-            const response = await whatsappClient.post('/whatsapp/toggle-auto-responder', {
-                sessionId,
-                status,
-            });
+            const response = await whatsappClient.post(`/whatsapp/toggle-auto-responder?sessionName=${sessionName}&enable=${enable}`);
             return response.data;
         } catch (err: any) {
             setError(err.response?.data?.message || 'Error al cambiar estado del bot');
@@ -90,6 +87,45 @@ export const useWhatsApp = () => {
         }
     }, []);
 
+    const getConfig = useCallback(async (userId: string) => {
+        setLoading(true);
+        try {
+            const response = await whatsappClient.get(`/whatsapp/config/${userId}`);
+            return response.data;
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Error al obtener configuración');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const updatePreset = useCallback(async (presetId: number, preset: any) => {
+        setLoading(true);
+        try {
+            const response = await whatsappClient.patch(`/whatsapp/config/preset/${presetId}`, preset);
+            return response.data;
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Error al actualizar respuesta');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const deletePreset = useCallback(async (presetId: number) => {
+        setLoading(true);
+        try {
+            const response = await whatsappClient.delete(`/whatsapp/config/preset/${presetId}`);
+            return response.data;
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Error al eliminar respuesta');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     const logoutSession = useCallback(async (sessionName = 'default') => {
         setLoading(true);
         try {
@@ -111,7 +147,10 @@ export const useWhatsApp = () => {
         getStatus,
         toggleAutoResponder,
         updateSettings,
+        getConfig,
         addPreset,
+        updatePreset,
+        deletePreset,
         logoutSession,
         loading,
         error
