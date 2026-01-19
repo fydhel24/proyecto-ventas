@@ -12,8 +12,16 @@ import { StatusBadge } from '@/components/whatsapp/status-badge';
 import { MessageSquare, Settings, Shield, HelpCircle, QrCode, Power, ExternalLink, AlertCircle, CheckCircle2, Trash2, Edit2, Plus } from 'lucide-react';
 import { BreadcrumbItem } from '@/types';
 import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from 'sonner';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -29,6 +37,8 @@ export default function WhatsAppMiranda() {
     const [qrCode, setQrCode] = useState<string | null>(null);
     const [isAuthorized, setIsAuthorized] = useState(false);
     const [editingPreset, setEditingPreset] = useState<any>(null);
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+    const [confirmAction, setConfirmAction] = useState<{ title: string, description: string, onConfirm: () => void } | null>(null);
 
     // Form states
     const [settings, setSettings] = useState({
@@ -101,18 +111,24 @@ export default function WhatsAppMiranda() {
     }, [isAuthorized]);
 
     const handleLogout = async () => {
-        if (confirm('¿Estás seguro de que deseas cerrar la sesión de WhatsApp y borrar los datos?')) {
-            try {
-                await logoutSession();
-                setStatus(null);
-                setQrCode(null);
-                setIsAuthorized(false);
-                alert('Sesión cerrada correctamente');
-                initAuth();
-            } catch (err) {
-                console.error(err);
+        setConfirmAction({
+            title: '¿Cerrar Sesión?',
+            description: '¿Estás seguro de que deseas cerrar la sesión de WhatsApp y borrar los datos locales? Tendrás que volver a escanear el QR.',
+            onConfirm: async () => {
+                try {
+                    await logoutSession();
+                    setStatus(null);
+                    setQrCode(null);
+                    setIsAuthorized(false);
+                    toast.success('Sesión cerrada correctamente');
+                    initAuth();
+                } catch (err) {
+                    console.error(err);
+                    toast.error('Error al cerrar sesión');
+                }
             }
-        }
+        });
+        setConfirmDialogOpen(true);
     };
 
     const handleToggleBot = async (checked: boolean) => {
@@ -143,10 +159,11 @@ export default function WhatsAppMiranda() {
         try {
             const userId = import.meta.env.VITE_WHATSAPP_USER_ID || '1';
             await updateSettings(userId, settings);
-            alert('Configuración actualizada correctamente');
+            toast.success('Configuración actualizada correctamente');
             fetchConfig();
         } catch (err) {
             console.error(err);
+            toast.error('Error al actualizar configuración');
         }
     };
 
@@ -157,27 +174,35 @@ export default function WhatsAppMiranda() {
             if (editingPreset) {
                 await updatePreset(editingPreset.id, preset);
                 setEditingPreset(null);
-                alert('Respuesta actualizada');
+                toast.success('Respuesta actualizada');
             } else {
                 await addPreset(userId, preset);
-                alert('Respuesta añadida');
+                toast.success('Respuesta añadida');
             }
             setPreset({ mediaUrl: '', caption: '' });
             fetchConfig();
         } catch (err) {
             console.error(err);
+            toast.error('Error al guardar respuesta');
         }
     };
 
     const handleDeletePreset = async (id: number) => {
-        if (confirm('¿Eliminar esta respuesta?')) {
-            try {
-                await deletePreset(id);
-                fetchConfig();
-            } catch (err) {
-                console.error(err);
+        setConfirmAction({
+            title: '¿Eliminar Respuesta?',
+            description: 'Esta acción no se puede deshacer. La respuesta se eliminará permanentemente.',
+            onConfirm: async () => {
+                try {
+                    await deletePreset(id);
+                    toast.success('Respuesta eliminada');
+                    fetchConfig();
+                } catch (err) {
+                    console.error(err);
+                    toast.error('Error al eliminar respuesta');
+                }
             }
-        }
+        });
+        setConfirmDialogOpen(true);
     };
 
     const startEditing = (p: any) => {
@@ -267,11 +292,13 @@ export default function WhatsAppMiranda() {
 
                     <div className="mt-8">
                         {error && (
-                            <Alert variant="destructive" className="mb-6 rounded-2xl border-red-100 bg-red-50 text-red-900">
-                                <AlertCircle className="h-5 w-5" />
-                                <AlertTitle className="font-black">Error de Servidor</AlertTitle>
-                                <AlertDescription className="font-medium">{error}</AlertDescription>
-                            </Alert>
+                            <div className="mb-6 rounded-2xl border border-red-100 bg-red-50 p-4 text-red-900 flex items-start gap-3">
+                                <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-black">Error de Servidor</p>
+                                    <p className="font-medium text-sm">{error}</p>
+                                </div>
+                            </div>
                         )}
 
                         <TabsContent value="status" className="m-0 focus-visible:outline-none">
@@ -594,16 +621,16 @@ export default function WhatsAppMiranda() {
                                 </Card>
                             </div>
 
-                            <Alert className="bg-[#25D366]/5 border-[#25D366]/20 p-10 rounded-[3rem] ring-1 ring-[#25D366]/10">
+                            <div className="bg-[#25D366]/5 border border-[#25D366]/20 p-10 rounded-[3rem] ring-1 ring-[#25D366]/10 flex flex-col items-center text-center">
                                 <CheckCircle2 className="h-10 w-10 text-[#25D366] mb-4" />
                                 <div>
-                                    <AlertTitle className="text-slate-900 font-black text-2xl mb-2 tracking-tight">Resiliencia Automática (Fallback)</AlertTitle>
-                                    <AlertDescription className="text-slate-500 text-lg font-medium leading-relaxed">
+                                    <p className="text-slate-900 font-black text-2xl mb-2 tracking-tight">Resiliencia Automática (Fallback)</p>
+                                    <p className="text-slate-500 text-lg font-medium leading-relaxed">
                                         Si un link multimedia falla o es inalcanzable, <b>Miranda enviará automáticamente el mensaje solo texto</b>.
                                         Esto garantiza que el cliente siempre reciba una respuesta, incluso si hay problemas de hosting externo.
-                                    </AlertDescription>
+                                    </p>
                                 </div>
-                            </Alert>
+                            </div>
                         </TabsContent>
 
                         <TabsContent value="help" className="m-0 focus-visible:outline-none">
@@ -658,6 +685,32 @@ export default function WhatsAppMiranda() {
                     </div>
                 </Tabs>
             </div>
+
+            <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+                <DialogContent className="rounded-3xl">
+                    <DialogHeader>
+                        <DialogTitle className="font-black text-xl">{confirmAction?.title}</DialogTitle>
+                        <DialogDescription className="font-medium">
+                            {confirmAction?.description}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-3 sm:gap-0">
+                        <Button variant="ghost" onClick={() => setConfirmDialogOpen(false)} className="rounded-xl font-bold">
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            className="rounded-xl font-bold"
+                            onClick={() => {
+                                confirmAction?.onConfirm();
+                                setConfirmDialogOpen(false);
+                            }}
+                        >
+                            Confirmar
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }
