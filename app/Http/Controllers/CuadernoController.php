@@ -25,13 +25,14 @@ class CuadernoController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
+        $filter = $request->input('filter');
 
         $cuadernos = Cuaderno::with([
             'productos:id,nombre,marca_id,categoria_id,color_id',
             'productos.marca:id,nombre_marca',
             'productos.categoria:id,nombre_cat',
             'productos.color:id,codigo_color',
-            'imagenes',
+            'imagenes'
         ])
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -42,6 +43,22 @@ class CuadernoController extends Controller
                         ->orWhere('provincia', 'like', "%{$search}%")
                         ->orWhere('id', 'like', "%{$search}%");
                 });
+            })
+            ->when($filter, function ($query, $filter) {
+                switch ($filter) {
+                    case 'la_paz':
+                        $query->where('la_paz', true);
+                        break;
+                    case 'enviado':
+                        $query->where('enviado', true);
+                        break;
+                    case 'p_listo':
+                        $query->where('p_listo', true);
+                        break;
+                    case 'p_pendiente':
+                        $query->where('p_pendiente', true);
+                        break;
+                }
             })
             ->select('id', 'nombre', 'ci', 'celular', 'departamento', 'provincia', 'tipo', 'estado', 'detalle', 'la_paz', 'enviado', 'p_listo', 'p_pendiente', 'created_at')
             ->orderBy('created_at', 'desc')

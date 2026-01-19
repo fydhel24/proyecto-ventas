@@ -33,6 +33,28 @@ const mainNavItems: NavItem[] = [
         title: 'Cuaderno',
         href: cuadernos.index(),
         icon: LayoutGrid,
+        items: [
+            {
+                title: 'Todos',
+                href: cuadernos.index(),
+            },
+            {
+                title: 'La Paz',
+                href: cuadernos.index({ query: { filter: 'la_paz' } }).url,
+            },
+            {
+                title: 'Enviado',
+                href: cuadernos.index({ query: { filter: 'enviado' } }).url,
+            },
+            {
+                title: 'Listo',
+                href: cuadernos.index({ query: { filter: 'p_listo' } }).url,
+            },
+            {
+                title: 'Pendiente',
+                href: cuadernos.index({ query: { filter: 'p_pendiente' } }).url,
+            },
+        ],
     },
 ];
 

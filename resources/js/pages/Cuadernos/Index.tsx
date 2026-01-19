@@ -124,16 +124,38 @@ export default function CuadernosIndex({
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedCuadernoId, setSelectedCuadernoId] = useState<number | null>(null);
     const [search, setSearch] = useState(filters.search || '');
+    const [filter, setFilter] = useState(new URLSearchParams(window.location.search).get('filter') || '');
     const [imageModalOpen, setImageModalOpen] = useState(false);
     const [currentImage, setCurrentImage] = useState<string | null>(null);
 
-    // Debounce search
+    // Debounce search and filter
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (search !== (filters.search || '')) {
+            const currentParams = new URLSearchParams(window.location.search);
+
+            // Sync search
+            if (search) {
+                currentParams.set('search', search);
+            } else {
+                currentParams.delete('search');
+            }
+
+            // Sync filter
+            if (filter) {
+                currentParams.set('filter', filter);
+            } else {
+                currentParams.delete('filter');
+            }
+
+            // Construct query string
+            const queryRaw = currentParams.toString();
+            const url = window.location.pathname + (queryRaw ? `?${queryRaw}` : '');
+
+            // Only navigate if URL changed
+            if (url !== window.location.pathname + window.location.search) {
                 router.get(
-                    window.location.pathname,
-                    { search },
+                    url,
+                    {},
                     {
                         preserveState: true,
                         preserveScroll: true,
@@ -144,7 +166,7 @@ export default function CuadernosIndex({
         }, 300);
 
         return () => clearTimeout(timer);
-    }, [search]);
+    }, [search, filter]);
 
     // Update local state when cuadernos data changes
     useEffect(() => {
@@ -258,16 +280,62 @@ export default function CuadernosIndex({
                     </div>
 
                     <Card className="border-none shadow-md">
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <div>
+                        <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4">
+                            <div className="flex flex-col gap-1">
                                 <CardTitle className="text-xl">Listado de Ordenes</CardTitle>
                                 <CardDescription>Gestiona el seguimiento y detalles de cada venta.</CardDescription>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <div className="relative w-64">
+                            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                                <div className="flex bg-muted p-1 rounded-lg gap-1 overflow-x-auto">
+                                    <Button
+                                        variant={filter === '' ? 'secondary' : 'ghost'}
+                                        size="sm"
+                                        className="h-8 text-xs px-3"
+                                        onClick={() => setFilter('')}
+                                    >
+                                        Todos
+                                    </Button>
+                                    <Button
+                                        variant={filter === 'la_paz' ? 'secondary' : 'ghost'}
+                                        size="sm"
+                                        className="h-8 text-xs px-3 gap-1.5"
+                                        onClick={() => setFilter('la_paz')}
+                                    >
+                                        <MapPin className="w-3.5 h-3.5 text-blue-500" />
+                                        La Paz
+                                    </Button>
+                                    <Button
+                                        variant={filter === 'enviado' ? 'secondary' : 'ghost'}
+                                        size="sm"
+                                        className="h-8 text-xs px-3 gap-1.5"
+                                        onClick={() => setFilter('enviado')}
+                                    >
+                                        <Truck className="w-3.5 h-3.5 text-orange-500" />
+                                        Enviado
+                                    </Button>
+                                    <Button
+                                        variant={filter === 'p_listo' ? 'secondary' : 'ghost'}
+                                        size="sm"
+                                        className="h-8 text-xs px-3 gap-1.5"
+                                        onClick={() => setFilter('p_listo')}
+                                    >
+                                        <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+                                        Listo
+                                    </Button>
+                                    <Button
+                                        variant={filter === 'p_pendiente' ? 'secondary' : 'ghost'}
+                                        size="sm"
+                                        className="h-8 text-xs px-3 gap-1.5"
+                                        onClick={() => setFilter('p_pendiente')}
+                                    >
+                                        <Clock className="w-3.5 h-3.5 text-red-500" />
+                                        Pendiente
+                                    </Button>
+                                </div>
+                                <div className="relative w-full md:w-64">
                                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                     <Input
-                                        placeholder="Buscar por nombre, CI, celular..."
+                                        placeholder="Buscar..."
                                         className="pl-8 h-9"
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
