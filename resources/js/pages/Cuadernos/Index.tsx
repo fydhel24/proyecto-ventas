@@ -13,6 +13,12 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { Head, router } from '@inertiajs/react';
@@ -42,6 +48,9 @@ import { Image as ImageIcon } from 'lucide-react';
 interface Imagen {
     id: number;
     url: string;
+    pivot: {
+        tipo: string;
+    };
 }
 
 interface Producto {
@@ -114,6 +123,8 @@ export default function CuadernosIndex({
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedCuadernoId, setSelectedCuadernoId] = useState<number | null>(null);
     const [search, setSearch] = useState(filters.search || '');
+    const [imageModalOpen, setImageModalOpen] = useState(false);
+    const [currentImage, setCurrentImage] = useState<string | null>(null);
 
     // Debounce search
     useEffect(() => {
@@ -462,9 +473,20 @@ export default function CuadernosIndex({
                                                         <div className="flex flex-wrap gap-1 min-w-[100px]">
                                                             {cuaderno.imagenes && cuaderno.imagenes.length > 0 ? (
                                                                 cuaderno.imagenes.map((img) => (
-                                                                    <a key={img.id} href={img.url} target="_blank" rel="noopener noreferrer" className="block w-10 h-10 rounded border overflow-hidden hover:opacity-80 transition-opacity">
-                                                                        <img src={img.url} alt="Cuaderno" className="w-full h-full object-cover" />
-                                                                    </a>
+                                                                    <Button
+                                                                        key={img.id}
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        className="h-7 text-xs px-2"
+                                                                        onClick={() => {
+                                                                            setCurrentImage(img.url);
+                                                                            setImageModalOpen(true);
+                                                                        }}
+                                                                    >
+                                                                        {img.pivot?.tipo === 'producto' ? 'Producto' :
+                                                                            img.pivot?.tipo === 'comprobante' ? 'Comprobante' :
+                                                                                'Ver Imagen'}
+                                                                    </Button>
                                                                 ))
                                                             ) : (
                                                                 <div className="w-full text-center text-muted-foreground text-xs py-2 flex flex-col items-center gap-1">
@@ -556,6 +578,22 @@ export default function CuadernosIndex({
                 onSave={handleAddProducto}
                 productos={productos}
             />
+            <Dialog open={imageModalOpen} onOpenChange={setImageModalOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Vista de Imagen</DialogTitle>
+                    </DialogHeader>
+                    <div className="flex items-center justify-center p-4">
+                        {currentImage && (
+                            <img
+                                src={currentImage}
+                                alt="Vista previa"
+                                className="max-w-full max-h-[80vh] object-contain rounded-md"
+                            />
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }

@@ -13,6 +13,14 @@ class Imagene extends Model
     protected $fillable = [
         'url',
     ];
+
+    public function getUrlAttribute($value)
+    {
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            return $value;
+        }
+        return asset('storage/' . $value);
+    }
     // app/Models/Imagene.php
     public function cuadernos()
     {

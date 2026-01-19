@@ -22,7 +22,7 @@ class CuadernoController extends Controller
             'productos.marca:id,nombre_marca',
             'productos.categoria:id,nombre_cat',
             'productos.color:id,codigo_color',
-            'imagenes:id,url'
+            'imagenes'
         ])
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
