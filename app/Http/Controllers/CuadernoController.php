@@ -7,7 +7,6 @@ use App\Models\ImagenCuaderno;
 use App\Models\Imagene;
 use App\Models\Producto;
 use FPDF;
-use GuzzleHttp\Promise\Promise;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
@@ -214,19 +213,18 @@ class CuadernoController extends Controller
         ];
 
         // Si no se pudo enviar por WhatsApp, enviamos el base64 para descarga automática
-        if (!$whatsappEnviado) {
+        if (! $whatsappEnviado) {
             $responseParams['pdf_base64'] = $pdfBase64;
         }
 
         return response()->json($responseParams);
     }
 
-    
     private function enviarPdfPorNestApi($cuadernoId, $numeroCelular)
     {
         $destino = preg_replace('/[^0-9]/', '', $numeroCelular);
         if (substr($destino, 0, 3) !== '591') {
-            $destino = '591' . substr($destino, -9);
+            $destino = '591'.substr($destino, -9);
         }
 
         $rutaPdf = "pedidospdf/{$cuadernoId}.pdf";
@@ -236,7 +234,7 @@ class CuadernoController extends Controller
             return false;
         }
 
-        $pdfUrl = asset('storage/' . $rutaPdf);
+        $pdfUrl = asset('storage/'.$rutaPdf);
 
         return $this->enviarPdfPorNest($destino, $pdfUrl, $cuadernoId);
     }
@@ -255,17 +253,17 @@ class CuadernoController extends Controller
             "✅ *PEDIDO ASIGNADO CORRECTAMENTE*\n\nTu pedido #{$cuadernoId} ya figura como guardado en el sistema. 📄 Adjuntamos tu nota de entrega con todos los detalles.",
             "🚀 *REGISTRO EXITOSO* (#{$cuadernoId})\n\n¡Perfecto! Tu pedido ha sido guardado correctamente. 📄 Aquí tienes el PDF con el resumen de tus productos.",
         ];
-        $apiBaseUrl = env('VITE_WHATSAPP_API_URL', 'http://localhost:3000');
+        $apiBaseUrl = env('VITE_WHATSAPP_API_URL');
         $nestAuth = [
-            'email' => env('VITE_WHATSAPP_TEST_EMAIL', 'test@example.com'),
-            'password' => env('VITE_WHATSAPP_TEST_PASSWORD', 'password123'),
+            'email' => env('VITE_WHATSAPP_TEST_EMAIL'),
+            'password' => env('VITE_WHATSAPP_TEST_PASSWORD'),
         ];
 
         try {
             // Login to get token
-            $loginResponse = Http::timeout(10)->post($apiBaseUrl . '/auth/login', $nestAuth);
+            $loginResponse = Http::timeout(10)->post($apiBaseUrl.'/auth/login', $nestAuth);
             if (! $loginResponse->successful()) {
-                Log::error('Error al autenticarse en Nest API local');
+                Log::error('Error al autenticarse en Nest API');
 
                 return false;
             }
@@ -275,17 +273,18 @@ class CuadernoController extends Controller
             // Check if WhatsApp session is connected
             $statusResponse = Http::withToken($token)
                 ->timeout(10)
-                ->get($apiBaseUrl . '/whatsapp/status');
+                ->get($apiBaseUrl.'/whatsapp/status');
 
-            if (!$statusResponse->successful() || $statusResponse->json('status') !== 'CONNECTED') {
-                Log::warning('Sesión de WhatsApp local no conectada. No se pudo enviar el PDF.');
+            if (! $statusResponse->successful() || $statusResponse->json('status') !== 'CONNECTED') {
+                Log::warning('Sesión de WhatsApp no conectada. No se pudo enviar el PDF.');
+
                 return false;
             }
 
             // Send PDF
             $sendResponse = Http::withToken($token)
                 ->timeout(15)
-                ->post($apiBaseUrl . '/whatsapp/send-media', [
+                ->post($apiBaseUrl.'/whatsapp/send-media', [
                     'to' => $destino,
                     'mediaUrl' => $pdfUrl,
                     'mediaType' => 'document',
@@ -294,7 +293,8 @@ class CuadernoController extends Controller
 
             return $sendResponse->successful();
         } catch (\Exception $e) {
-            Log::error('Excepción al enviar PDF por Nest API local: ' . $e->getMessage());
+            Log::error('Excepción al enviar PDF por Nest API: '.$e->getMessage());
+
             return false;
         }
     }
