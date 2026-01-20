@@ -306,7 +306,7 @@ export default function Index({ productos, categorias = [], marcas = [], filters
                             </div>
                         ) : (
                             <>
-                                <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div ref={gridRef} className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
                                     {productos.data.map((producto) => (
                                         <ProductCard key={producto.id} producto={producto} />
                                     ))}

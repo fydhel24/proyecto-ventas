@@ -43,12 +43,12 @@ export function ProductCard({ producto }: ProductCardProps) {
 
     return (
         <>
-            {/* Mobile: Horizontal | Desktop: Vertical */}
-            <Card className="group relative overflow-hidden rounded-2xl border-2 bg-card transition-all hover:shadow-xl hover:border-primary/50 flex md:flex-col">
+            {/* Mobile: Vertical Grid Item | Desktop: Vertical */}
+            <Card className="group relative overflow-hidden rounded-2xl border-2 bg-card transition-all hover:shadow-xl hover:border-primary/50 flex flex-col h-full">
                 {/* Image Section */}
                 <Link
                     href={`/tienda/${producto.id}`}
-                    className="w-[40%] md:w-full aspect-square md:aspect-square relative overflow-hidden bg-muted flex-shrink-0"
+                    className="w-full aspect-square relative overflow-hidden bg-muted flex-shrink-0"
                 >
                     {producto.fotos?.[0] ? (
                         <img
@@ -64,7 +64,7 @@ export function ProductCard({ producto }: ProductCardProps) {
 
                     {/* Badge Stock */}
                     {producto.stock <= 5 && (
-                        <div className="absolute top-2 left-2 md:top-4 md:left-4 z-20 rounded-full bg-red-500 px-2 py-0.5 md:px-3 md:py-1 text-[8px] md:text-[10px] font-black uppercase text-white shadow-lg">
+                        <div className="absolute top-2 left-2 z-20 rounded-full bg-red-500 px-2 py-0.5 text-[8px] md:text-[10px] font-black uppercase text-white shadow-lg">
                             {producto.stock} stock
                         </div>
                     )}
@@ -81,7 +81,7 @@ export function ProductCard({ producto }: ProductCardProps) {
                 {/* Content Section */}
                 <div className="flex-1 flex flex-col p-3 md:p-5 min-w-0">
                     {/* Brand */}
-                    <div className="flex justify-between items-center gap-2 mb-2">
+                    <div className="flex justify-between items-center gap-2 mb-1.5 md:mb-2">
                         <p className="text-[9px] md:text-xs font-black uppercase tracking-wider text-primary/70 truncate">
                             {producto.marca?.nombre_marca || 'Miracode'}
                         </p>
@@ -94,70 +94,50 @@ export function ProductCard({ producto }: ProductCardProps) {
                         </button>
                     </div>
 
-                    {/* Mobile: Name and Cart Button in same row | Desktop: Stacked */}
-                    <div className="flex md:flex-col justify-between gap-2 md:gap-3 flex-1">
-                        <div className="flex flex-col flex-1 min-w-0 justify-between">
-                            {/* Product Name */}
-                            <Link href={`/tienda/${producto.id}`} className="w-full">
-                                <h3 className="font-black text-xs md:text-lg leading-tight transition-colors hover:text-primary line-clamp-3 md:line-clamp-2">
-                                    {producto.nombre}
-                                </h3>
-                            </Link>
+                    {/* Unified Layout for Grid */}
+                    <div className="flex flex-1 flex-col justify-between gap-1">
+                        <Link href={`/tienda/${producto.id}`} className="min-w-0">
+                            <h3 className="font-black text-xs md:text-lg leading-tight transition-colors hover:text-primary line-clamp-2 min-h-[2.5em]">
+                                {producto.nombre}
+                            </h3>
+                        </Link>
 
-                            {/* Price - Mobile */}
-                            <div className="mt-1 md:hidden">
-                                <p className="text-sm font-black text-primary leading-none">
-                                    {formatPrice(producto.precio_1)}
-                                </p>
+                        <div className="mt-2">
+                            <div className="flex items-end justify-between gap-2 md:block">
+                                <div>
+                                    <p className="text-sm md:text-2xl font-black text-primary leading-none">
+                                        {formatPrice(producto.precio_1)}
+                                    </p>
+                                    <span className="text-[8px] md:text-[10px] font-bold uppercase text-muted-foreground hidden md:block mt-1">IVA Incluido</span>
+                                </div>
+                                <Button
+                                    size="icon"
+                                    className="md:hidden h-8 w-8 rounded-lg flex-shrink-0"
+                                    onClick={handleAddToCart}
+                                >
+                                    <ShoppingCart className="h-3.5 w-3.5" />
+                                </Button>
                             </div>
-                        </div>
 
-                        {/* Mobile: Actions (Row) */}
-                        <div className="md:hidden flex flex-col gap-2 justify-between items-end pl-1">
-                            <Button
-                                variant="secondary"
-                                size="icon"
-                                className="rounded-lg h-8 w-8 flex-shrink-0 bg-muted/50"
-                                onClick={handleQuickView}
-                            >
-                                <Eye className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                                size="sm"
-                                className="rounded-lg h-9 w-9 p-0 flex-shrink-0 shadow-sm"
-                                onClick={handleAddToCart}
-                            >
-                                <ShoppingCart className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-
-                    {/* Desktop: Price and Actions */}
-                    <div className="hidden md:block space-y-4">
-                        <div>
-                            <p className="text-2xl font-black text-primary leading-none">
-                                {formatPrice(producto.precio_1)}
-                            </p>
-                            <span className="text-[10px] font-bold uppercase text-muted-foreground mt-1">IVA Incluido</span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <Button
-                                size="sm"
-                                className="flex-1 gap-2 rounded-xl h-11 font-black text-sm uppercase"
-                                onClick={handleAddToCart}
-                            >
-                                <ShoppingCart className="h-4 w-4" />
-                                <span>Agregar</span>
-                            </Button>
-                            <Button
-                                variant="secondary"
-                                size="icon"
-                                className="rounded-xl h-11 w-11 flex-shrink-0"
-                                onClick={handleQuickView}
-                            >
-                                <Eye className="h-4 w-4" />
-                            </Button>
+                            {/* Desktop Buttons */}
+                            <div className="hidden md:flex items-center gap-2 mt-3">
+                                <Button
+                                    size="sm"
+                                    className="flex-1 gap-2 rounded-xl h-11 font-black text-sm uppercase"
+                                    onClick={handleAddToCart}
+                                >
+                                    <ShoppingCart className="h-4 w-4" />
+                                    <span>Agregar</span>
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    size="icon"
+                                    className="rounded-xl h-11 w-11 flex-shrink-0"
+                                    onClick={handleQuickView}
+                                >
+                                    <Eye className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>

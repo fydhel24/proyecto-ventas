@@ -10,6 +10,23 @@ use Inertia\Inertia;
 
 class ShopController extends Controller
 {
+    public function searchSuggestions(Request $request)
+    {
+        $query = $request->input('q');
+        
+        if (!$query) {
+            return response()->json([]);
+        }
+
+        $productos = Producto::where('nombre', 'like', "%{$query}%")
+            ->orWhere('caracteristicas', 'like', "%{$query}%")
+            ->select('id', 'nombre', 'slug', 'precio_1') // Adjust fields as needed
+            ->limit(5)
+            ->get();
+
+        return response()->json($productos);
+    }
+
     public function index(Request $request)
     {
         $query = Producto::with(['marca', 'categoria', 'fotos'])

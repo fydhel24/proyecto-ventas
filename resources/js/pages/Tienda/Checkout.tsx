@@ -40,17 +40,6 @@ export default function Checkout() {
     });
 
     useEffect(() => {
-        gsap.from(".checkout-animate", {
-            y: 30,
-            opacity: 0,
-            stagger: 0.1,
-            duration: 0.8,
-            ease: "power3.out"
-        });
-    }, []);
-
-    // Sync productos with cart items
-    useEffect(() => {
         setData('productos', items.map(item => ({
             producto_id: item.id,
             cantidad: item.cantidad,

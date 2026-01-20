@@ -19,6 +19,7 @@ Route::get('/', function () {
 Route::get('/pedido', [CuadernoController::class, 'createPedido'])->name('pedido.create');
 
 // Rutas Públicas de la Tienda
+Route::get('/api/search-suggestions', [App\Http\Controllers\ShopController::class, 'searchSuggestions'])->name('shop.suggestions');
 Route::get('/tienda', [App\Http\Controllers\ShopController::class, 'index'])->name('shop.index');
 Route::get('/tienda/{producto}', [App\Http\Controllers\ShopController::class, 'show'])->name('shop.show');
 Route::get('/checkout', [App\Http\Controllers\ShopController::class, 'checkout'])->name('shop.checkout');
