@@ -1,9 +1,9 @@
 <?php
 
 use App\Http\Controllers\CategoriaController;
+use App\Http\Controllers\CuadernoController;
 use App\Http\Controllers\MarcaController;
 use App\Http\Controllers\ProductoController;
-use App\Http\Controllers\CuadernoController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -11,10 +11,18 @@ use Laravel\Fortify\Features;
 Route::get('/', function () {
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
+        'productos' => App\Models\Producto::with(['marca', 'fotos'])->where('stock', '>', 0)->latest()->limit(8)->get(),
+        'categorias' => App\Models\Categoria::all(),
     ]);
 })->name('home');
 
 Route::get('/pedido', [CuadernoController::class, 'createPedido'])->name('pedido.create');
+
+// Rutas Públicas de la Tienda
+Route::get('/tienda', [App\Http\Controllers\ShopController::class, 'index'])->name('shop.index');
+Route::get('/tienda/{producto}', [App\Http\Controllers\ShopController::class, 'show'])->name('shop.show');
+Route::get('/checkout', [App\Http\Controllers\ShopController::class, 'checkout'])->name('shop.checkout');
+Route::post('/cuadernos/pedidos', [CuadernoController::class, 'pedidos'])->name('cuadernos.pedidos');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
@@ -36,4 +44,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('whatsapp-miranda');
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';
