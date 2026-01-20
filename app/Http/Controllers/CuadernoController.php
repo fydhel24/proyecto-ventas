@@ -201,8 +201,14 @@ class CuadernoController extends Controller
         $pdfUrl = Storage::disk('public')->url($pdfPath);
         $pdfBase64 = base64_encode(Storage::disk('public')->get($pdfPath));
 
+        // Verificar conexión de WhatsApp
+        $whatsappToken = $this->getWhatsAppTokenIfConnected();
+
         // Enviar por WhatsApp si está conectado
-        $whatsappEnviado = $this->enviarPdfPorNestApi($cuaderno->id, $cuaderno->celular);
+        $whatsappEnviado = false;
+        if ($whatsappToken) {
+            $whatsappEnviado = $this->enviarPdfPorNestApiConToken($cuaderno->id, $cuaderno->celular, $whatsappToken);
+        }
 
         $responseParams = [
             'message' => 'Pedido registrado correctamente',
@@ -212,8 +218,8 @@ class CuadernoController extends Controller
             'whatsapp_enviado' => $whatsappEnviado,
         ];
 
-        // Si no se pudo enviar por WhatsApp, enviamos el base64 para descarga automática
-        if (! $whatsappEnviado) {
+        // Si WhatsApp NO está conectado, enviamos el base64 para descarga automática
+        if (!$whatsappToken) {
             $responseParams['pdf_base64'] = $pdfBase64;
         }
 
@@ -254,7 +260,38 @@ class CuadernoController extends Controller
         ]);
     }
 
-    private function enviarPdfPorNestApi($cuadernoId, $numeroCelular)
+    private function getWhatsAppTokenIfConnected(): ?string
+    {
+        $apiBaseUrl = env('VITE_WHATSAPP_API_URL');
+        $nestAuth = [
+            'email' => env('VITE_WHATSAPP_TEST_EMAIL'),
+            'password' => env('VITE_WHATSAPP_TEST_PASSWORD'),
+        ];
+
+        try {
+            $loginResponse = Http::timeout(10)->post($apiBaseUrl.'/auth/login', $nestAuth);
+            if (!$loginResponse->successful()) {
+                return null;
+            }
+
+            $token = $loginResponse->json('access_token');
+
+            $statusResponse = Http::withToken($token)
+                ->timeout(10)
+                ->get($apiBaseUrl.'/whatsapp/status');
+
+            if ($statusResponse->successful() && $statusResponse->json('status') === 'CONNECTED') {
+                return $token;
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            Log::error('Error al verificar conexión WhatsApp: '.$e->getMessage());
+            return null;
+        }
+    }
+
+    private function enviarPdfPorNestApiConToken($cuadernoId, $numeroCelular, $token)
     {
         $destino = preg_replace('/[^0-9]/', '', $numeroCelular);
         if (substr($destino, 0, 3) !== '591') {
@@ -262,18 +299,17 @@ class CuadernoController extends Controller
         }
 
         $rutaPdf = "pedidospdf/{$cuadernoId}.pdf";
-        if (! Storage::disk('public')->exists($rutaPdf)) {
+        if (!Storage::disk('public')->exists($rutaPdf)) {
             Log::warning("PDF no encontrado para cuaderno {$cuadernoId}");
-
             return false;
         }
 
         $pdfUrl = asset('storage/'.$rutaPdf);
 
-        return $this->enviarPdfPorNest($destino, $pdfUrl, $cuadernoId);
+        return $this->enviarPdfPorNestSimplificado($destino, $pdfUrl, $cuadernoId, $token);
     }
 
-    protected function enviarPdfPorNest($destino, $pdfUrl, $cuadernoId)
+    protected function enviarPdfPorNestSimplificado($destino, $pdfUrl, $cuadernoId, $token)
     {
         $captions = [
             "✅ *¡PEDIDO GUARDADO CON ÉXITO!* ✨\n\nTu pedido #{$cuadernoId} se ha registrado correctamente en nuestro sistema. Adjuntamos tu comprobante en PDF. 📄",
@@ -287,35 +323,10 @@ class CuadernoController extends Controller
             "✅ *PEDIDO ASIGNADO CORRECTAMENTE*\n\nTu pedido #{$cuadernoId} ya figura como guardado en el sistema. 📄 Adjuntamos tu nota de entrega con todos los detalles.",
             "🚀 *REGISTRO EXITOSO* (#{$cuadernoId})\n\n¡Perfecto! Tu pedido ha sido guardado correctamente. 📄 Aquí tienes el PDF con el resumen de tus productos.",
         ];
+        
         $apiBaseUrl = env('VITE_WHATSAPP_API_URL');
-        $nestAuth = [
-            'email' => env('VITE_WHATSAPP_TEST_EMAIL'),
-            'password' => env('VITE_WHATSAPP_TEST_PASSWORD'),
-        ];
 
         try {
-            // Login to get token
-            $loginResponse = Http::timeout(10)->post($apiBaseUrl.'/auth/login', $nestAuth);
-            if (! $loginResponse->successful()) {
-                Log::error('Error al autenticarse en Nest API');
-
-                return false;
-            }
-
-            $token = $loginResponse->json('access_token');
-
-            // Check if WhatsApp session is connected
-            $statusResponse = Http::withToken($token)
-                ->timeout(10)
-                ->get($apiBaseUrl.'/whatsapp/status');
-
-            if (! $statusResponse->successful() || $statusResponse->json('status') !== 'CONNECTED') {
-                Log::warning('Sesión de WhatsApp no conectada. No se pudo enviar el PDF.');
-
-                return false;
-            }
-
-            // Send PDF
             $sendResponse = Http::withToken($token)
                 ->timeout(15)
                 ->post($apiBaseUrl.'/whatsapp/send-media', [
@@ -328,7 +339,6 @@ class CuadernoController extends Controller
             return $sendResponse->successful();
         } catch (\Exception $e) {
             Log::error('Excepción al enviar PDF por Nest API: '.$e->getMessage());
-
             return false;
         }
     }

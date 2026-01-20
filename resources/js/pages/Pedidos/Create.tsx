@@ -368,7 +368,7 @@ export default function Create() {
                                         </div>
                                         Fotos de Productos
                                     </CardTitle>
-                                    <CardDescription className="text-muted-foreground font-medium">Adjunta imágenes de los productos que deseas.</CardDescription>
+                                    <CardDescription className="text-muted-foreground font-medium">Adjunta imágenes de los productos que deseas y su cantidad.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="p-8">
                                     <div className="space-y-6">
