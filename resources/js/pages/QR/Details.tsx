@@ -187,12 +187,31 @@ export default function Details({ cuaderno }: { cuaderno: Cuaderno | null }) {
                                     </span>
                                 </div>
 
-                                <div id="reader" className="overflow-hidden rounded-2xl border-4 border-slate-50 shadow-inner min-h-[300px] bg-slate-900 flex items-center justify-center">
-                                    {/* Library will render here */}
-                                    <div className="text-white text-center p-8 animate-pulse">
-                                        <Camera className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                                        <p className="text-xs font-bold opacity-30">Iniciando cámara...</p>
+                                <div className="relative overflow-hidden rounded-2xl border-4 border-slate-50 shadow-inner bg-slate-900 aspect-square flex items-center justify-center">
+                                    <div id="reader" className="w-full h-full"></div>
+
+                                    {/* Overlay for "Scanning" state before library loads */}
+                                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center animate-pulse">
+                                        <Camera className="w-12 h-12 text-white opacity-20" />
                                     </div>
+
+                                    {/* Custom CSS to force library to fill container */}
+                                    <style dangerouslySetInnerHTML={{
+                                        __html: `
+                                        #reader { border: none !important; }
+                                        #reader video { 
+                                            object-fit: cover !important; 
+                                            width: 100% !important; 
+                                            height: 100% !important; 
+                                            border-radius: 12px;
+                                        }
+                                        #reader__scan_region {
+                                            width: 100% !important;
+                                            height: 100% !important;
+                                        }
+                                        #reader__dashboard { display: none !important; }
+                                        #reader__status_span { display: none !important; }
+                                    `}} />
                                 </div>
 
                                 <p className="text-center text-xs font-bold text-slate-400 px-4 leading-relaxed">
