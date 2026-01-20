@@ -1,4 +1,5 @@
 // resources/js/Pages/Cuadernos/Index.tsx
+
 import AddProductoModal from '@/components/AddProductoModal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

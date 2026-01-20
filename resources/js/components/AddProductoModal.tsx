@@ -1,4 +1,3 @@
-// resources/js/components/AddProductoModal.tsx
 import { Button } from '@/components/ui/button';
 import {
     Command,
@@ -23,27 +22,26 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { useState } from 'react';
+import { Check, ChevronsUpDown, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface Producto {
     id: number;
     nombre: string;
     stock: number;
+    precio_1?: number;
 }
 
 interface AddProductoModalProps {
     open: boolean;
     onClose: () => void;
     onSave: (productoId: number, cantidad: number, precioVenta: number) => void;
-    productos: Producto[];
 }
 
 function AddProductoModal({
     open,
     onClose,
     onSave,
-    productos,
 }: AddProductoModalProps) {
     const [openPopover, setOpenPopover] = useState(false);
     const [selectedProducto, setSelectedProducto] = useState<Producto | null>(
@@ -51,6 +49,31 @@ function AddProductoModal({
     );
     const [cantidad, setCantidad] = useState<string>('');
     const [precioVenta, setPrecioVenta] = useState<string>('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [productos, setProductos] = useState<Producto[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (!searchTerm) {
+            setProductos([]);
+            return;
+        }
+
+        const delayDebounceFn = setTimeout(async () => {
+            setIsLoading(true);
+            try {
+                const response = await fetch(`/api/productos/search?search=${encodeURIComponent(searchTerm)}`);
+                const data = await response.json();
+                setProductos(data);
+            } catch (error) {
+                console.error('Error searching products:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        }, 300);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -64,6 +87,7 @@ function AddProductoModal({
         setSelectedProducto(null);
         setCantidad('');
         setPrecioVenta('');
+        setSearchTerm('');
         onClose();
     };
 
@@ -89,26 +113,34 @@ function AddProductoModal({
                                 >
                                     {selectedProducto
                                         ? `${selectedProducto.nombre} (Stock: ${selectedProducto.stock})`
-                                        : 'Selecciona un producto...'}
+                                        : 'Busca un producto...'}
                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-full p-0">
-                                <Command>
-                                    <CommandInput placeholder="Buscar producto..." />
+                            <PopoverContent className="w-[400px] p-0" align="start">
+                                <Command shouldFilter={false}>
+                                    <CommandInput 
+                                        placeholder="Escribe para buscar..." 
+                                        value={searchTerm}
+                                        onValueChange={setSearchTerm}
+                                    />
                                     <CommandList>
-                                        <CommandEmpty>
-                                            No se encontraron productos.
-                                        </CommandEmpty>
+                                        {isLoading && (
+                                            <div className="flex items-center justify-center py-6">
+                                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                            </div>
+                                        )}
+                                        {!isLoading && searchTerm && productos.length === 0 && (
+                                            <CommandEmpty>No se encontraron productos.</CommandEmpty>
+                                        )}
                                         <CommandGroup>
                                             {productos.map((producto) => (
                                                 <CommandItem
                                                     key={producto.id}
                                                     value={producto.nombre}
                                                     onSelect={() => {
-                                                        setSelectedProducto(
-                                                            producto,
-                                                        );
+                                                        setSelectedProducto(producto);
+                                                        setPrecioVenta(producto.precio_1?.toString() || '');
                                                         setOpenPopover(false);
                                                     }}
                                                 >
@@ -121,8 +153,12 @@ function AddProductoModal({
                                                                 : 'opacity-0',
                                                         )}
                                                     />
-                                                    {producto.nombre} (Stock:{' '}
-                                                    {producto.stock})
+                                                    <div className="flex flex-col">
+                                                        <span>{producto.nombre}</span>
+                                                        <span className="text-xs text-muted-foreground">
+                                                            Stock: {producto.stock} | Precio sugerido: {producto.precio_1} Bs
+                                                        </span>
+                                                    </div>
                                                 </CommandItem>
                                             ))}
                                         </CommandGroup>
@@ -131,28 +167,30 @@ function AddProductoModal({
                             </PopoverContent>
                         </Popover>
                     </div>
-                    <div>
-                        <Label htmlFor="cantidad">Cantidad</Label>
-                        <Input
-                            id="cantidad"
-                            type="number"
-                            min="1"
-                            value={cantidad}
-                            onChange={(e) => setCantidad(e.target.value)}
-                            placeholder="Cantidad"
-                        />
-                    </div>
-                    <div>
-                        <Label htmlFor="precio">Precio de Venta</Label>
-                        <Input
-                            id="precio"
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={precioVenta}
-                            onChange={(e) => setPrecioVenta(e.target.value)}
-                            placeholder="Precio de venta"
-                        />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <Label htmlFor="cantidad">Cantidad</Label>
+                            <Input
+                                id="cantidad"
+                                type="number"
+                                min="1"
+                                value={cantidad}
+                                onChange={(e) => setCantidad(e.target.value)}
+                                placeholder="Cant."
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="precio">Precio de Venta (Bs)</Label>
+                            <Input
+                                id="precio"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={precioVenta}
+                                onChange={(e) => setPrecioVenta(e.target.value)}
+                                placeholder="Precio"
+                            />
+                        </div>
                     </div>
                     <DialogFooter>
                         <Button
@@ -162,7 +200,7 @@ function AddProductoModal({
                         >
                             Cancelar
                         </Button>
-                        <Button type="submit">Agregar</Button>
+                        <Button type="submit" disabled={!selectedProducto}>Agregar</Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

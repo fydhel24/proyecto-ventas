@@ -81,12 +81,8 @@ class CuadernoController extends Controller
         }
 
         // Manejar productos
-        try {
-            $productos = Producto::get(['id', 'nombre', 'stock']);
-        } catch (\Exception $e) {
-            \Log::error('Error cargando productos: ' . $e->getMessage());
-            $productos = collect(); // fallback vacío
-        }
+        // Ya no cargamos todos los productos aquí para evitar 502 Bad Gateway
+        $productos = []; 
 
         return Inertia::render('Cuadernos/Index', [
             'cuadernos' => $cuadernos,
@@ -573,6 +569,22 @@ class CuadernoController extends Controller
         $pdf->Ln(5);
         $pdf->SetFont('Arial', 'B', 14);
         $pdf->SetTextColor($navy[0], $navy[1], $navy[2]);
-        $pdf->Cell(0, 10, utf8_decode('¡GRACIAS POR SU PREFERENCIA!'), 0, 1, 'C');
+    }
+
+    public function searchProductos(Request $request)
+    {
+        $search = $request->input('search');
+
+        if (!$search) {
+            return response()->json([]);
+        }
+
+        $productos = Producto::where('nombre', 'like', "%{$search}%")
+            ->where('stock', '>', 0)
+            ->select('id', 'nombre', 'stock', 'precio_1')
+            ->limit(10)
+            ->get();
+
+        return response()->json($productos);
     }
 }
