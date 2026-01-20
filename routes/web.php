@@ -30,6 +30,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/cuadernos/{cuaderno}', [CuadernoController::class, 'update'])->name('cuadernos.update');
     Route::post('/cuadernos/{cuaderno}/productos', [CuadernoController::class, 'addProducto'])->name('cuadernos.addProducto');
     Route::delete('/cuadernos/{cuaderno}', [CuadernoController::class, 'destroy'])->name('cuadernos.destroy');
+
+    Route::get('/whatsapp-miranda', function () {
+        return Inertia::render('whatsapp-miranda');
+    })->name('whatsapp-miranda');
 });
 
 require __DIR__ . '/settings.php';

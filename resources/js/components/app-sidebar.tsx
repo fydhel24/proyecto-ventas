@@ -10,28 +10,28 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { dashboard, whatsappMiranda } from '@/routes';
 import productos from '@/routes/productos';
 import cuadernos from '@/routes/cuadernos';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, MessageSquare } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard(),
+        href: dashboard().url,
         icon: LayoutGrid,
     },
     {
         title: 'Productos',
-        href: productos.index(),
+        href: productos.index().url,
         icon: LayoutGrid,
     },
     {
         title: 'Cuaderno',
-        href: cuadernos.index(),
+        href: cuadernos.index().url,
         icon: LayoutGrid,
         items: [
             {
@@ -55,6 +55,11 @@ const mainNavItems: NavItem[] = [
                 href: cuadernos.index({ query: { filter: 'p_pendiente' } }).url,
             },
         ],
+    },
+    {
+        title: 'WhatsApp Miranda',
+        href: whatsappMiranda().url,
+        icon: MessageSquare,
     },
 ];
 
