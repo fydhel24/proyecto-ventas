@@ -35,6 +35,16 @@ class ShopController extends Controller
             $query->where('marca_id', $marca_id);
         }
 
+        // Filtro por rango de precio
+        if ($max_price = $request->input('max_price')) {
+            $query->where('precio_1', '<=', $max_price);
+        }
+
+        // Filtro solo productos en stock
+        if ($request->input('in_stock') === '1') {
+            $query->where('stock', '>', 0);
+        }
+
         // Ordenación
         $sort = $request->input('sort', 'latest');
         switch ($sort) {
@@ -58,7 +68,7 @@ class ShopController extends Controller
             'productos' => $productos,
             'categorias' => Categoria::all(),
             'marcas' => Marca::all(),
-            'filters' => $request->only(['search', 'categoria', 'marca', 'sort']),
+            'filters' => $request->only(['search', 'categoria', 'marca', 'sort', 'max_price', 'in_stock']),
         ]);
     }
 

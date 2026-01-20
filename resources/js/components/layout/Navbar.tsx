@@ -49,12 +49,24 @@ export function Navbar({ auth }: { auth: any }) {
         );
     };
 
+    // Debounce search
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if (searchQuery) {
+                router.get('/tienda', { search: searchQuery }, { preserveState: true, preserveScroll: true, replace: true });
+            } else if (window.location.pathname.includes('/tienda') && searchQuery === '') {
+                // Clean search if empty and we are in shop
+                router.get('/tienda', {}, { preserveState: true, preserveScroll: true, replace: true });
+            }
+        }, 500);
+
+        return () => clearTimeout(timeoutId);
+    }, [searchQuery]);
+
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        if (searchQuery.trim()) {
-            router.get('/tienda', { search: searchQuery });
-            setIsSearchOpen(false);
-        }
+        // Prevent default submission as useEffect handles it, 
+        // but keep this if user hits enter to close mobile keyboard if needed
     };
 
     // Animación del buscador expansible en móvil con GSAP

@@ -26,7 +26,7 @@ interface Props {
 }
 
 export default function Show({ producto, sugerencias }: Props) {
-    const { addToCart } = useCart();
+    const { addToCart, formatPrice } = useCart();
     const { app_url } = usePage<SharedData & { app_url: string }>().props;
     const [cantidad, setCantidad] = useState(1);
     const [activeImg, setActiveImg] = useState(0);
@@ -135,7 +135,7 @@ export default function Show({ producto, sugerencias }: Props) {
 
                             <div className="flex items-center gap-6 animate-in">
                                 <p className="text-5xl font-black text-primary">
-                                    ${Number(producto.precio_1).toLocaleString()}
+                                    {formatPrice(producto.precio_1)}
                                 </p>
                                 <div className="flex items-center gap-2 text-green-600 bg-green-50 px-4 py-2 rounded-2xl font-black text-sm">
                                     <Check className="h-4 w-4" /> En Stock
