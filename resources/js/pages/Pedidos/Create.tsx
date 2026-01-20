@@ -64,6 +64,7 @@ export default function Create() {
     const [receiptImagesError, setReceiptImagesError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [success, setSuccess] = useState(false);
+    const [orderId, setOrderId] = useState<number | null>(null);
     const [serverError, setServerError] = useState<string | null>(null);
 
     // Form setup
@@ -188,6 +189,7 @@ export default function Create() {
                 window.URL.revokeObjectURL(url);
             }
 
+            setOrderId(response.data.id);
             setSuccess(true);
             form.reset();
             setProductImages([]);
@@ -215,7 +217,7 @@ export default function Create() {
                             </div>
                             <CardTitle className="text-3xl font-black">¡Pedido Enviado!</CardTitle>
                             <CardDescription className="text-muted-foreground font-medium mt-2">
-                                Tu pedido ha sido registrado correctamente en nuestro sistema. Te contactaremos pronto por WhatsApp.
+                                Tu pedido <span className="text-primary font-black">#{orderId}</span> ha sido registrado correctamente en nuestro sistema. Te contactaremos pronto por WhatsApp.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="flex justify-center pb-10">
