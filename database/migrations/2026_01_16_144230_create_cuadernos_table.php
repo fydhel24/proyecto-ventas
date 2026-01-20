@@ -30,8 +30,14 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        // Sentencia SQL nativa para MySQL para cambiar el inicio del autoincremento
-        DB::statement("ALTER TABLE cuadernos AUTO_INCREMENT = 1000;");
+        // Forzar inicio desde 1000 (multi-BD)
+        DB::table('cuadernos')->insert([
+            'id' => 999,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('cuadernos')->where('id', 999)->delete();
     }
 
     /**
