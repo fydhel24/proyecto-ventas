@@ -7,7 +7,11 @@ use App\Models\ImagenCuaderno;
 use App\Models\Imagene;
 use App\Models\Producto;
 use FPDF;
+use GuzzleHttp\Promise\Promise;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -198,13 +202,101 @@ class CuadernoController extends Controller
         $pdfUrl = Storage::disk('public')->url($pdfPath);
         $pdfBase64 = base64_encode(Storage::disk('public')->get($pdfPath));
 
-        return response()->json([
+        // Enviar por WhatsApp si está conectado
+        $whatsappEnviado = $this->enviarPdfPorNestApi($cuaderno->id, $cuaderno->celular);
+
+        $responseParams = [
             'message' => 'Pedido registrado correctamente',
             'id' => $cuaderno->id,
             'pdf_url' => $pdfUrl,
             'pdf_path' => $pdfPath,
-            'pdf_base64' => $pdfBase64,
-        ]);
+            'whatsapp_enviado' => $whatsappEnviado,
+        ];
+
+        // Si no se pudo enviar por WhatsApp, enviamos el base64 para descarga automática
+        if (!$whatsappEnviado) {
+            $responseParams['pdf_base64'] = $pdfBase64;
+        }
+
+        return response()->json($responseParams);
+    }
+
+    
+    private function enviarPdfPorNestApi($cuadernoId, $numeroCelular)
+    {
+        $destino = preg_replace('/[^0-9]/', '', $numeroCelular);
+        if (substr($destino, 0, 3) !== '591') {
+            $destino = '591' . substr($destino, -9);
+        }
+
+        $rutaPdf = "pedidospdf/{$cuadernoId}.pdf";
+        if (! Storage::disk('public')->exists($rutaPdf)) {
+            Log::warning("PDF no encontrado para cuaderno {$cuadernoId}");
+
+            return false;
+        }
+
+        $pdfUrl = asset('storage/' . $rutaPdf);
+
+        return $this->enviarPdfPorNest($destino, $pdfUrl, $cuadernoId);
+    }
+
+    protected function enviarPdfPorNest($destino, $pdfUrl, $cuadernoId)
+    {
+        $captions = [
+            "✅ *¡PEDIDO GUARDADO CON ÉXITO!* ✨\n\nTu pedido #{$cuadernoId} se ha registrado correctamente en nuestro sistema. Adjuntamos tu comprobante en PDF. 📄",
+            "📝 *CONFIRMACIÓN DE REGISTRO*\n\nHola, tu pedido #{$cuadernoId} ha sido guardado exitosamente. 📄 Adjunto encontrarás el resumen de los productos que reservaste.",
+            "✨ *¡SISTEMA ACTUALIZADO!* ✨\n\nTu pedido #{$cuadernoId} se guardó de manera correcta. 📄 Te enviamos tu nota de entrega como respaldo de tu registro.",
+            "📦 *PEDIDO RECIBIDO*\n\nSe ha generado el comprobante de tu *Pedido #{$cuadernoId}*. 📄 La información ha sido almacenada correctamente en nuestra base de datos.",
+            "✅ *REGISTRO COMPLETADO*\n\nTu pedido #{$cuadernoId} ya está en nuestro sistema. 📄 Adjuntamos el detalle de los productos que seleccionaste en el Live.",
+            "📄 *COMPROBANTE DE PEDIDO* (#{$cuadernoId})\n\nTu información se ha guardado con éxito. ✅ Aquí tienes el respaldo oficial de tu pedido en formato PDF.",
+            "🌟 *¡TODO LISTO!* 🌟\n\nEl registro de tu pedido #{$cuadernoId} fue exitoso. 📄 Adjunto te enviamos tu nota de entrega detallada. ¡Gracias por participar!",
+            "📝 *DETALLE DE PEDIDO GUARDADO*\n\nSe ha procesado correctamente el guardado de tu pedido #{$cuadernoId}. 📄 Conserva este documento como tu comprobante oficial.",
+            "✅ *PEDIDO ASIGNADO CORRECTAMENTE*\n\nTu pedido #{$cuadernoId} ya figura como guardado en el sistema. 📄 Adjuntamos tu nota de entrega con todos los detalles.",
+            "🚀 *REGISTRO EXITOSO* (#{$cuadernoId})\n\n¡Perfecto! Tu pedido ha sido guardado correctamente. 📄 Aquí tienes el PDF con el resumen de tus productos.",
+        ];
+        $apiBaseUrl = env('VITE_WHATSAPP_API_URL', 'http://localhost:3000');
+        $nestAuth = [
+            'email' => env('VITE_WHATSAPP_TEST_EMAIL', 'test@example.com'),
+            'password' => env('VITE_WHATSAPP_TEST_PASSWORD', 'password123'),
+        ];
+
+        try {
+            // Login to get token
+            $loginResponse = Http::timeout(10)->post($apiBaseUrl . '/auth/login', $nestAuth);
+            if (! $loginResponse->successful()) {
+                Log::error('Error al autenticarse en Nest API local');
+
+                return false;
+            }
+
+            $token = $loginResponse->json('access_token');
+
+            // Check if WhatsApp session is connected
+            $statusResponse = Http::withToken($token)
+                ->timeout(10)
+                ->get($apiBaseUrl . '/whatsapp/status');
+
+            if (!$statusResponse->successful() || $statusResponse->json('status') !== 'CONNECTED') {
+                Log::warning('Sesión de WhatsApp local no conectada. No se pudo enviar el PDF.');
+                return false;
+            }
+
+            // Send PDF
+            $sendResponse = Http::withToken($token)
+                ->timeout(15)
+                ->post($apiBaseUrl . '/whatsapp/send-media', [
+                    'to' => $destino,
+                    'mediaUrl' => $pdfUrl,
+                    'mediaType' => 'document',
+                    'caption' => Arr::random($captions),
+                ]);
+
+            return $sendResponse->successful();
+        } catch (\Exception $e) {
+            Log::error('Excepción al enviar PDF por Nest API local: ' . $e->getMessage());
+            return false;
+        }
     }
 
     private function guardarPdfDePedido($cuadernoId)
