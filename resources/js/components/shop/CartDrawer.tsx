@@ -17,7 +17,7 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
-    const { items, removeFromCart, updateQuantity, subtotal, itemCount } = useCart();
+    const { items, removeFromCart, updateQuantity, subtotal, itemCount, formatPrice } = useCart();
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
@@ -69,11 +69,11 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                                                 <div className="flex justify-between">
                                                     <h3 className="font-bold leading-tight line-clamp-1">{item.nombre}</h3>
                                                     <p className="font-black text-primary ml-2">
-                                                        ${(item.precio * item.cantidad).toLocaleString()}
+                                                        {formatPrice(item.precio * item.cantidad)}
                                                     </p>
                                                 </div>
                                                 <p className="text-xs text-muted-foreground mt-1">
-                                                    Precio unitario: ${item.precio.toLocaleString()}
+                                                    Precio unitario: {formatPrice(item.precio)}
                                                 </p>
                                             </div>
 
@@ -123,7 +123,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                         <div className="space-y-1.5">
                             <div className="flex justify-between text-base font-medium">
                                 <span className="text-muted-foreground">Subtotal</span>
-                                <span className="font-bold">${subtotal.toLocaleString()}</span>
+                                <span className="font-bold">{formatPrice(subtotal)}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Envío</span>
@@ -133,7 +133,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                         <Separator />
                         <div className="flex justify-between text-xl font-black">
                             <span>Total</span>
-                            <span className="text-primary">${subtotal.toLocaleString()}</span>
+                            <span className="text-primary">{formatPrice(subtotal)}</span>
                         </div>
                         <SheetFooter className="mt-4 flex-col gap-2 sm:flex-col">
                             <Button size="lg" className="w-full text-lg font-bold" asChild onClick={() => onOpenChange(false)}>

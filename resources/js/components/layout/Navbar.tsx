@@ -1,26 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, router } from '@inertiajs/react';
-import { Search, ShoppingCart, Menu, User, X, Sun, Moon } from 'lucide-react';
+import { Search, ShoppingCart, Menu, User, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import gsap from 'gsap';
 import { useCart } from '@/hooks/use-cart';
 import { CartDrawer } from '@/components/shop/CartDrawer';
+import { SearchInput } from '@/components/ui/SearchInput';
 
 export function Navbar({ auth }: { auth: any }) {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [isDark, setIsDark] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
 
     const { itemCount } = useCart();
-
     const navRef = useRef<HTMLElement>(null);
-    const searchContainerRef = useRef<HTMLFormElement>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
     const themeBtnRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
@@ -48,29 +44,6 @@ export function Navbar({ auth }: { auth: any }) {
             { rotate: 360, scale: 1, duration: 0.4, ease: "back.out" }
         );
     };
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (searchQuery.trim()) {
-            router.get('/tienda', { search: searchQuery });
-            setIsSearchOpen(false);
-        }
-    };
-
-    // Animación del buscador expansible en móvil con GSAP
-    useEffect(() => {
-        if (window.innerWidth < 768) {
-            if (isSearchOpen) {
-                gsap.fromTo(searchContainerRef.current,
-                    { width: 0, opacity: 0 },
-                    { width: "100%", opacity: 1, duration: 0.4, ease: "power2.out" }
-                );
-                inputRef.current?.focus();
-            } else {
-                gsap.to(searchContainerRef.current, { width: 0, opacity: 0, duration: 0.3 });
-            }
-        }
-    }, [isSearchOpen]);
 
     return (
         <>
@@ -117,34 +90,19 @@ export function Navbar({ auth }: { auth: any }) {
 
                         {/* Buscador */}
                         <div className="relative flex items-center justify-end flex-1 max-w-sm">
-                            <form
-                                onSubmit={handleSearch}
-                                ref={searchContainerRef}
-                                className={cn(
-                                    "absolute right-0 z-20 overflow-hidden md:relative md:w-full md:opacity-100 md:block",
-                                    isSearchOpen ? "flex w-full bg-background md:bg-transparent" : "hidden md:flex"
-                                )}
-                            >
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                <Input
-                                    ref={inputRef}
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Buscar productos..."
-                                    className="h-11 pl-10 pr-10 text-lg bg-muted/50 border-none rounded-full focus-visible:ring-2 focus-visible:ring-primary/20"
+                            <div className={cn(
+                                "absolute right-0 z-20 overflow-visible md:relative md:w-full md:opacity-100 md:block transition-all",
+                                isSearchOpen ? "flex w-full bg-background md:bg-transparent" : "hidden md:flex"
+                            )}>
+                                <SearchInput
+                                    onClose={() => setIsSearchOpen(false)}
+                                    autoFocus={isSearchOpen}
+                                    className={cn(
+                                        "w-full",
+                                        isSearchOpen ? "min-w-[200px]" : ""
+                                    )}
                                 />
-                                {isSearchOpen && (
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="absolute right-1 top-1/2 -translate-y-1/2 md:hidden"
-                                        onClick={() => setIsSearchOpen(false)}
-                                    >
-                                        <X className="h-5 w-5" />
-                                    </Button>
-                                )}
-                            </form>
+                            </div>
 
                             {!isSearchOpen && (
                                 <Button

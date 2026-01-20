@@ -22,7 +22,7 @@ import { type SharedData } from '@/types';
 import gsap from 'gsap';
 
 export default function Checkout() {
-    const { items, subtotal, clearCart } = useCart();
+    const { items, subtotal, clearCart, formatPrice } = useCart();
     const { app_url } = usePage<SharedData & { app_url: string }>().props;
     const [isFinished, setIsFinished] = useState(false);
 
@@ -40,14 +40,12 @@ export default function Checkout() {
     });
 
     useEffect(() => {
-        gsap.from(".checkout-animate", {
-            y: 30,
-            opacity: 0,
-            stagger: 0.1,
-            duration: 0.8,
-            ease: "power3.out"
-        });
-    }, []);
+        setData('productos', items.map(item => ({
+            producto_id: item.id,
+            cantidad: item.cantidad,
+            precio_venta: item.precio
+        })));
+    }, [items]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -62,7 +60,8 @@ export default function Checkout() {
                 clearCart();
                 toast.success('Pedido realizado con éxito');
             },
-            onError: () => {
+            onError: (errors) => {
+                console.error('Checkout errors:', errors);
                 toast.error('Hubo un error al procesar tu pedido');
             }
         });
@@ -92,11 +91,11 @@ export default function Checkout() {
             <Head title="Checkout | Finalizar Pedido" />
 
             <div className="container mx-auto px-4 py-8 md:py-16">
-                <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-12 checkout-animate">Finalizar Pedido</h1>
+                <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-12">Finalizar Pedido</h1>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
                     {/* Form */}
-                    <div className="lg:col-span-7 space-y-10 checkout-animate">
+                    <div className="lg:col-span-7 space-y-10">
                         <Card className="rounded-[3rem] border-4 border-border/50 shadow-2xl overflow-hidden bg-card/50 backdrop-blur-xl">
                             <CardHeader className="p-8 pb-4">
                                 <CardTitle className="text-3xl font-black flex items-center gap-4">
@@ -210,11 +209,11 @@ export default function Checkout() {
                                                 <div>
                                                     <p className="font-black text-base line-clamp-1">{item.nombre}</p>
                                                     <p className="text-xs text-muted-foreground font-black uppercase tracking-tighter">
-                                                        {item.cantidad} x ${item.precio.toLocaleString()}
+                                                        {item.cantidad} x {formatPrice(item.precio)}
                                                     </p>
                                                 </div>
                                             </div>
-                                            <p className="font-black text-xl text-primary">${(item.precio * item.cantidad).toLocaleString()}</p>
+                                            <p className="font-black text-xl text-primary">{formatPrice(item.precio * item.cantidad)}</p>
                                         </div>
                                     ))}
                                     {items.length === 0 && (
@@ -230,7 +229,7 @@ export default function Checkout() {
                                 <div className="space-y-4">
                                     <div className="flex justify-between font-black text-lg">
                                         <span className="text-muted-foreground">Monto Bruto</span>
-                                        <span>${subtotal.toLocaleString()}</span>
+                                        <span>{formatPrice(subtotal)}</span>
                                     </div>
                                     <div className="flex justify-between font-black text-lg text-green-600">
                                         <span>Logística Miranda</span>
@@ -240,7 +239,7 @@ export default function Checkout() {
                                     <div className="flex justify-between text-4xl font-black pt-4">
                                         <span>Inversión</span>
                                         <div className="flex flex-col items-end">
-                                            <span className="text-primary leading-none">${subtotal.toLocaleString()}</span>
+                                            <span className="text-primary leading-none">{formatPrice(subtotal)}</span>
                                             <span className="text-[10px] text-muted-foreground uppercase opacity-50 tracking-[0.2em] mt-1">Neto Final</span>
                                         </div>
                                     </div>

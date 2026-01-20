@@ -10,6 +10,23 @@ use Inertia\Inertia;
 
 class ShopController extends Controller
 {
+    public function searchSuggestions(Request $request)
+    {
+        $query = $request->input('q');
+        
+        if (!$query) {
+            return response()->json([]);
+        }
+
+        $productos = Producto::where('nombre', 'like', "%{$query}%")
+            ->orWhere('caracteristicas', 'like', "%{$query}%")
+            ->select('id', 'nombre', 'slug', 'precio_1') // Adjust fields as needed
+            ->limit(5)
+            ->get();
+
+        return response()->json($productos);
+    }
+
     public function index(Request $request)
     {
         $query = Producto::with(['marca', 'categoria', 'fotos'])
@@ -35,6 +52,16 @@ class ShopController extends Controller
             $query->where('marca_id', $marca_id);
         }
 
+        // Filtro por rango de precio
+        if ($max_price = $request->input('max_price')) {
+            $query->where('precio_1', '<=', $max_price);
+        }
+
+        // Filtro solo productos en stock
+        if ($request->input('in_stock') === '1') {
+            $query->where('stock', '>', 0);
+        }
+
         // Ordenación
         $sort = $request->input('sort', 'latest');
         switch ($sort) {
@@ -58,7 +85,7 @@ class ShopController extends Controller
             'productos' => $productos,
             'categorias' => Categoria::all(),
             'marcas' => Marca::all(),
-            'filters' => $request->only(['search', 'categoria', 'marca', 'sort']),
+            'filters' => $request->only(['search', 'categoria', 'marca', 'sort', 'max_price', 'in_stock']),
         ]);
     }
 
