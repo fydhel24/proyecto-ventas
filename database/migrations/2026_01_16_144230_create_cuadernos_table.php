@@ -29,15 +29,6 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
-
-        // Forzar inicio desde 1000 (multi-BD)
-        DB::table('cuadernos')->insert([
-            'id' => 999,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        DB::table('cuadernos')->where('id', 999)->delete();
     }
 
     /**
