@@ -15,7 +15,7 @@ import productos from '@/routes/productos';
 import cuadernos from '@/routes/cuadernos';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, MessageSquare } from 'lucide-react';
+import { BookOpen, BookOpenText, CheckCircle2, Clock, Folder, LayoutGrid, List, MapPin, MessageCircle, Package, Send } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -27,39 +27,44 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Productos',
         href: productos.index().url,
-        icon: LayoutGrid,
+        icon: Package,
     },
     {
         title: 'Cuaderno',
         href: cuadernos.index().url,
-        icon: LayoutGrid,
+        icon: BookOpenText,
         items: [
             {
                 title: 'Todos',
                 href: cuadernos.index(),
+                icon: List,
             },
             {
                 title: 'La Paz',
                 href: cuadernos.index({ query: { filter: 'la_paz' } }).url,
+                icon: MapPin,
             },
             {
                 title: 'Enviado',
                 href: cuadernos.index({ query: { filter: 'enviado' } }).url,
+                icon: Send,
             },
             {
                 title: 'Listo',
                 href: cuadernos.index({ query: { filter: 'p_listo' } }).url,
+                icon: CheckCircle2,
             },
             {
                 title: 'Pendiente',
                 href: cuadernos.index({ query: { filter: 'p_pendiente' } }).url,
+                icon: Clock,
             },
         ],
     },
     {
         title: 'WhatsApp Miranda',
         href: whatsappMiranda().url,
-        icon: MessageSquare,
+        icon: MessageCircle,
     },
 ];
 
