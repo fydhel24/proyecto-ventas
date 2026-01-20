@@ -97,7 +97,8 @@ export function Navbar({ auth }: { auth: any }) {
                             {[
                                 { name: 'Inicio', path: '/' },
                                 { name: 'Tienda', path: '/tienda' },
-                                { name: 'Pedidos', path: '/pedido' }
+                                { name: 'Pedidos', path: '/pedido' },
+                                { name: 'Verificar pedido', path: '/qr' }
                             ].map((item) => (
                                 <Link
                                     key={item.name}
@@ -199,7 +200,8 @@ export function Navbar({ auth }: { auth: any }) {
                                             {[
                                                 { name: 'Inicio', path: '/' },
                                                 { name: 'Tienda', path: '/tienda' },
-                                                { name: 'Pedidos', path: '/pedido' }
+                                                { name: 'Pedidos', path: '/pedido' },
+                                                { name: 'Verificar pedido', path: '/qr' }
                                             ].map(item => (
                                                 <Link key={item.name} href={item.path} className="text-2xl font-black border-b pb-2">{item.name}</Link>
                                             ))}
