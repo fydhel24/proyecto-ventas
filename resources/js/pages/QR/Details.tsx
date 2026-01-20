@@ -63,6 +63,12 @@ export default function Details({ cuaderno }: { cuaderno: Cuaderno | null }) {
         minute: '2-digit'
     }) : '';
 
+    const getImageUrl = (url: string) => {
+        if (!url) return '';
+        if (url.startsWith('http')) return url;
+        return `/storage/${url}`;
+    };
+
     // Function to handle successful QR scan
     const handleScanSuccess = (decodedText: string) => {
         try {
@@ -359,7 +365,7 @@ export default function Details({ cuaderno }: { cuaderno: Cuaderno | null }) {
                             {cuaderno.imagenes.map((img) => (
                                 <div key={img.id} className="aspect-square relative rounded-2xl overflow-hidden border border-slate-100 shadow-sm group">
                                     <img
-                                        src={`/storage/${img.url}`}
+                                        src={getImageUrl(img.url)}
                                         alt="Prod"
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                     />
