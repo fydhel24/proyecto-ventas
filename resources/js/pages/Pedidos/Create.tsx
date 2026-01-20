@@ -374,27 +374,6 @@ export default function Create() {
                                 </CardHeader>
                                 <CardContent className="p-8">
                                     <div className="space-y-6">
-                                        <Label htmlFor="product-images" className="block w-full cursor-pointer bg-muted/50 hover:bg-muted border-2 border-dashed border-border hover:border-primary rounded-[2rem] p-10 text-center transition-all group">
-                                            <div className="bg-background w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl border border-border group-hover:scale-110 transition-transform">
-                                                <Upload className="w-7 h-7 text-primary" />
-                                            </div>
-                                            <span className="text-foreground font-black block text-lg">Añadir fotos</span>
-                                            <input
-                                                type="file"
-                                                id="product-images"
-                                                multiple
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={handleProductImageChange}
-                                            />
-                                        </Label>
-
-                                        {productImagesError && (
-                                            <p className="text-sm font-bold text-destructive animate-in fade-in slide-in-from-top-1 text-center">
-                                                {productImagesError}
-                                            </p>
-                                        )}
-
                                         {productImages.length > 0 && (
                                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 animate-in fade-in zoom-in duration-300">
                                                 {productImages.map((item, index) => (
@@ -423,6 +402,27 @@ export default function Create() {
                                                 ))}
                                             </div>
                                         )}
+
+                                        <Label htmlFor="product-images" className="block w-full cursor-pointer bg-muted/50 hover:bg-muted border-2 border-dashed border-border hover:border-primary rounded-[2rem] p-10 text-center transition-all group">
+                                            <div className="bg-background w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl border border-border group-hover:scale-110 transition-transform">
+                                                <Upload className="w-7 h-7 text-primary" />
+                                            </div>
+                                            <span className="text-foreground font-black block text-lg">Añadir más fotos</span>
+                                            <input
+                                                type="file"
+                                                id="product-images"
+                                                multiple
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={handleProductImageChange}
+                                            />
+                                        </Label>
+
+                                        {productImagesError && (
+                                            <p className="text-sm font-bold text-destructive animate-in fade-in slide-in-from-top-1 text-center">
+                                                {productImagesError}
+                                            </p>
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -439,26 +439,6 @@ export default function Create() {
                                 </CardHeader>
                                 <CardContent className="p-8">
                                     <div className="space-y-6">
-                                        <Label htmlFor="receipt-images" className="block w-full cursor-pointer bg-muted/50 hover:bg-muted border-2 border-dashed border-border hover:border-primary rounded-[2rem] p-10 text-center transition-all group">
-                                            <div className="bg-background w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl border border-border group-hover:scale-110 transition-transform">
-                                                <Upload className="w-7 h-7 text-primary" />
-                                            </div>
-                                            <span className="text-foreground font-black block text-lg">Añadir comprobante</span>
-                                            <input
-                                                type="file"
-                                                id="receipt-images"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={handleReceiptImageChange}
-                                            />
-                                        </Label>
-
-                                        {receiptImagesError && (
-                                            <p className="text-sm font-bold text-destructive animate-in fade-in slide-in-from-top-1 text-center">
-                                                {receiptImagesError}
-                                            </p>
-                                        )}
-
                                         {receiptImages.length > 0 && (
                                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 animate-in fade-in zoom-in duration-300">
                                                 {receiptImages.map((file, index) => (
@@ -474,6 +454,28 @@ export default function Create() {
                                                     </div>
                                                 ))}
                                             </div>
+                                        )}
+
+                                        {receiptImages.length === 0 && (
+                                            <Label htmlFor="receipt-images" className="block w-full cursor-pointer bg-muted/50 hover:bg-muted border-2 border-dashed border-border hover:border-primary rounded-[2rem] p-10 text-center transition-all group">
+                                                <div className="bg-background w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl border border-border group-hover:scale-110 transition-transform">
+                                                    <Upload className="w-7 h-7 text-primary" />
+                                                </div>
+                                                <span className="text-foreground font-black block text-lg">Añadir comprobante</span>
+                                                <input
+                                                    type="file"
+                                                    id="receipt-images"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={handleReceiptImageChange}
+                                                />
+                                            </Label>
+                                        )}
+
+                                        {receiptImagesError && (
+                                            <p className="text-sm font-bold text-destructive animate-in fade-in slide-in-from-top-1 text-center">
+                                                {receiptImagesError}
+                                            </p>
                                         )}
                                     </div>
                                 </CardContent>
