@@ -30,62 +30,61 @@ class CuadernoController extends Controller
         $search = $request->input('search');
         $filter = $request->input('filter');
 
-        // Manejar errores de forma segura para que nunca rompa PHP-FPM
-        try {
-            $cuadernosQuery = Cuaderno::with([
-                'productos:id,nombre,marca_id,categoria_id,color_id',
-                'productos.marca:id,nombre_marca',
-                'productos.categoria:id,nombre_cat',
-                'productos.color:id,codigo_color',
-                'imagenes',
-            ])
-                ->when($search, function ($query, $search) {
-                    $query->where(function ($q) use ($search) {
-                        $q->where('nombre', 'like', "%{$search}%")
-                            ->orWhere('ci', 'like', "%{$search}%")
-                            ->orWhere('celular', 'like', "%{$search}%")
-                            ->orWhere('departamento', 'like', "%{$search}%")
-                            ->orWhere('provincia', 'like', "%{$search}%")
-                            ->orWhere('id', 'like', "%{$search}%");
-                    });
-                })
-                ->when($filter, function ($query, $filter) {
-                    switch ($filter) {
-                        case 'la_paz':
-                            $query->where('la_paz', true);
-                            break;
-                        case 'enviado':
-                            $query->where('enviado', true);
-                            break;
-                        case 'p_listo':
-                            $query->where('p_listo', true);
-                            break;
-                        case 'p_pendiente':
-                            $query->where('p_pendiente', true);
-                            break;
-                    }
-                })
-                ->select('id', 'nombre', 'ci', 'celular', 'departamento', 'provincia', 'tipo', 'estado', 'detalle', 'la_paz', 'enviado', 'p_listo', 'p_pendiente', 'created_at')
-                ->orderBy('created_at', 'desc');
-
-            // Ejecutar paginación dentro del try
-            try {
-                $cuadernos = $cuadernosQuery->paginate(20)->withQueryString();
-            } catch (\Exception $e) {
-                \Log::error('Error paginando cuadernos: ' . $e->getMessage());
-                $cuadernos = collect(); // fallback vacío
-            }
-        } catch (\Exception $e) {
-            \Log::error('Error cargando cuadernos: ' . $e->getMessage());
-            $cuadernos = collect(); // fallback vacío
-        }
-
-        // Manejar productos
-        // Ya no cargamos todos los productos aquí para evitar 502 Bad Gateway
+        // Manejar productos (vacío para evitar sobrecarga)
         $productos = []; 
 
         return Inertia::render('Cuadernos/Index', [
-            'cuadernos' => $cuadernos,
+            'cuadernos' => Inertia::lazy(function () use ($search, $filter) {
+                // Manejar errores de forma segura para que nunca rompa PHP-FPM
+                try {
+                    $cuadernosQuery = Cuaderno::with([
+                        'productos:id,nombre,marca_id,categoria_id,color_id',
+                        'productos.marca:id,nombre_marca',
+                        'productos.categoria:id,nombre_cat',
+                        'productos.color:id,codigo_color',
+                        'imagenes',
+                    ])
+                        ->when($search, function ($query, $search) {
+                            $query->where(function ($q) use ($search) {
+                                $q->where('nombre', 'like', "%{$search}%")
+                                    ->orWhere('ci', 'like', "%{$search}%")
+                                    ->orWhere('celular', 'like', "%{$search}%")
+                                    ->orWhere('departamento', 'like', "%{$search}%")
+                                    ->orWhere('provincia', 'like', "%{$search}%")
+                                    ->orWhere('id', 'like', "%{$search}%");
+                            });
+                        })
+                        ->when($filter, function ($query, $filter) {
+                            switch ($filter) {
+                                case 'la_paz':
+                                    $query->where('la_paz', true);
+                                    break;
+                                case 'enviado':
+                                    $query->where('enviado', true);
+                                    break;
+                                case 'p_listo':
+                                    $query->where('p_listo', true);
+                                    break;
+                                case 'p_pendiente':
+                                    $query->where('p_pendiente', true);
+                                    break;
+                            }
+                        })
+                        ->select('id', 'nombre', 'ci', 'celular', 'departamento', 'provincia', 'tipo', 'estado', 'detalle', 'la_paz', 'enviado', 'p_listo', 'p_pendiente', 'created_at')
+                        ->orderBy('created_at', 'desc');
+
+                    // Ejecutar paginación dentro del try
+                    try {
+                        return $cuadernosQuery->paginate(20)->withQueryString();
+                    } catch (\Exception $e) {
+                        \Log::error('Error paginando cuadernos: ' . $e->getMessage());
+                        return collect(); // fallback vacío
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Error cargando cuadernos: ' . $e->getMessage());
+                    return collect(); // fallback vacío
+                }
+            }),
             'productos' => $productos,
             'filters' => $request->only(['search']),
         ]);

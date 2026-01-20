@@ -45,6 +45,7 @@ import {
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from '@inertiajs/react'; // Import Link for pagination
 import { Image as ImageIcon } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Imagen {
     id: number;
@@ -117,7 +118,7 @@ export default function CuadernosIndex({
     productos,
     filters,
 }: {
-    cuadernos: PaginatedResponse<Cuaderno>;
+    cuadernos?: PaginatedResponse<Cuaderno>;
     productos: ProductoModal[];
     filters: { search?: string };
 }) {
@@ -171,6 +172,7 @@ export default function CuadernosIndex({
 
     // Update local state when cuadernos data changes
     useEffect(() => {
+        if (!cuadernos?.data) return;
         const initialState: LocalState = {};
         cuadernos.data.forEach((c) => {
             initialState[c.id] = {
@@ -181,7 +183,14 @@ export default function CuadernosIndex({
             };
         });
         setLocalState(initialState);
-    }, [cuadernos.data]);
+    }, [cuadernos?.data]);
+
+    // Lazy load cuadernos
+    useEffect(() => {
+        if (!cuadernos) {
+            router.reload({ only: ['cuadernos'] });
+        }
+    }, [cuadernos]);
 
     // Actualiza solo el estado local (para inputs de texto)
     const updateLocalState = (
@@ -362,7 +371,49 @@ export default function CuadernosIndex({
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {cuadernos.data.length > 0 ? (
+                                    {!cuadernos ? (
+                                        Array.from({ length: 5 }).map((_, i) => (
+                                            <TableRow key={i}>
+                                                <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-4 mx-auto rounded-full" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-4 mx-auto rounded-full" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-4 mx-auto rounded-full" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-4 mx-auto rounded-full" /></TableCell>
+                                                <TableCell>
+                                                    <div className="flex flex-col gap-2">
+                                                        <Skeleton className="h-7 w-full" />
+                                                        <Skeleton className="h-7 w-full" />
+                                                        <Skeleton className="h-7 w-full" />
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex flex-col gap-2">
+                                                        <Skeleton className="h-7 w-full" />
+                                                        <Skeleton className="h-7 w-full" />
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex flex-col gap-2">
+                                                        <Skeleton className="h-6 w-32" />
+                                                        <Skeleton className="h-6 w-24" />
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex gap-1">
+                                                        <Skeleton className="h-7 w-16" />
+                                                        <Skeleton className="h-7 w-16" />
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                                                <TableCell className="text-right">
+                                                    <div className="flex justify-end gap-1">
+                                                        <Skeleton className="h-8 w-8" />
+                                                        <Skeleton className="h-8 w-8" />
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : cuadernos.data.length > 0 ? (
                                         cuadernos.data.map((cuaderno) => {
                                             const local =
                                                 localState[cuaderno.id] || {};
@@ -619,31 +670,33 @@ export default function CuadernosIndex({
                                 </TableBody>
                             </Table>
                             {/* Pagination */}
-                            <div className="flex items-center justify-between mt-4">
-                                <div className="text-sm text-muted-foreground">
-                                    Mostrando {cuadernos.from} a {cuadernos.to} de {cuadernos.total} resultados
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    {cuadernos.links.map((link, i) => (
-                                        <Button
-                                            key={i}
-                                            variant={link.active ? "default" : "outline"}
-                                            size="sm"
-                                            className={cn("h-8 w-8 p-0", !link.url && "opacity-50 cursor-not-allowed")}
-                                            asChild={!!link.url}
-                                            disabled={!link.url}
-                                        >
-                                            {link.url ? (
-                                                <Link href={link.url} preserveState preserveScroll>
+                            {cuadernos && (
+                                <div className="flex items-center justify-between mt-4">
+                                    <div className="text-sm text-muted-foreground">
+                                        Mostrando {cuadernos.from} a {cuadernos.to} de {cuadernos.total} resultados
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        {cuadernos.links.map((link, i) => (
+                                            <Button
+                                                key={i}
+                                                variant={link.active ? "default" : "outline"}
+                                                size="sm"
+                                                className={cn("h-8 w-8 p-0", !link.url && "opacity-50 cursor-not-allowed")}
+                                                asChild={!!link.url}
+                                                disabled={!link.url}
+                                            >
+                                                {link.url ? (
+                                                    <Link href={link.url} preserveState preserveScroll>
+                                                        <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                                                    </Link>
+                                                ) : (
                                                     <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                                                </Link>
-                                            ) : (
-                                                <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                                            )}
-                                        </Button>
-                                    ))}
+                                                )}
+                                            </Button>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
