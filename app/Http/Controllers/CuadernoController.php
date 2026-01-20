@@ -388,94 +388,122 @@ class CuadernoController extends Controller
 
     public function datos($pdf, $pedido, $marginTop)
     {
-        $fucsia = [242, 39, 93];
-        $morado = [69, 23, 115];
-        $turquesa = [23, 191, 191];
+        // Paleta de Colores Profesionales
+        $navy = [15, 23, 42];        // Gris Azulado muy Oscuro (Titulares)
+        $slate = [100, 116, 139];    // Gris Slate (Texto secundario)
+        $blueAccent = [37, 99, 235]; // Azul Brillante (Acentos)
+        $lightGray = [241, 245, 249]; // Fondo muy claro para secciones
 
+        // Marca de Agua sutil
         $imgWatermark = public_path('images/logo_old.png');
         if (file_exists($imgWatermark)) {
-            $pdf->Image($imgWatermark, 5, 40, 220, 0, 'PNG');
+            // Intentamos transparencia si la librería lo soporta (FPDF con extensión Alpha)
+            // Si no, simplemente la colocamos como fondo sutil
+            if (method_exists($pdf, 'SetAlpha')) {
+                $pdf->SetAlpha(0.05);
+                $pdf->Image($imgWatermark, 15, 60, 185, 0, 'PNG');
+                $pdf->SetAlpha(1);
+            } else {
+                // Si no hay SetAlpha, la saltamos para no ensuciar el documento si el logo es muy fuerte
+                // O la ponemos muy pequeña. Por seguridad en este entorno, la omitiremos si no hay Alpha
+                // para asegurar legibilidad.
+            }
         }
 
         $pdf->SetY($marginTop);
 
+        // --- ENCABEZADO ---
         $imgLogo = public_path('images/logo.png');
         if (file_exists($imgLogo)) {
-            $pdf->Image($imgLogo, 12, 12, 35);
+            $pdf->Image($imgLogo, 12, 12, 40);
         }
 
-        $pdf->SetX(50);
-        $pdf->SetFont('Arial', 'B', 20);
-        $pdf->SetTextColor($morado[0], $morado[1], $morado[2]);
-        $pdf->Cell(0, 10, utf8_decode('IMPORTADORA MIRANDA S.A.'), 0, 1, 'R');
+        $pdf->SetX(60);
+        $pdf->SetFont('Arial', 'B', 18);
+        $pdf->SetTextColor($navy[0], $navy[1], $navy[2]);
+        $pdf->Cell(0, 10, utf8_decode('MIRACODE S.A.'), 0, 1, 'R');
 
-        $pdf->SetX(50);
-        $pdf->SetFont('Arial', 'I', 11);
-        $pdf->SetTextColor($fucsia[0], $fucsia[1], $fucsia[2]);
-        $pdf->Cell(0, 5, utf8_decode('A un Click del Producto que Necesita!!'), 0, 1, 'R');
-
-        $pdf->SetX(50);
+        $pdf->SetX(60);
         $pdf->SetFont('Arial', '', 9);
-        $pdf->SetTextColor(80, 80, 80);
-        $pdf->Cell(0, 5, utf8_decode('WhatsApp: 70621016 | Caparazon Mall Center, Local 29'), 0, 1, 'R');
+        $pdf->SetTextColor($slate[0], $slate[1], $slate[2]);
+        $pdf->Cell(0, 5, utf8_decode('Mirando hacia el futuro.'), 0, 1, 'R');
+        
+        $pdf->SetX(60);
+        $pdf->Cell(0, 5, utf8_decode('WhatsApp: 71234567 | Direccion, Nro'), 0, 1, 'R');
 
-        $pdf->Ln(15);
+      $pdf->Ln(15);
 
-        $pdf->SetFillColor($morado[0], $morado[1], $morado[2]);
+        // --- TÍTULO PRINCIPAL ---
+        $pdf->SetFillColor($navy[0], $navy[1], $navy[2]);
         $pdf->SetTextColor(255, 255, 255);
         $pdf->SetFont('Arial', 'B', 14);
-        $pdf->Cell(0, 12, utf8_decode('   COMPROBANTE DE PEDIDO #'.($pedido['id'] ?? '000')), 0, 1, 'L', true);
+        $pdf->Cell(0, 14, utf8_decode('    COMPROBANTE DE PEDIDO #' . ($pedido['id'] ?? '000')), 0, 1, 'L', true);
 
-        $pdf->SetFillColor($turquesa[0], $turquesa[1], $turquesa[2]);
+        $pdf->SetFillColor($blueAccent[0], $blueAccent[1], $blueAccent[2]);
         $pdf->Cell(0, 1.5, '', 0, 1, 'L', true);
 
         $pdf->Ln(8);
 
-        $pdf->SetTextColor(40, 40, 40);
+        // --- DATOS DEL CLIENTE ---
+        $pdf->SetTextColor($navy[0], $navy[1], $navy[2]);
         $yActual = $pdf->GetY();
-        $pdf->SetFont('Arial', 'B', 10);
-        $pdf->SetTextColor($morado[0], $morado[1], $morado[2]);
-        $pdf->Text(12, $yActual + 5, 'DATOS DEL CLIENTE');
+        $pdf->SetFont('Arial', 'B', 11);
+        $pdf->Text(12, $yActual + 5, 'INFORMACIÓN DEL CLIENTE');
+        
+        $pdf->SetDrawColor($blueAccent[0], $blueAccent[1], $blueAccent[2]);
+        $pdf->Line(12, $yActual + 7, 80, $yActual + 7);
 
-        $pdf->SetTextColor(60, 60, 60);
-        $pdf->SetFont('Arial', 'B', 9);
-        $pdf->SetXY(12, $yActual + 10);
-        $pdf->Cell(25, 6, 'Nombre:', 0, 0);
-        $pdf->SetFont('Arial', '', 10);
-        $pdf->Cell(70, 6, utf8_decode(strtoupper($pedido['nombre_cliente'])), 0, 1);
+        $pdf->Ln(12);
 
+        // Ajuste de posición para los datos
         $pdf->SetX(12);
-        $pdf->SetFont('Arial', 'B', 9);
-        $pdf->Cell(25, 6, 'CI / NIT:', 0, 0);
-        $pdf->SetFont('Arial', '', 10);
-        $pdf->Cell(70, 6, utf8_decode($pedido['ci']), 0, 1);
+        $pdf->SetFillColor($lightGray[0], $lightGray[1], $lightGray[2]);
+        $pdf->Rect(10, $pdf->GetY(), 190, 25, 'F');
 
-        $pdf->SetXY(110, $yActual + 10);
+        $pdf->SetY($pdf->GetY() + 4);
+        $pdf->SetX(15);
         $pdf->SetFont('Arial', 'B', 9);
-        $pdf->Cell(25, 6, 'Celular:', 0, 0);
-        $pdf->SetTextColor($turquesa[0], $turquesa[1], $turquesa[2]);
-        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->SetTextColor($slate[0], $slate[1], $slate[2]);
+        $pdf->Cell(30, 6, 'NOMBRE:', 0, 0);
+        $pdf->SetTextColor($navy[0], $navy[1], $navy[2]);
+        $pdf->SetFont('Arial', 'B', 11);
+        $pdf->Cell(80, 6, utf8_decode(strtoupper($pedido['nombre_cliente'])), 0, 0);
+
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->SetTextColor($slate[0], $slate[1], $slate[2]);
+        $pdf->Cell(25, 6, 'CELULAR:', 0, 0);
+        $pdf->SetTextColor($blueAccent[0], $blueAccent[1], $blueAccent[2]);
+        $pdf->SetFont('Arial', 'B', 11);
         $pdf->Cell(0, 6, utf8_decode($pedido['celular']), 0, 1);
 
-        $pdf->SetXY(110, $yActual + 16);
-        $pdf->SetTextColor(60, 60, 60);
+        $pdf->SetX(15);
         $pdf->SetFont('Arial', 'B', 9);
-        $pdf->Cell(25, 6, 'Fecha:', 0, 0);
-        $pdf->SetFont('Arial', '', 10);
-        $pdf->Cell(0, 6, utf8_decode($pedido['fecha'] ?? date('Y-m-d H:i')), 0, 1);
+        $pdf->SetTextColor($slate[0], $slate[1], $slate[2]);
+        $pdf->Cell(30, 6, 'CI / NIT:', 0, 0);
+        $pdf->SetTextColor($navy[0], $navy[1], $navy[2]);
+        $pdf->SetFont('Arial', '', 11);
+        $pdf->Cell(80, 6, utf8_decode($pedido['ci']), 0, 0);
 
-        $pdf->Ln(15);
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->SetTextColor($slate[0], $slate[1], $slate[2]);
+        $pdf->Cell(25, 6, 'FECHA:', 0, 0);
+        $pdf->SetTextColor($navy[0], $navy[1], $navy[2]);
+        $pdf->SetFont('Arial', '', 11);
+        $pdf->Cell(0, 6, utf8_decode($pedido['fecha'] ?? date('d/m/Y H:i')), 0, 1);
 
-        $pdf->SetDrawColor($turquesa[0], $turquesa[1], $turquesa[2]);
-        $pdf->SetLineWidth(0.8);
-        $pdf->Rect(75, $pdf->GetY(), 64, 77);
+        $pdf->Ln(20);
+
+        // --- SECCIÓN QR ---
+        $pdf->SetDrawColor($lightGray[0], $lightGray[1], $lightGray[2]);
+        $pdf->SetLineWidth(0.5);
+        $pdf->Rect(70, $pdf->GetY(), 70, 85, 'D');
 
         $pdf->SetY($pdf->GetY() + 5);
         $urlEscaneo = "http://127.0.0.1:8000/qr?id={$pedido['id']}&ci={$pedido['ci']}&celular={$pedido['celular']}";
-        $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='.urlencode($urlEscaneo);
+        $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($urlEscaneo);
         $qrPath = storage_path("app/temp/qr_cua_{$pedido['id']}.png");
 
-        if (! file_exists(storage_path('app/temp'))) {
+        if (!file_exists(storage_path('app/temp'))) {
             mkdir(storage_path('app/temp'), 0777, true);
         }
 
@@ -483,7 +511,7 @@ class CuadernoController extends Controller
             $qrImage = @file_get_contents($qrApiUrl);
             if ($qrImage) {
                 file_put_contents($qrPath, $qrImage);
-                $pdf->Image($qrPath, 82, $pdf->GetY(), 50, 50, 'PNG');
+                $pdf->Image($qrPath, 80, $pdf->GetY(), 50, 50, 'PNG');
                 $pdf->Ln(55);
                 @unlink($qrPath);
             }
@@ -492,26 +520,32 @@ class CuadernoController extends Controller
         }
 
         $pdf->SetFont('Arial', 'B', 10);
-        $pdf->SetTextColor($morado[0], $morado[1], $morado[2]);
-        $pdf->Cell(0, 5, utf8_decode('ESCANEA ESTE CÓDIGO QR PARA'), 0, 1, 'C');
-        $pdf->Cell(0, 5, utf8_decode('VER TU PEDIDO EN TIEMPO REAL'), 0, 1, 'C');
+        $pdf->SetTextColor($navy[0], $navy[1], $navy[2]);
+        $pdf->Cell(0, 5, utf8_decode('ESCANEA PARA SEGUIMIENTO'), 0, 1, 'C');
+        
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->SetTextColor($slate[0], $slate[1], $slate[2]);
+        $pdf->Cell(0, 5, utf8_decode('Verifica el estado de tu pedido en tiempo real'), 0, 1, 'C');
 
-        $pdf->SetFont('Arial', 'B', 11);
-        $pdf->SetTextColor(60, 60, 60);
-        $pdf->Cell(0, 7, utf8_decode('shop.importadoramiranda.com/qr'), 0, 1, 'C');
+        $pdf->Ln(5);
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->SetTextColor($blueAccent[0], $blueAccent[1], $blueAccent[2]);
+        $pdf->Cell(0, 7, utf8_decode('GRACIAS POR SU COMPRA'), 0, 1, 'C');
 
-        $pdf->SetY(-65);
-        $pdf->SetDrawColor($fucsia[0], $fucsia[1], $fucsia[2]);
-        $pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
+        // --- PIE DE PÁGINA ---
+        $pdf->SetY(-60);
+        $pdf->SetDrawColor($blueAccent[0], $blueAccent[1], $blueAccent[2]);
+        $pdf->SetLineWidth(0.8);
+        $pdf->Line(40, $pdf->GetY(), 170, $pdf->GetY());
         $pdf->Ln(5);
 
         $pdf->SetFont('Arial', 'I', 9);
-        $pdf->SetTextColor(100, 100, 100);
-        $pdf->MultiCell(0, 5, utf8_decode('Este documento sirve como comprobante de su solicitud. Puede verificar los detalles legales y técnicos escaneando el código QR superior. Agradecemos su preferencia por nuestros productos.'), 0, 'C');
+        $pdf->SetTextColor($slate[0], $slate[1], $slate[2]);
+        $pdf->MultiCell(0, 5, utf8_decode('Este documento es un comprobante digital de su solicitud. Para cualquier consulta, por favor proporcione el número de pedido indicado arriba.'), 0, 'C');
 
-        $pdf->Ln(3);
-        $pdf->SetFont('Arial', 'B', 13);
-        $pdf->SetTextColor($fucsia[0], $fucsia[1], $fucsia[2]);
-        $pdf->Cell(0, 10, utf8_decode('¡GRACIAS POR TU PEDIDO!'), 0, 1, 'C');
+        $pdf->Ln(5);
+        $pdf->SetFont('Arial', 'B', 14);
+        $pdf->SetTextColor($navy[0], $navy[1], $navy[2]);
+        $pdf->Cell(0, 10, utf8_decode('¡GRACIAS POR SU PREFERENCIA!'), 0, 1, 'C');
     }
 }
