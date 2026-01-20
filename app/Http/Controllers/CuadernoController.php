@@ -30,45 +30,63 @@ class CuadernoController extends Controller
         $search = $request->input('search');
         $filter = $request->input('filter');
 
-        $cuadernos = Cuaderno::with([
-            'productos:id,nombre,marca_id,categoria_id,color_id',
-            'productos.marca:id,nombre_marca',
-            'productos.categoria:id,nombre_cat',
-            'productos.color:id,codigo_color',
-            'imagenes',
-        ])
-            ->when($search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('nombre', 'like', "%{$search}%")
-                        ->orWhere('ci', 'like', "%{$search}%")
-                        ->orWhere('celular', 'like', "%{$search}%")
-                        ->orWhere('departamento', 'like', "%{$search}%")
-                        ->orWhere('provincia', 'like', "%{$search}%")
-                        ->orWhere('id', 'like', "%{$search}%");
-                });
-            })
-            ->when($filter, function ($query, $filter) {
-                switch ($filter) {
-                    case 'la_paz':
-                        $query->where('la_paz', true);
-                        break;
-                    case 'enviado':
-                        $query->where('enviado', true);
-                        break;
-                    case 'p_listo':
-                        $query->where('p_listo', true);
-                        break;
-                    case 'p_pendiente':
-                        $query->where('p_pendiente', true);
-                        break;
-                }
-            })
-            ->select('id', 'nombre', 'ci', 'celular', 'departamento', 'provincia', 'tipo', 'estado', 'detalle', 'la_paz', 'enviado', 'p_listo', 'p_pendiente', 'created_at')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20)
-            ->withQueryString();
+        // Manejar errores de forma segura para que nunca rompa PHP-FPM
+        try {
+            $cuadernosQuery = Cuaderno::with([
+                'productos:id,nombre,marca_id,categoria_id,color_id',
+                'productos.marca:id,nombre_marca',
+                'productos.categoria:id,nombre_cat',
+                'productos.color:id,codigo_color',
+                'imagenes',
+            ])
+                ->when($search, function ($query, $search) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('nombre', 'like', "%{$search}%")
+                            ->orWhere('ci', 'like', "%{$search}%")
+                            ->orWhere('celular', 'like', "%{$search}%")
+                            ->orWhere('departamento', 'like', "%{$search}%")
+                            ->orWhere('provincia', 'like', "%{$search}%")
+                            ->orWhere('id', 'like', "%{$search}%");
+                    });
+                })
+                ->when($filter, function ($query, $filter) {
+                    switch ($filter) {
+                        case 'la_paz':
+                            $query->where('la_paz', true);
+                            break;
+                        case 'enviado':
+                            $query->where('enviado', true);
+                            break;
+                        case 'p_listo':
+                            $query->where('p_listo', true);
+                            break;
+                        case 'p_pendiente':
+                            $query->where('p_pendiente', true);
+                            break;
+                    }
+                })
+                ->select('id', 'nombre', 'ci', 'celular', 'departamento', 'provincia', 'tipo', 'estado', 'detalle', 'la_paz', 'enviado', 'p_listo', 'p_pendiente', 'created_at')
+                ->orderBy('created_at', 'desc');
 
-        $productos = Producto::get(['id', 'nombre', 'stock']);
+            // Ejecutar paginación dentro del try
+            try {
+                $cuadernos = $cuadernosQuery->paginate(20)->withQueryString();
+            } catch (\Exception $e) {
+                \Log::error('Error paginando cuadernos: ' . $e->getMessage());
+                $cuadernos = collect(); // fallback vacío
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error cargando cuadernos: ' . $e->getMessage());
+            $cuadernos = collect(); // fallback vacío
+        }
+
+        // Manejar productos
+        try {
+            $productos = Producto::get(['id', 'nombre', 'stock']);
+        } catch (\Exception $e) {
+            \Log::error('Error cargando productos: ' . $e->getMessage());
+            $productos = collect(); // fallback vacío
+        }
 
         return Inertia::render('Cuadernos/Index', [
             'cuadernos' => $cuadernos,
@@ -76,6 +94,7 @@ class CuadernoController extends Controller
             'filters' => $request->only(['search']),
         ]);
     }
+
 
     public function update(Request $request, Cuaderno $cuaderno)
     {
@@ -93,8 +112,16 @@ class CuadernoController extends Controller
         ]);
 
         $cuaderno->update($request->only([
-            'la_paz', 'enviado', 'p_listo', 'p_pendiente',
-            'nombre', 'ci', 'celular', 'departamento', 'provincia', 'estado',
+            'la_paz',
+            'enviado',
+            'p_listo',
+            'p_pendiente',
+            'nombre',
+            'ci',
+            'celular',
+            'departamento',
+            'provincia',
+            'estado',
         ]));
 
         return back();
@@ -269,7 +296,7 @@ class CuadernoController extends Controller
         ];
 
         try {
-            $loginResponse = Http::timeout(10)->post($apiBaseUrl.'/auth/login', $nestAuth);
+            $loginResponse = Http::timeout(10)->post($apiBaseUrl . '/auth/login', $nestAuth);
             if (!$loginResponse->successful()) {
                 return null;
             }
@@ -278,7 +305,7 @@ class CuadernoController extends Controller
 
             $statusResponse = Http::withToken($token)
                 ->timeout(10)
-                ->get($apiBaseUrl.'/whatsapp/status');
+                ->get($apiBaseUrl . '/whatsapp/status');
 
             if ($statusResponse->successful() && $statusResponse->json('status') === 'CONNECTED') {
                 return $token;
@@ -286,7 +313,7 @@ class CuadernoController extends Controller
 
             return null;
         } catch (\Exception $e) {
-            Log::error('Error al verificar conexión WhatsApp: '.$e->getMessage());
+            Log::error('Error al verificar conexión WhatsApp: ' . $e->getMessage());
             return null;
         }
     }
@@ -295,7 +322,7 @@ class CuadernoController extends Controller
     {
         $destino = preg_replace('/[^0-9]/', '', $numeroCelular);
         if (substr($destino, 0, 3) !== '591') {
-            $destino = '591'.substr($destino, -9);
+            $destino = '591' . substr($destino, -9);
         }
 
         $rutaPdf = "pedidospdf/{$cuadernoId}.pdf";
@@ -304,7 +331,7 @@ class CuadernoController extends Controller
             return false;
         }
 
-        $pdfUrl = asset('storage/'.$rutaPdf);
+        $pdfUrl = asset('storage/' . $rutaPdf);
 
         return $this->enviarPdfPorNestSimplificado($destino, $pdfUrl, $cuadernoId, $token);
     }
@@ -323,13 +350,13 @@ class CuadernoController extends Controller
             "✅ *PEDIDO ASIGNADO CORRECTAMENTE*\n\nTu pedido #{$cuadernoId} ya figura como guardado en el sistema. 📄 Adjuntamos tu nota de entrega con todos los detalles.",
             "🚀 *REGISTRO EXITOSO* (#{$cuadernoId})\n\n¡Perfecto! Tu pedido ha sido guardado correctamente. 📄 Aquí tienes el PDF con el resumen de tus productos.",
         ];
-        
+
         $apiBaseUrl = env('VITE_WHATSAPP_API_URL');
 
         try {
             $sendResponse = Http::withToken($token)
                 ->timeout(15)
-                ->post($apiBaseUrl.'/whatsapp/send-media', [
+                ->post($apiBaseUrl . '/whatsapp/send-media', [
                     'to' => $destino,
                     'mediaUrl' => $pdfUrl,
                     'mediaType' => 'document',
@@ -338,7 +365,7 @@ class CuadernoController extends Controller
 
             return $sendResponse->successful();
         } catch (\Exception $e) {
-            Log::error('Excepción al enviar PDF por Nest API: '.$e->getMessage());
+            Log::error('Excepción al enviar PDF por Nest API: ' . $e->getMessage());
             return false;
         }
     }
@@ -427,11 +454,11 @@ class CuadernoController extends Controller
         $pdf->SetFont('Arial', '', 9);
         $pdf->SetTextColor($slate[0], $slate[1], $slate[2]);
         $pdf->Cell(0, 5, utf8_decode('Mirando hacia el futuro.'), 0, 1, 'R');
-        
+
         $pdf->SetX(60);
         $pdf->Cell(0, 5, utf8_decode('WhatsApp: 71234567 | Direccion, Nro'), 0, 1, 'R');
 
-      $pdf->Ln(15);
+        $pdf->Ln(15);
 
         // --- TÍTULO PRINCIPAL ---
         $pdf->SetFillColor($navy[0], $navy[1], $navy[2]);
@@ -449,7 +476,7 @@ class CuadernoController extends Controller
         $yActual = $pdf->GetY();
         $pdf->SetFont('Arial', 'B', 11);
         $pdf->Text(12, $yActual + 5, 'INFORMACIÓN DEL CLIENTE');
-        
+
         $pdf->SetDrawColor($blueAccent[0], $blueAccent[1], $blueAccent[2]);
         $pdf->Line(12, $yActual + 7, 80, $yActual + 7);
 
@@ -522,7 +549,7 @@ class CuadernoController extends Controller
         $pdf->SetFont('Arial', 'B', 10);
         $pdf->SetTextColor($navy[0], $navy[1], $navy[2]);
         $pdf->Cell(0, 5, utf8_decode('ESCANEA PARA SEGUIMIENTO'), 0, 1, 'C');
-        
+
         $pdf->SetFont('Arial', '', 8);
         $pdf->SetTextColor($slate[0], $slate[1], $slate[2]);
         $pdf->Cell(0, 5, utf8_decode('Verifica el estado de tu pedido en tiempo real'), 0, 1, 'C');
