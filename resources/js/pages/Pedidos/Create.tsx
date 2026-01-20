@@ -165,9 +165,29 @@ export default function Create() {
         });
 
         try {
-            await axios.post('/api/shoppedidos', formData, {
+            const response = await axios.post('/api/shoppedidos', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
+
+            if (response.data.pdf_base64) {
+                const byteCharacters = atob(response.data.pdf_base64);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'application/pdf' });
+                const url = window.URL.createObjectURL(blob);
+
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', `pedido-${response.data.id}.pdf`);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }
+
             setSuccess(true);
             form.reset();
             setProductImages([]);

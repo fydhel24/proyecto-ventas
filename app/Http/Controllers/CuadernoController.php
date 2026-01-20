@@ -32,7 +32,7 @@ class CuadernoController extends Controller
             'productos.marca:id,nombre_marca',
             'productos.categoria:id,nombre_cat',
             'productos.color:id,codigo_color',
-            'imagenes'
+            'imagenes',
         ])
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -194,11 +194,16 @@ class CuadernoController extends Controller
                 }
             }
         }
-        $this->guardarPdfDePedido($cuaderno->id);
+        $pdfPath = $this->guardarPdfDePedido($cuaderno->id);
+        $pdfUrl = Storage::disk('public')->url($pdfPath);
+        $pdfBase64 = base64_encode(Storage::disk('public')->get($pdfPath));
 
         return response()->json([
             'message' => 'Pedido registrado correctamente',
             'id' => $cuaderno->id,
+            'pdf_url' => $pdfUrl,
+            'pdf_path' => $pdfPath,
+            'pdf_base64' => $pdfBase64,
         ]);
     }
 
