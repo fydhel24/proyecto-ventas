@@ -220,6 +220,40 @@ class CuadernoController extends Controller
         return response()->json($responseParams);
     }
 
+    public function qrDetails(Request $request)
+    {
+        // If no parameters are provided, just render the component in "Scanner" mode
+        if (! $request->has('id') || ! $request->has('ci') || ! $request->has('celular')) {
+            return Inertia::render('QR/Details', [
+                'cuaderno' => null,
+            ]);
+        }
+
+        $request->validate([
+            'id' => 'required|integer',
+            'ci' => 'required|string',
+            'celular' => 'required|string',
+        ]);
+
+        $cuaderno = \App\Models\Cuaderno::with(['productos', 'imagenes' => function ($query) {
+            $query->withPivot('tipo', 'cantidad');
+        }])->findOrFail($request->id);
+
+        // Security check: CI and Celular must match (ignoring non-numeric chars for comparison)
+        $dbCi = preg_replace('/[^0-9]/', '', $cuaderno->ci);
+        $reqCi = preg_replace('/[^0-9]/', '', $request->ci);
+        $dbCel = preg_replace('/[^0-9]/', '', $cuaderno->celular);
+        $reqCel = preg_replace('/[^0-9]/', '', $request->celular);
+
+        if ($dbCi !== $reqCi || $dbCel !== $reqCel) {
+            abort(403, 'Acceso no autorizado.');
+        }
+
+        return Inertia::render('QR/Details', [
+            'cuaderno' => $cuaderno,
+        ]);
+    }
+
     private function enviarPdfPorNestApi($cuadernoId, $numeroCelular)
     {
         $destino = preg_replace('/[^0-9]/', '', $numeroCelular);
@@ -427,7 +461,7 @@ class CuadernoController extends Controller
         $pdf->Rect(75, $pdf->GetY(), 64, 77);
 
         $pdf->SetY($pdf->GetY() + 5);
-        $urlEscaneo = "https://shop.importadoramiranda.com/qr?id={$pedido['id']}&ci={$pedido['ci']}&celular={$pedido['celular']}";
+        $urlEscaneo = "http://127.0.0.1:8000/qr?id={$pedido['id']}&ci={$pedido['ci']}&celular={$pedido['celular']}";
         $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='.urlencode($urlEscaneo);
         $qrPath = storage_path("app/temp/qr_cua_{$pedido['id']}.png");
 

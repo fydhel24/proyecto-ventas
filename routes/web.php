@@ -15,6 +15,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/pedido', [CuadernoController::class, 'createPedido'])->name('pedido.create');
+Route::get('/qr', [CuadernoController::class, 'qrDetails'])->name('qr.details');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
