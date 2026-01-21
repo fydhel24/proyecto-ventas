@@ -19,8 +19,9 @@ export function AppTopbar({ className }: AppTopbarProps) {
                 <SidebarTrigger className="-ml-1" />
             </div>
 
-            <div className="flex items-center gap-2 ml-auto">
+            <div className="flex items-center gap-3 ml-auto">
                 <ColorThemeSelector />
+                <div className="w-px h-6 bg-border/30" />
                 <NavUser />
             </div>
         </header>

@@ -3,31 +3,187 @@ import { useCallback, useEffect, useState } from 'react';
 export type Appearance = 'light' | 'dark' | 'system';
 export type ThemeColor = 'red' | 'green' | 'blue' | 'cyan' | 'white' | 'black';
 
-// OKLch color values for theme colors
-const COLOR_CSS_VARS: Record<ThemeColor, Record<string, string>> = {
+// Complete theme color palettes with light and dark modes
+const COLOR_THEMES: Record<ThemeColor, { light: Record<string, string>; dark: Record<string, string> }> = {
     red: {
-        '--primary': 'oklch(0.5 0.2 25)', // red primary
-        '--primary-foreground': 'oklch(0.985 0 0)', // white foreground
+        light: {
+            '--primary': 'oklch(0.5 0.2 25)', // red primary
+            '--primary-foreground': 'oklch(0.985 0 0)', // white
+            '--background': 'oklch(0.98 0 0)', // near white
+            '--foreground': 'oklch(0.145 0 0)', // dark text
+            '--card': 'oklch(1 0 0)', // white
+            '--card-foreground': 'oklch(0.145 0 0)',
+            '--muted': 'oklch(0.97 0 0)', // light gray
+            '--muted-foreground': 'oklch(0.556 0 0)', // medium gray
+            '--accent': 'oklch(0.5 0.2 25)', // same as primary
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.45 0.15 25)', // darker red
+            '--secondary-foreground': 'oklch(0.985 0 0)',
+        },
+        dark: {
+            '--primary': 'oklch(0.5 0.2 25)', // red primary
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': 'oklch(0.12 0 0)', // very dark gray
+            '--foreground': 'oklch(0.985 0 0)', // light text
+            '--card': 'oklch(0.16 0 0)', // dark gray card
+            '--card-foreground': 'oklch(0.985 0 0)',
+            '--muted': 'oklch(0.25 0 0)', // medium dark gray
+            '--muted-foreground': 'oklch(0.708 0 0)', // light gray text
+            '--accent': 'oklch(0.5 0.2 25)', // same as primary
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.6 0.2 25)', // lighter red
+            '--secondary-foreground': 'oklch(0.145 0 0)',
+        },
     },
     green: {
-        '--primary': 'oklch(0.55 0.18 142)', // green primary
-        '--primary-foreground': 'oklch(0.985 0 0)', // white foreground
+        light: {
+            '--primary': 'oklch(0.55 0.18 142)', // green primary
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': 'oklch(0.98 0 0)',
+            '--foreground': 'oklch(0.145 0 0)',
+            '--card': 'oklch(1 0 0)',
+            '--card-foreground': 'oklch(0.145 0 0)',
+            '--muted': 'oklch(0.97 0 0)',
+            '--muted-foreground': 'oklch(0.556 0 0)',
+            '--accent': 'oklch(0.55 0.18 142)',
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.45 0.15 142)',
+            '--secondary-foreground': 'oklch(0.985 0 0)',
+        },
+        dark: {
+            '--primary': 'oklch(0.55 0.18 142)',
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': 'oklch(0.12 0 0)',
+            '--foreground': 'oklch(0.985 0 0)',
+            '--card': 'oklch(0.16 0 0)',
+            '--card-foreground': 'oklch(0.985 0 0)',
+            '--muted': 'oklch(0.25 0 0)',
+            '--muted-foreground': 'oklch(0.708 0 0)',
+            '--accent': 'oklch(0.55 0.18 142)',
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.6 0.15 142)',
+            '--secondary-foreground': 'oklch(0.145 0 0)',
+        },
     },
     blue: {
-        '--primary': 'oklch(0.5 0.2 264)', // blue primary
-        '--primary-foreground': 'oklch(0.985 0 0)', // white foreground
+        light: {
+            '--primary': 'oklch(0.5 0.2 264)', // blue primary
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': 'oklch(0.98 0 0)',
+            '--foreground': 'oklch(0.145 0 0)',
+            '--card': 'oklch(1 0 0)',
+            '--card-foreground': 'oklch(0.145 0 0)',
+            '--muted': 'oklch(0.97 0 0)',
+            '--muted-foreground': 'oklch(0.556 0 0)',
+            '--accent': 'oklch(0.5 0.2 264)',
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.45 0.15 264)',
+            '--secondary-foreground': 'oklch(0.985 0 0)',
+        },
+        dark: {
+            '--primary': 'oklch(0.5 0.2 264)',
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': 'oklch(0.12 0 0)',
+            '--foreground': 'oklch(0.985 0 0)',
+            '--card': 'oklch(0.16 0 0)',
+            '--card-foreground': 'oklch(0.985 0 0)',
+            '--muted': 'oklch(0.25 0 0)',
+            '--muted-foreground': 'oklch(0.708 0 0)',
+            '--accent': 'oklch(0.5 0.2 264)',
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.6 0.2 264)',
+            '--secondary-foreground': 'oklch(0.145 0 0)',
+        },
     },
     cyan: {
-        '--primary': 'oklch(0.65 0.15 200)', // cyan primary
-        '--primary-foreground': 'oklch(0.985 0 0)', // white foreground
+        light: {
+            '--primary': 'oklch(0.65 0.15 200)', // cyan primary
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': 'oklch(0.98 0 0)',
+            '--foreground': 'oklch(0.145 0 0)',
+            '--card': 'oklch(1 0 0)',
+            '--card-foreground': 'oklch(0.145 0 0)',
+            '--muted': 'oklch(0.97 0 0)',
+            '--muted-foreground': 'oklch(0.556 0 0)',
+            '--accent': 'oklch(0.65 0.15 200)',
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.55 0.12 200)',
+            '--secondary-foreground': 'oklch(0.985 0 0)',
+        },
+        dark: {
+            '--primary': 'oklch(0.65 0.15 200)',
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': 'oklch(0.12 0 0)',
+            '--foreground': 'oklch(0.985 0 0)',
+            '--card': 'oklch(0.16 0 0)',
+            '--card-foreground': 'oklch(0.985 0 0)',
+            '--muted': 'oklch(0.25 0 0)',
+            '--muted-foreground': 'oklch(0.708 0 0)',
+            '--accent': 'oklch(0.65 0.15 200)',
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.7 0.15 200)',
+            '--secondary-foreground': 'oklch(0.145 0 0)',
+        },
     },
     white: {
-        '--primary': 'oklch(0.98 0 0)', // white primary
-        '--primary-foreground': 'oklch(0.145 0 0)', // dark foreground
+        light: {
+            '--primary': 'oklch(0.98 0 0)', // white primary
+            '--primary-foreground': 'oklch(0.145 0 0)',
+            '--background': 'oklch(0.98 0 0)',
+            '--foreground': 'oklch(0.145 0 0)',
+            '--card': 'oklch(1 0 0)',
+            '--card-foreground': 'oklch(0.145 0 0)',
+            '--muted': 'oklch(0.97 0 0)',
+            '--muted-foreground': 'oklch(0.556 0 0)',
+            '--accent': 'oklch(0.98 0 0)',
+            '--accent-foreground': 'oklch(0.145 0 0)',
+            '--secondary': 'oklch(0.95 0 0)',
+            '--secondary-foreground': 'oklch(0.145 0 0)',
+        },
+        dark: {
+            '--primary': 'oklch(0.98 0 0)',
+            '--primary-foreground': 'oklch(0.145 0 0)',
+            '--background': 'oklch(0.12 0 0)',
+            '--foreground': 'oklch(0.985 0 0)',
+            '--card': 'oklch(0.16 0 0)',
+            '--card-foreground': 'oklch(0.985 0 0)',
+            '--muted': 'oklch(0.25 0 0)',
+            '--muted-foreground': 'oklch(0.708 0 0)',
+            '--accent': 'oklch(0.98 0 0)',
+            '--accent-foreground': 'oklch(0.145 0 0)',
+            '--secondary': 'oklch(0.2 0 0)',
+            '--secondary-foreground': 'oklch(0.985 0 0)',
+        },
     },
     black: {
-        '--primary': 'oklch(0.2 0 0)', // black primary
-        '--primary-foreground': 'oklch(0.985 0 0)', // white foreground
+        light: {
+            '--primary': 'oklch(0.2 0 0)', // black primary
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': 'oklch(0.98 0 0)',
+            '--foreground': 'oklch(0.145 0 0)',
+            '--card': 'oklch(1 0 0)',
+            '--card-foreground': 'oklch(0.145 0 0)',
+            '--muted': 'oklch(0.97 0 0)',
+            '--muted-foreground': 'oklch(0.556 0 0)',
+            '--accent': 'oklch(0.2 0 0)',
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.15 0 0)',
+            '--secondary-foreground': 'oklch(0.985 0 0)',
+        },
+        dark: {
+            '--primary': 'oklch(0.2 0 0)',
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': 'oklch(0.12 0 0)',
+            '--foreground': 'oklch(0.985 0 0)',
+            '--card': 'oklch(0.16 0 0)',
+            '--card-foreground': 'oklch(0.985 0 0)',
+            '--muted': 'oklch(0.25 0 0)',
+            '--muted-foreground': 'oklch(0.708 0 0)',
+            '--accent': 'oklch(0.2 0 0)',
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.3 0 0)',
+            '--secondary-foreground': 'oklch(0.985 0 0)',
+        },
     },
 };
 
@@ -55,9 +211,11 @@ const applyTheme = (appearance: Appearance, color: ThemeColor = 'blue') => {
     document.documentElement.classList.toggle('dark', isDark);
     document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
 
-    // Apply color theme
-    const colorVars = COLOR_CSS_VARS[color];
-    Object.entries(colorVars).forEach(([key, value]) => {
+    // Apply complete color theme palette
+    const themeMode = isDark ? 'dark' : 'light';
+    const colorTheme = COLOR_THEMES[color][themeMode];
+    
+    Object.entries(colorTheme).forEach(([key, value]) => {
         document.documentElement.style.setProperty(key, value);
     });
 };
