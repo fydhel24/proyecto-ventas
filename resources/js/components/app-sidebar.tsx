@@ -1,6 +1,5 @@
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
-import { NavUser } from '@/components/nav-user';
 import {
     Sidebar,
     SidebarContent,
@@ -15,7 +14,7 @@ import productos from '@/routes/productos';
 import cuadernos from '@/routes/cuadernos';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, BookOpenText, CheckCircle2, Clock, Folder, LayoutGrid, List, MapPin, MessageCircle, Package, Send } from 'lucide-react';
+import { BookOpenText, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Send } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -102,7 +101,6 @@ export function AppSidebar() {
 
             <SidebarFooter>
                 <NavFooter items={footerNavItems} className="mt-auto" />
-                <NavUser />
             </SidebarFooter>
         </Sidebar>
     );
