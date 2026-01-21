@@ -27,9 +27,7 @@ Route::get('/checkout', [App\Http\Controllers\ShopController::class, 'checkout']
 Route::post('/cuadernos/pedidos', [CuadernoController::class, 'pedidos'])->name('cuadernos.pedidos');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::resource('productos', ProductoController::class)
         ->names('productos');
     // Rutas para crear marcas y categorías desde los modales
