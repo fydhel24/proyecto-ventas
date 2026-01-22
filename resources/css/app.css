@@ -95,6 +95,21 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.87 0 0);
+    /* Dynamic theme colors - updated by JavaScript */
+    --theme-primary: #2563eb;
+    --theme-secondary: #3b82f6;
+    --accent-1: #2563eb;
+    --accent-2: #0ea5e9;
+    --accent-3: #ec4899;
+    --accent-4: #f59e0b;
+    --accent-1-light: rgb(37, 99, 235 / 0.05);
+    --accent-1-dark: rgb(30, 64, 175 / 0.2);
+    --accent-2-light: rgb(14, 165, 233 / 0.05);
+    --accent-2-dark: rgb(12, 115, 170 / 0.2);
+    --accent-3-light: rgb(236, 72, 153 / 0.05);
+    --accent-3-dark: rgb(190, 24, 93 / 0.2);
+    --accent-4-light: rgb(245, 158, 11 / 0.05);
+    --accent-4-dark: rgb(120, 53, 15 / 0.2);
 }
 
 .dark {

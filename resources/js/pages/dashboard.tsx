@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, ChartStyle } from '@/components/ui/chart';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ColorThemeSelector } from '@/components/color-theme-selector';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
@@ -107,42 +108,51 @@ export default function Dashboard({ stats }: DashboardProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <div className="flex flex-1 flex-col gap-6 p-6 overflow-y-auto">
+                {/* Header con selector de temas */}
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+                        <p className="text-muted-foreground mt-1">Resumen de tu actividad y métricas clave</p>
+                    </div>
+                    <ColorThemeSelector />
+                </div>
+
                 {/* Metrics Cards */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card className="border-none shadow-sm bg-blue-50/50 dark:bg-blue-950/20">
+                    <Card className="border-none shadow-sm" style={{ backgroundColor: 'var(--accent-1-light)', borderLeft: '3px solid var(--accent-1)' }}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Productos</CardTitle>
-                            <Package className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            <Package className="h-4 w-4" style={{ color: 'var(--accent-1)' }} />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stats.totalProductos}</div>
                             <p className="text-xs text-muted-foreground mt-1">En el inventario</p>
                         </CardContent>
                     </Card>
-                    <Card className="border-none shadow-sm bg-green-50/50 dark:bg-green-950/20">
+                    <Card className="border-none shadow-sm" style={{ backgroundColor: 'var(--accent-2-light)', borderLeft: '3px solid var(--accent-2)' }}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Pedidos</CardTitle>
-                            <ShoppingCart className="h-4 w-4 text-green-600 dark:text-green-400" />
+                            <ShoppingCart className="h-4 w-4" style={{ color: 'var(--accent-2)' }} />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stats.totalPedidos}</div>
                             <p className="text-xs text-muted-foreground mt-1">Acumulados</p>
                         </CardContent>
                     </Card>
-                    <Card className="border-none shadow-sm bg-purple-50/50 dark:bg-purple-950/20">
+                    <Card className="border-none shadow-sm" style={{ backgroundColor: 'var(--accent-3-light)', borderLeft: '3px solid var(--accent-3)' }}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Pedidos Hoy</CardTitle>
-                            <ShoppingCart className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                            <ShoppingCart className="h-4 w-4" style={{ color: 'var(--accent-3)' }} />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stats.pedidosHoy}</div>
                             <p className="text-xs text-muted-foreground mt-1">Nuevos pedidos</p>
                         </CardContent>
                     </Card>
-                    <Card className="border-none shadow-sm bg-orange-50/50 dark:bg-orange-950/20">
+                    <Card className="border-none shadow-sm" style={{ backgroundColor: 'var(--accent-4-light)', borderLeft: '3px solid var(--accent-4)' }}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Stock Bajo</CardTitle>
-                            <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                            <AlertCircle className="h-4 w-4" style={{ color: 'var(--accent-4)' }} />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stats.stockBajo}</div>
@@ -188,12 +198,12 @@ export default function Dashboard({ stats }: DashboardProps) {
                                         <linearGradient id="fillOrders" x1="0" y1="0" x2="0" y2="1">
                                             <stop
                                                 offset="5%"
-                                                stopColor="var(--color-count)"
+                                                stopColor="var(--chart-2)"
                                                 stopOpacity={0.8}
                                             />
                                             <stop
                                                 offset="95%"
-                                                stopColor="var(--color-count)"
+                                                stopColor="var(--chart-2)"
                                                 stopOpacity={0.1}
                                             />
                                         </linearGradient>
@@ -232,7 +242,7 @@ export default function Dashboard({ stats }: DashboardProps) {
                                         dataKey="count"
                                         type="natural"
                                         fill="url(#fillOrders)"
-                                        stroke="var(--color-count)"
+                                        stroke="var(--chart-2)"
                                         stackId="a"
                                     />
                                     <ChartLegend content={<ChartLegendContent />} />

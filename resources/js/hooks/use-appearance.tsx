@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { applyThemeColors } from '@/lib/theme-colors';
 
 export type Appearance = 'light' | 'dark' | 'system';
 export type ThemeColor = 'red' | 'green' | 'blue' | 'cyan' | 'white' | 'black';
@@ -214,10 +215,13 @@ const applyTheme = (appearance: Appearance, color: ThemeColor = 'blue') => {
     // Apply complete color theme palette
     const themeMode = isDark ? 'dark' : 'light';
     const colorTheme = COLOR_THEMES[color][themeMode];
-    
+
     Object.entries(colorTheme).forEach(([key, value]) => {
         document.documentElement.style.setProperty(key, value);
     });
+
+    // Apply dynamic chart and accent colors
+    applyThemeColors(color, isDark);
 };
 
 const mediaQuery = () => {
