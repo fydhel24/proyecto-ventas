@@ -24,7 +24,8 @@ import {
 } from "@/components/ui/dialog";
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, Form } from '@inertiajs/react';
+import * as routes from '@/routes/cuadernos';
 import {
     flexRender,
     getCoreRowModel,
@@ -143,6 +144,7 @@ export default function CuadernosIndex({
     cuadernos: PaginatedResponse<Cuaderno>;
     productos: ProductoModal[];
     filters: { search?: string };
+    flash?: { success?: string; error?: string };
 }) {
     const [localState, setLocalState] = useState<LocalState>({});
     const [modalOpen, setModalOpen] = useState(false);
@@ -156,6 +158,7 @@ export default function CuadernosIndex({
     const [imageModalOpen, setImageModalOpen] = useState(false);
     const [currentImage, setCurrentImage] = useState<string | null>(null);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [isProcessing, setIsProcessing] = useState(false);
     const saveTimeouts = React.useRef<Record<number, Record<string, ReturnType<typeof setTimeout>>>>({});
 
     // Debounce local search -> apply as column filter
@@ -451,6 +454,17 @@ export default function CuadernosIndex({
         },
     });
 
+    // Update selectedIds whenever rowSelection changes
+    useEffect(() => {
+        const selection = rowSelection as Record<string, boolean>;
+        const selected = Object.keys(selection)
+            .filter((key) => selection[key])
+            .map((key) => cuadernos.data[parseInt(key)]?.id)
+            .filter(Boolean) as number[];
+
+        setSelectedIds(selected);
+    }, [rowSelection, cuadernos.data]);
+
     // Actualiza solo el estado local (para inputs de texto)
     const updateLocalState = (
         id: number,
@@ -547,6 +561,34 @@ export default function CuadernosIndex({
         }
     };
 
+    const handleBulkConfirm = () => {
+        if (selectedIds.length === 0) return;
+
+        if (confirm(`¿Estás seguro de confirmar los ${selectedIds.length} pedidos seleccionados? Esto marcará su estado como Confirmado y Enviado y se generará un PDF.`)) {
+            setIsProcessing(true);
+
+            router.post(routes.confirmarSeleccion.url(), {
+                ids: selectedIds
+            }, {
+                onSuccess: () => {
+                    // Abrir el PDF en una nueva pestaña usando GET
+                    const pdfUrl = routes.confirmarSeleccion.url({
+                        query: {
+                            ids: selectedIds.map(id => id.toString()),
+                            view_pdf: '1'
+                        }
+                    });
+                    window.open(pdfUrl, '_blank');
+
+                    setRowSelection({});
+                },
+                onFinish: () => {
+                    setIsProcessing(false);
+                }
+            });
+        }
+    };
+
     const isAllSelected = cuadernos.data.length > 0 && selectedIds.length === cuadernos.data.length;
 
     const toggleSelectAll = (checked: boolean) => {
@@ -631,6 +673,19 @@ export default function CuadernosIndex({
                                         Pendiente
                                     </Button>
                                 </div>
+
+                                {selectedIds.length > 0 && (
+                                    <Button
+                                        onClick={handleBulkConfirm}
+                                        disabled={isProcessing}
+                                        variant="default"
+                                        className="h-9 bg-green-600 hover:bg-green-700 text-white gap-2 px-4 shadow-lg animate-in fade-in zoom-in duration-300"
+                                    >
+                                        <CheckCircle className="w-4 h-4" />
+                                        Confirmar {selectedIds.length} {selectedIds.length === 1 ? 'Pedido' : 'Pedidos'}
+                                    </Button>
+                                )}
+
                                 <div className="relative w-full md:w-64">
                                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                     <Input

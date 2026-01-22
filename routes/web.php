@@ -38,6 +38,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/api/productos/search', [CuadernoController::class, 'searchProductos'])->name('productos.search');
     Route::patch('/cuadernos/{cuaderno}', [CuadernoController::class, 'update'])->name('cuadernos.update');
     Route::post('/cuadernos/{cuaderno}/productos', [CuadernoController::class, 'addProducto'])->name('cuadernos.addProducto');
+    Route::match(['get', 'post'], '/cuadernos/confirmar-seleccion', [CuadernoController::class, 'confirmarSeleccionados'])->name('cuadernos.confirmarSeleccion');
     Route::delete('/cuadernos/{cuaderno}', [CuadernoController::class, 'destroy'])->name('cuadernos.destroy');
 
     Route::get('/whatsapp-miranda', function () {

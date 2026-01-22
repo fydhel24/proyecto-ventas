@@ -574,17 +574,107 @@ class CuadernoController extends Controller
     public function searchProductos(Request $request)
     {
         $search = $request->input('search');
-
-        if (!$search) {
-            return response()->json([]);
-        }
-
         $productos = Producto::where('nombre', 'like', "%{$search}%")
             ->where('stock', '>', 0)
-            ->select('id', 'nombre', 'stock', 'precio_1')
             ->limit(10)
             ->get();
 
         return response()->json($productos);
+    }
+
+    public function confirmarSeleccionados(Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return back()->with('error', 'No se seleccionaron pedidos.');
+        }
+
+        // Si es una solicitud GET para ver el PDF
+        if ($request->isMethod('get') && $request->has('view_pdf')) {
+            $cuadernos = Cuaderno::whereIn('id', $ids)->get();
+            if ($cuadernos->count() > 0) {
+                $pdf = $this->prepararPdfConfirmacion($cuadernos, 'PEDIDOS CONFIRMADOS');
+                return response($pdf->Output('S'))
+                    ->header('Content-Type', 'application/pdf')
+                    ->header('Content-Disposition', 'inline; filename="confirmacion_pedidos.pdf"');
+            }
+            return back();
+        }
+
+        // Si es una solicitud POST para confirmar
+        $cuadernosValidos = [];
+        foreach ($ids as $id) {
+            $cuaderno = Cuaderno::find($id);
+            if ($cuaderno) {
+                $cuaderno->update([
+                    'estado' => 'Confirmado',
+                    'enviado' => true,
+                ]);
+                $cuadernosValidos[] = $cuaderno;
+            }
+        }
+
+        return back()->with('success', 'Pedidos confirmados.');
+    }
+
+    private function prepararPdfConfirmacion($cuadernos, $titulo)
+    {
+        $pdf = new FPDF('P', 'mm', 'Legal');
+        $pdf->AddPage();
+
+        $imagePath = public_path('images/logo_gris-3.png');
+        if (file_exists($imagePath)) {
+            $pdf->Image($imagePath, 0, 70, 216, 216);
+        }
+
+        $pdf->SetFont('Arial', 'B', 25);
+        $pdf->Cell(0, 10, utf8_decode('Fecha: ' . date('d-m-Y')), 0, 1, 'C');
+
+        if (file_exists($imagePath)) {
+            $pdf->Image($imagePath, 10, 10, 40);
+        }
+
+        $pdf->SetX(150);
+        $pdf->SetFont('Arial', 'I', 8);
+        $pdf->SetTextColor(0, 102, 204);
+        $pdf->Cell(0, 5, utf8_decode('Pagina: importadoramiranda.com'), 0, 1, 'R');
+        $pdf->Cell(0, 5, utf8_decode('Contactos: 70621016'), 0, 1, 'R');
+        $pdf->Ln(20);
+
+        $pdf->SetFont('Helvetica', 'B', 28);
+        $pdf->SetTextColor(0, 51, 102);
+        $pdf->Cell(0, 15, utf8_decode('IMPORTADORA MIRANDA'), 0, 1, 'C');
+        $pdf->SetFont('Arial', 'B', 16);
+        $pdf->Cell(0, 10, utf8_decode($titulo), 0, 1, 'C');
+        $pdf->Ln(5);
+
+        // Tabla
+        $pdf->SetFillColor(0, 102, 204);
+        $pdf->SetTextColor(255, 255, 255);
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->Cell(10, 10, '#', 1, 0, 'C', true);
+        $pdf->Cell(10, 10, 'id', 1, 0, 'C', true);
+        $pdf->Cell(70, 10, 'Nombre', 1, 0, 'C', true);
+        $pdf->Cell(25, 10, 'CI', 1, 0, 'C', true);
+        $pdf->Cell(25, 10, 'Celular', 1, 0, 'C', true);
+        $pdf->Cell(40, 10, 'Departamento', 1, 0, 'C', true);
+        $pdf->Cell(15, 10, 'Check', 1, 1, 'C', true);
+
+        $pdf->SetTextColor(0, 0, 0);
+        $counter = 1;
+        foreach ($cuadernos as $cuaderno) {
+            $pdf->SetFont('Arial', '', 9);
+            $pdf->Cell(10, 10, $counter++, 1, 0, 'C');
+            $pdf->Cell(10, 10, $cuaderno->id, 1, 0, 'C');
+            $pdf->Cell(70, 10, utf8_decode(strtoupper($cuaderno->nombre)), 1, 0, 'L');
+            $pdf->Cell(25, 10, $cuaderno->ci, 1, 0, 'C');
+            $pdf->Cell(25, 10, $cuaderno->celular, 1, 0, 'C');
+            $pdf->SetFont('Arial', '', 7);
+            $pdf->Cell(40, 10, utf8_decode($cuaderno->departamento . ' - ' . $cuaderno->provincia), 1, 0, 'L');
+            $pdf->Cell(15, 10, '', 1, 1, 'C');
+        }
+
+        return $pdf;
     }
 }
