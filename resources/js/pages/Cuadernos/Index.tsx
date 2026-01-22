@@ -507,6 +507,11 @@ export default function CuadernosIndex({
         }
     };
 
+    const handleClearSelection = () => {
+        setRowSelection({});
+        localStorage.removeItem('selected_cuadernos_v3');
+    };
+
     return (
         <AppLayout>
             <Head title="Cuadernos" />
@@ -528,8 +533,11 @@ export default function CuadernosIndex({
                                                 {selectedIds.length > 0 ? `Confirmar ${selectedIds.length}` : 'Confirmar Todo'}
                                             </Button>
                                             <Button onClick={handlePdfRespaldo} variant="outline" className="h-9 border-blue-200 text-blue-700">
-                                                <FileText className="w-4 h-4 mr-2" />
                                                 {selectedIds.length > 0 ? `Respaldo (${selectedIds.length})` : 'Respaldo (Listo)'}
+                                            </Button>
+                                            <Button onClick={handleClearSelection} variant="ghost" className="h-9 text-red-600 hover:text-red-700 hover:bg-red-50 gap-2">
+                                                <Trash2 className="w-4 h-4" />
+                                                Limpiar ({selectedIds.length})
                                             </Button>
                                             <Button onClick={handleGenerarFichas} variant="outline" className="h-9 border-purple-200 text-purple-700">
                                                 <Package className="w-4 h-4 mr-2" />
