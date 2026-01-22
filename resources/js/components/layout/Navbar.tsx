@@ -60,8 +60,8 @@ export function Navbar({ auth }: { auth: any }) {
                     {/* Logo */}
                     <div className="flex items-center gap-10">
                         <Link href="/" className="flex items-center space-x-2 group">
-                            <div className="bg-primary h-10 w-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110">
-                                <span className="text-primary-foreground font-bold text-2xl">M</span>
+                            <div className="bg-transparent h-10 w-10 flex items-center justify-center transition-transform group-hover:scale-110">
+                                <img src="/favicon.ico" className="h-10 w-10 object-contain" alt="Logo" />
                             </div>
                             <span className="hidden font-black text-2xl tracking-tighter sm:inline-block uppercase">Miracode</span>
                         </Link>
