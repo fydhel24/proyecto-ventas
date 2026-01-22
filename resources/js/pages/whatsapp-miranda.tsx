@@ -225,9 +225,9 @@ export default function WhatsAppMiranda() {
 
             <div className="flex flex-col space-y-6 max-w-6xl mx-auto w-full pb-12">
                 {/* Modern Header / Status Bar */}
-                <div className="bg-white p-6 rounded-2xl border shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="bg-card p-6 rounded-2xl border shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="flex items-center gap-5 w-full md:w-auto">
-                        <div className="w-14 h-14 rounded-2xl bg-[#25D366] flex items-center justify-center text-white shadow-lg shadow-green-100 shrink-0">
+                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0" style={{ backgroundColor: 'var(--whatsapp-primary)', boxShadow: '0 20px 25px -5px rgba(var(--whatsapp-primary), 0.1)' }}>
                             <MessageSquare className="w-8 h-8" />
                         </div>
                         <div className="flex-1">
@@ -267,24 +267,24 @@ export default function WhatsAppMiranda() {
                 </div>
 
                 <Tabs defaultValue="status" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 h-auto p-1.5 bg-slate-100/50 rounded-2xl border mb-2">
-                        <TabsTrigger value="status" className="py-4 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-[#25D366] font-bold transition-all">
+                    <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 h-auto p-1.5 bg-muted rounded-2xl border mb-2">
+                        <TabsTrigger value="status" className="py-4 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md font-bold transition-all" style={{ color: 'var(--whatsapp-primary)' }}>
                             <QrCode className="w-4 h-4 mr-2" />
                             <span className="hidden sm:inline">Conexión</span>
                         </TabsTrigger>
-                        <TabsTrigger value="settings" className="py-4 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-[#25D366] font-bold transition-all">
+                        <TabsTrigger value="settings" className="py-4 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md font-bold transition-all" style={{ color: 'var(--whatsapp-primary)' }}>
                             <Settings className="w-4 h-4 mr-2" />
                             <span className="hidden sm:inline">Bot Config</span>
                         </TabsTrigger>
-                        <TabsTrigger value="presets" className="py-4 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-[#25D366] font-bold transition-all">
+                        <TabsTrigger value="presets" className="py-4 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md font-bold transition-all" style={{ color: 'var(--whatsapp-primary)' }}>
                             <MessageSquare className="w-4 h-4 mr-2" />
                             <span className="hidden sm:inline">Respuestas</span>
                         </TabsTrigger>
-                        <TabsTrigger value="antiban" className="py-4 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-[#25D366] font-bold transition-all">
+                        <TabsTrigger value="antiban" className="py-4 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md font-bold transition-all" style={{ color: 'var(--whatsapp-primary)' }}>
                             <Shield className="w-4 h-4 mr-2" />
                             <span className="hidden sm:inline">Anti-Ban</span>
                         </TabsTrigger>
-                        <TabsTrigger value="help" className="py-4 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-[#25D366] font-bold transition-all">
+                        <TabsTrigger value="help" className="py-4 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md font-bold transition-all" style={{ color: 'var(--whatsapp-primary)' }}>
                             <HelpCircle className="w-4 h-4 mr-2" />
                             <span className="hidden sm:inline">Guía</span>
                         </TabsTrigger>
@@ -303,15 +303,15 @@ export default function WhatsAppMiranda() {
 
                         <TabsContent value="status" className="m-0 focus-visible:outline-none">
                             <Card className="overflow-hidden border-none shadow-xl rounded-3xl">
-                                <CardHeader className="bg-[#25D366] text-white p-8">
+                                <CardHeader className="text-white p-8" style={{ backgroundColor: 'var(--whatsapp-primary)' }}>
                                     <CardTitle className="text-2xl font-black">Vincular con WhatsApp</CardTitle>
-                                    <CardDescription className="text-green-50 text-base font-medium">Control de enlace oficial para el automatizador Miranda.</CardDescription>
+                                    <CardDescription className="text-white/80 text-base font-medium">Control de enlace oficial para el automatizador Miranda.</CardDescription>
                                 </CardHeader>
-                                <CardContent className="flex flex-col items-center justify-center py-16 bg-white">
+                                <CardContent className="flex flex-col items-center justify-center py-16 bg-card">
                                     {!status || status.status !== 'CONNECTED' ? (
                                         <div className="flex flex-col items-center space-y-10 animate-in fade-in duration-500">
                                             {qrCode ? (
-                                                <div className="p-8 bg-white border-4 border-[#25D366] rounded-[2.5rem] shadow-2xl shadow-green-100 transition-all hover:scale-[1.02]">
+                                                <div className="p-8 bg-card border-4 rounded-[2.5rem] shadow-2xl transition-all hover:scale-[1.02]" style={{ borderColor: 'var(--whatsapp-primary)' }}>
                                                     <img src={qrCode} alt="QR Code" className="w-72 h-72" />
                                                 </div>
                                             ) : (
@@ -323,7 +323,7 @@ export default function WhatsAppMiranda() {
                                                 <p className="text-slate-500 font-medium leading-relaxed">
                                                     Abre tu app de WhatsApp, ve a <b>Dispositivos vinculados</b> y escanea el código para activar el sistema.
                                                 </p>
-                                                <Button onClick={handleGetQR} disabled={loading} size="lg" className="bg-[#25D366] hover:bg-[#128C7E] text-white px-10 h-14 rounded-2xl text-lg font-black transition-all hover:shadow-xl hover:shadow-green-100">
+                                                <Button onClick={handleGetQR} disabled={loading} size="lg" className="text-white px-10 h-14 rounded-2xl text-lg font-black transition-all hover:shadow-xl" style={{ backgroundColor: 'var(--whatsapp-primary)' }}>
                                                     {loading ? 'Preparando...' : (qrCode ? 'Refrescar Código' : 'Generar Vinculación')}
                                                 </Button>
                                             </div>
@@ -334,13 +334,13 @@ export default function WhatsAppMiranda() {
                                                 <div className="w-28 h-28 rounded-full bg-green-100 flex items-center justify-center border-8 border-white shadow-xl">
                                                     <CheckCircle2 className="w-14 h-14 text-green-600" />
                                                 </div>
-                                                <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#25D366] flex items-center justify-center border-4 border-white shadow-sm">
-                                                    <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                                                <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm" style={{ backgroundColor: 'var(--whatsapp-primary)' }}>
+                                                    <div className="w-2 h-2 rounded-full bg-card animate-pulse" />
                                                 </div>
                                             </div>
                                             <div>
                                                 <h3 className="text-3xl font-black text-slate-900 tracking-tight">Sistema Conectado</h3>
-                                                <p className="text-slate-400 font-bold mt-2 text-xl">Sesión operativa: <span className="text-[#25D366]">{status.sessionName}</span></p>
+                                                <p className="text-slate-400 font-bold mt-2 text-xl">Sesión operativa: <span style={{ color: 'var(--whatsapp-primary)' }}>{status.sessionName}</span></p>
                                             </div>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg mt-6">
                                                 <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 text-left">
@@ -367,7 +367,7 @@ export default function WhatsAppMiranda() {
                                         <Card className="shadow-lg border-none rounded-3xl overflow-hidden">
                                             <CardHeader className="pb-4">
                                                 <CardTitle className="text-xl font-black flex items-center gap-3">
-                                                    <div className="p-2 rounded-lg bg-green-50"><Settings className="w-5 h-5 text-[#25D366]" /></div>
+                                                    <div className="p-2 rounded-lg" style={{ backgroundColor: 'color-mix(in srgb, var(--whatsapp-primary) 10%, white)' }}><Settings className="w-5 h-5" style={{ color: 'var(--whatsapp-primary)' }} /></div>
                                                     Inteligencia de Respuesta
                                                 </CardTitle>
                                             </CardHeader>
@@ -379,7 +379,8 @@ export default function WhatsAppMiranda() {
                                                         value={settings.palabrasClave}
                                                         onChange={(e) => setSettings({ ...settings, palabrasClave: e.target.value })}
                                                         placeholder="miranda, info, catalogo, ayuda..."
-                                                        className="min-h-[120px] rounded-2xl border-slate-200 text-lg font-medium focus-visible:ring-[#25D366] transition-all"
+                                                        className="min-h-[120px] rounded-2xl border-slate-200 text-lg font-medium transition-all"
+                                                        style={{ '--tw-ring-color': 'var(--whatsapp-primary)' } as React.CSSProperties}
                                                     />
                                                     <p className="text-xs font-bold text-slate-400 italic">Separa los gatillos por comas. El bot es sensible al contenido del mensaje.</p>
                                                 </div>
@@ -444,7 +445,7 @@ export default function WhatsAppMiranda() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <Button type="submit" disabled={loading} className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white h-14 rounded-2xl text-lg font-black shadow-lg shadow-green-100 transition-all hover:scale-[1.02]">
+                                                <Button type="submit" disabled={loading} className="w-full text-white h-14 rounded-2xl text-lg font-black transition-all hover:scale-[1.02]" style={{ backgroundColor: 'var(--whatsapp-primary)' }}>
                                                     {loading ? 'Guardando...' : 'Guardar Cambios'}
                                                 </Button>
                                             </CardContent>
@@ -463,10 +464,10 @@ export default function WhatsAppMiranda() {
                         </TabsContent>
 
                         <TabsContent value="presets" className="m-0 focus-visible:outline-none space-y-10">
-                            <Card className={`transition-all duration-500 rounded-[2.5rem] border-none shadow-xl ${editingPreset ? 'ring-4 ring-[#25D366]/20 bg-green-50/20 shadow-green-100' : ''}`}>
+                            <Card className={`transition-all duration-500 rounded-[2.5rem] border-none shadow-xl ${editingPreset ? 'ring-4' : ''}`} style={editingPreset ? { '--tw-ring-color': 'var(--whatsapp-primary)' } as React.CSSProperties : {}}>
                                 <CardHeader className="pt-10 px-10">
                                     <CardTitle className="text-2xl font-black flex items-center gap-4">
-                                        <div className={`p-3 rounded-2xl transition-colors ${editingPreset ? 'bg-[#25D366] text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                        <div className={`p-3 rounded-2xl transition-colors text-white ${editingPreset ? '' : 'bg-slate-100 text-slate-400'}`} style={editingPreset ? { backgroundColor: 'var(--whatsapp-primary)' } : {}}>
                                             {editingPreset ? <Edit2 className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
                                         </div>
                                         {editingPreset ? 'Editando Respuesta' : 'Programar Nueva Respuesta'}
@@ -508,7 +509,7 @@ export default function WhatsAppMiranda() {
                                                 Cancelar Edición
                                             </Button>
                                         )}
-                                        <Button onClick={handleAddPreset} disabled={loading} className={`h-14 px-12 rounded-2xl text-lg font-black transition-all hover:scale-[1.02] shadow-lg ${editingPreset ? 'bg-[#25D366] hover:bg-[#128C7E] shadow-green-100' : 'bg-slate-900 hover:bg-slate-800 shadow-slate-100'}`}>
+                                        <Button onClick={handleAddPreset} disabled={loading} className={`h-14 px-12 rounded-2xl text-lg font-black transition-all hover:scale-[1.02] shadow-lg ${editingPreset ? 'text-white' : 'bg-slate-900 hover:bg-slate-800 shadow-slate-100'}`} style={editingPreset ? { backgroundColor: 'var(--whatsapp-primary)' } : {}}>
                                             {loading ? 'Procesando...' : (editingPreset ? 'Finalizar Edición' : 'Registrar Respuesta')}
                                         </Button>
                                     </div>
@@ -518,14 +519,14 @@ export default function WhatsAppMiranda() {
                             <div className="space-y-6">
                                 <div className="flex items-center justify-between px-2">
                                     <h3 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                                        <MessageSquare className="w-7 h-7 text-[#25D366]" /> Respuestas Programadas
+                                        <MessageSquare className="w-7 h-7" style={{ color: 'var(--whatsapp-primary)' }} /> Respuestas Programadas
                                     </h3>
                                     <Badge className="bg-slate-100 text-slate-500 border-none font-bold px-4 py-1.5 rounded-full">{(config?.respuestas || []).length} Guardadas</Badge>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                                     {(config?.respuestas || []).map((p: any) => (
-                                        <Card key={p.id} className="group overflow-hidden flex flex-col hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 border-none bg-white shadow-lg shadow-slate-100 rounded-[2rem]">
+                                        <Card key={p.id} className="group overflow-hidden flex flex-col hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 border-none bg-card shadow-lg rounded-[2rem]">
                                             <div className="relative">
                                                 {p.mediaUrl ? (
                                                     <div className="h-56 overflow-hidden bg-slate-900/5">
@@ -537,7 +538,7 @@ export default function WhatsAppMiranda() {
                                                         <MessageSquare className="w-16 h-16 text-slate-200" />
                                                     </div>
                                                 )}
-                                                <Badge className="absolute top-4 left-4 bg-white/90 backdrop-blur text-slate-900 border-none shadow-md font-black text-[10px] tracking-widest uppercase py-1 px-3 rounded-xl">{p.tipo}</Badge>
+                                                <Badge className="absolute top-4 left-4 bg-card backdrop-blur text-foreground border-none shadow-md font-black text-[10px] tracking-widest uppercase py-1 px-3 rounded-xl">{p.tipo}</Badge>
                                             </div>
 
                                             <CardContent className="p-8 flex-1">
@@ -551,7 +552,7 @@ export default function WhatsAppMiranda() {
                                                     variant="outline"
                                                     size="lg"
                                                     onClick={() => startEditing(p)}
-                                                    className="flex-1 h-12 rounded-xl font-bold bg-white hover:bg-slate-100 hover:text-slate-900 border-slate-100 shadow-sm transition-all"
+                                                    className="flex-1 h-12 rounded-xl font-bold bg-card hover:bg-muted border-muted shadow-sm transition-all"
                                                 >
                                                     <Edit2 className="w-4 h-4 mr-2" /> Editar
                                                 </Button>
@@ -621,8 +622,8 @@ export default function WhatsAppMiranda() {
                                 </Card>
                             </div>
 
-                            <div className="bg-[#25D366]/5 border border-[#25D366]/20 p-10 rounded-[3rem] ring-1 ring-[#25D366]/10 flex flex-col items-center text-center">
-                                <CheckCircle2 className="h-10 w-10 text-[#25D366] mb-4" />
+                            <div className="p-10 rounded-[3rem] ring-1 flex flex-col items-center text-center" style={{ backgroundColor: 'color-mix(in srgb, var(--whatsapp-primary) 5%, transparent)', borderColor: 'color-mix(in srgb, var(--whatsapp-primary) 20%, transparent)', '--tw-ring-color': 'color-mix(in srgb, var(--whatsapp-primary) 10%, transparent)' } as React.CSSProperties}>
+                                <CheckCircle2 className="h-10 w-10 mb-4" style={{ color: 'var(--whatsapp-primary)' }} />
                                 <div>
                                     <p className="text-slate-900 font-black text-2xl mb-2 tracking-tight">Resiliencia Automática (Fallback)</p>
                                     <p className="text-slate-500 text-lg font-medium leading-relaxed">
@@ -642,12 +643,12 @@ export default function WhatsAppMiranda() {
                                 <CardContent className="p-12 space-y-12">
                                     <div className="space-y-6">
                                         <h4 className="font-black text-slate-800 text-xl flex items-center gap-3">
-                                            <div className="w-1.5 h-8 bg-[#25D366] rounded-full" /> API REST Hub
+                                            <div className="w-1.5 h-8 rounded-full" style={{ backgroundColor: 'var(--whatsapp-primary)' }} /> API REST Hub
                                         </h4>
                                         <div className="p-8 bg-slate-900 rounded-[2.5rem] text-slate-100 font-mono text-sm space-y-5 shadow-2xl">
                                             <div className="border-b border-slate-800 pb-4 flex justify-between items-center">
                                                 <div>
-                                                    <span className="text-[#25D366] font-black mr-3">GET</span> /whatsapp/config/:userId
+                                                    <span className="font-black mr-3" style={{ color: 'var(--whatsapp-primary)' }}>GET</span> /whatsapp/config/:userId
                                                     <p className="text-slate-500 mt-2 font-sans font-bold text-xs">// Configuración completa + Array de respuestas</p>
                                                 </div>
                                             </div>

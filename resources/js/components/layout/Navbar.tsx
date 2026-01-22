@@ -8,6 +8,7 @@ import gsap from 'gsap';
 import { useCart } from '@/hooks/use-cart';
 import { CartDrawer } from '@/components/shop/CartDrawer';
 import { SearchInput } from '@/components/ui/SearchInput';
+import { ColorThemeSelector } from '@/components/color-theme-selector';
 
 export function Navbar({ auth }: { auth: any }) {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -117,15 +118,7 @@ export function Navbar({ auth }: { auth: any }) {
                         </div>
 
                         <div className="flex items-center gap-1">
-                            <Button
-                                ref={themeBtnRef}
-                                variant="ghost"
-                                size="icon"
-                                onClick={toggleTheme}
-                                className="rounded-full h-11 w-11"
-                            >
-                                {isDark ? <Sun className="h-6 w-6 text-yellow-500" /> : <Moon className="h-6 w-6 text-slate-700" />}
-                            </Button>
+                            <ColorThemeSelector />
 
                             <Button
                                 variant="ghost"

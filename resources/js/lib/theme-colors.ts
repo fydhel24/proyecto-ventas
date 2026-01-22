@@ -298,6 +298,7 @@ export function applyThemeColors(themeColor: ThemeColor, isDark: boolean) {
     const cssVariables = {
         '--theme-primary': colors.primary,
         '--theme-secondary': colors.secondary,
+        '--whatsapp-primary': colors.primary, // Para componentes WhatsApp
         '--chart-1': colors.chart1,
         '--chart-2': colors.chart2,
         '--chart-3': colors.chart3,
