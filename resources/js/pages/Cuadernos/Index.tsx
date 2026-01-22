@@ -276,8 +276,8 @@ export default function CuadernosIndex({
             <div className="container mx-auto py-6">
                 <div className="flex flex-col gap-6">
                     <div className="flex flex-col gap-2">
-                        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Gestión de Cuadernos</h1>
-                        <p className="text-muted-foreground">Administra las ventas, clientes y estados de los pedidos.</p>
+                        <h1 className="text-3xl font-bold tracking-tight text-[var(--theme-primary)] drop-shadow-[0_0_4px_var(--theme-primary)/0.3]">Gestión de Cuadernos</h1>
+                        <p className="text-muted-foreground text-sm font-medium">Administra las ventas, clientes y estados de los pedidos.</p>
                     </div>
 
                     <Card className="border-none shadow-md">

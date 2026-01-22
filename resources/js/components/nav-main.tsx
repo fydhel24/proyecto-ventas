@@ -2,7 +2,6 @@ import {
     SidebarGroup,
     SidebarGroupLabel,
     SidebarMenu,
-    SidebarMenuAction,
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarMenuSub,
@@ -25,26 +24,6 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                     const hasSubItems = item.items && item.items.length > 0;
                     const isActive = page.url.startsWith(resolveUrl(item.href));
 
-                    // Unified item rendering logic
-                    const ItemContent = (
-                        <div className="flex items-center w-full">
-                            {item.icon && (
-                                <item.icon
-                                    className={cn(
-                                        "transition-all duration-300",
-                                        isActive ? "text-[var(--theme-primary)] scale-110 drop-shadow-[0_0_3px_var(--theme-primary)]" : "group-hover/btn:text-foreground"
-                                    )}
-                                />
-                            )}
-                            <span className={cn(
-                                "transition-all duration-300 ml-1 truncate",
-                                isActive ? "font-bold tracking-tight text-[var(--theme-primary)]" : "group-hover/btn:text-foreground font-medium"
-                            )}>
-                                {item.title}
-                            </span>
-                        </div>
-                    );
-
                     if (!hasSubItems) {
                         return (
                             <SidebarMenuItem key={item.title} className="relative px-2">
@@ -65,7 +44,20 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                     )}
                                 >
                                     <Link href={item.href} prefetch>
-                                        {ItemContent}
+                                        {item.icon && (
+                                            <item.icon
+                                                className={cn(
+                                                    "transition-all duration-300",
+                                                    isActive ? "text-[var(--theme-primary)] scale-110 drop-shadow-[0_0_3px_var(--theme-primary)]" : "group-hover/btn:text-foreground"
+                                                )}
+                                            />
+                                        )}
+                                        <span className={cn(
+                                            "transition-all duration-300 ml-1 truncate",
+                                            isActive ? "font-bold tracking-tight text-[var(--theme-primary)]" : "group-hover/btn:text-foreground font-medium"
+                                        )}>
+                                            {item.title}
+                                        </span>
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
@@ -85,7 +77,20 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                                 : "hover:bg-sidebar-accent/50"
                                         )}
                                     >
-                                        {ItemContent}
+                                        {item.icon && (
+                                            <item.icon
+                                                className={cn(
+                                                    "transition-all duration-300",
+                                                    isActive ? "text-[var(--theme-primary)] scale-110 drop-shadow-[0_0_3px_var(--theme-primary)]" : "group-hover/btn:text-foreground"
+                                                )}
+                                            />
+                                        )}
+                                        <span className={cn(
+                                            "transition-all duration-300 ml-1 truncate",
+                                            isActive ? "font-bold tracking-tight text-[var(--theme-primary)]" : "group-hover/btn:text-foreground font-medium"
+                                        )}>
+                                            {item.title}
+                                        </span>
                                         <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                                     </SidebarMenuButton>
                                 </CollapsibleTrigger>

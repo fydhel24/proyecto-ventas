@@ -239,9 +239,11 @@ function Sidebar({
       >
         <div
           data-sidebar="sidebar"
-          className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
+          className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm relative"
         >
           {children}
+          {/* Vertical Separator Line */}
+          <div className="absolute right-0 top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-[var(--theme-primary)]/50 to-transparent shadow-[0_0_8px_var(--theme-primary)] z-50 md:block hidden opacity-50 group-data-[state=collapsed]/sidebar-wrapper:hidden" />
         </div>
       </div>
     </div>

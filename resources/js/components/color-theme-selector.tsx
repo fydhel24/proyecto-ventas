@@ -19,39 +19,24 @@ const colorThemes: { value: ThemeColor; label: string; color: string }[] = [
 export function ColorThemeSelector() {
     const { themeColor, updateThemeColor, appearance, updateAppearance } = useAppearance();
 
-    const handleAppearance = (mode: Appearance) => {
-        updateAppearance(mode);
+    const toggleAppearance = () => {
+        updateAppearance(appearance === 'dark' ? 'light' : 'dark');
     };
 
     return (
         <div className="flex items-center gap-1">
-            {/* Light/Dark Toggle Buttons */}
-            <div className="flex items-center gap-1 rounded-md bg-muted p-1">
-                <button
-                    onClick={() => handleAppearance('light')}
-                    className={cn(
-                        'inline-flex items-center justify-center rounded-md p-2 transition-all duration-200',
-                        appearance === 'light'
-                            ? 'bg-background text-foreground shadow-sm'
-                            : 'text-foreground/60 hover:text-foreground/80',
-                    )}
-                    title="Tema claro"
-                >
-                    <Sun className="h-4 w-4" />
-                </button>
-                <button
-                    onClick={() => handleAppearance('dark')}
-                    className={cn(
-                        'inline-flex items-center justify-center rounded-md p-2 transition-all duration-200',
-                        appearance === 'dark'
-                            ? 'bg-background text-foreground shadow-sm'
-                            : 'text-foreground/60 hover:text-foreground/80',
-                    )}
-                    title="Tema oscuro"
-                >
-                    <Moon className="h-4 w-4" />
-                </button>
-            </div>
+            {/* Simplified Light/Dark Toggle */}
+            <button
+                onClick={toggleAppearance}
+                className="inline-flex items-center justify-center rounded-md p-2 text-foreground/60 hover:bg-muted transition-all duration-300 hover:rotate-12 cursor-pointer"
+                title={appearance === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+            >
+                {appearance === 'dark' ? (
+                    <Sun className="h-5 w-5 text-yellow-400 fill-yellow-400/20" />
+                ) : (
+                    <Moon className="h-5 w-5 text-slate-700 fill-slate-700/10" />
+                )}
+            </button>
 
             {/* Color Selector */}
             <Popover>
@@ -101,4 +86,3 @@ export function ColorThemeSelector() {
         </div>
     );
 }
-
