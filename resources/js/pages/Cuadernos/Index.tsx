@@ -55,6 +55,7 @@ import {
     Truck,
     CheckCircle,
     Clock,
+    FileText,
     Map as MapIcon,
     PlusIcon,
     Search,
@@ -561,7 +562,43 @@ export default function CuadernosIndex({
         }
     };
 
+    const hasConfirmedSelection = () => {
+        return selectedIds.some(id => {
+            const cuaderno = cuadernos.data.find(c => c.id === id);
+            return cuaderno?.estado === 'Confirmado';
+        });
+    };
+
+    const handlePdfRespaldo = () => {
+        if (selectedIds.length === 0) {
+            alert('Por favor selecciona al menos un registro para generar el PDF de respaldo.');
+            return;
+        }
+
+        const pdfUrl = routes.confirmarSeleccion.url({
+            query: {
+                ids: selectedIds.map(id => id.toString()),
+                view_pdf: '1'
+            }
+        });
+        window.open(pdfUrl, '_blank');
+    };
+
+    const handleGenerarFichas = () => {
+        const pdfUrl = routes.generarFichas.url({
+            query: {
+                ids: selectedIds.map(id => id.toString())
+            }
+        });
+        window.open(pdfUrl, '_blank');
+    };
+
     const handleBulkConfirm = () => {
+        if (hasConfirmedSelection()) {
+            alert('No se pueden confirmar pedidos que ya están en estado "Confirmado". Por favor desmarca los pedidos confirmados para continuar.');
+            return;
+        }
+
         const hasSelection = selectedIds.length > 0;
         const message = hasSelection
             ? `¿Estás seguro de confirmar los ${selectedIds.length} pedidos seleccionados? Esto marcará su estado como Confirmado y Enviado y se generará un PDF.`
@@ -677,20 +714,51 @@ export default function CuadernosIndex({
                                     </Button>
                                 </div>
 
-                                {filter === 'p_listo' && (
-                                    <Button
-                                        onClick={handleBulkConfirm}
-                                        disabled={isProcessing}
-                                        variant="default"
-                                        className="h-9 bg-green-600 hover:bg-green-700 text-white gap-2 px-4 shadow-lg animate-in fade-in zoom-in duration-300"
-                                    >
-                                        <CheckCircle className="w-4 h-4" />
-                                        {selectedIds.length > 0
-                                            ? `Confirmar ${selectedIds.length} ${selectedIds.length === 1 ? 'Pedido' : 'Pedidos'}`
-                                            : 'Confirmar Todo (Listo)'
-                                        }
-                                    </Button>
-                                )}
+                                <div className="flex gap-2">
+                                    {filter === 'p_listo' && (
+                                        <>
+                                            <Button
+                                                onClick={handleBulkConfirm}
+                                                disabled={isProcessing || hasConfirmedSelection()}
+                                                variant="default"
+                                                className={cn(
+                                                    "h-9 bg-green-600 hover:bg-green-700 text-white gap-2 px-4 shadow-lg animate-in fade-in zoom-in duration-300",
+                                                    hasConfirmedSelection() && "opacity-50 cursor-not-allowed"
+                                                )}
+                                            >
+                                                <CheckCircle className="w-4 h-4" />
+                                                {selectedIds.length > 0
+                                                    ? `Confirmar ${selectedIds.length} ${selectedIds.length === 1 ? 'Pedido' : 'Pedidos'}`
+                                                    : 'Confirmar Todo (Listo)'
+                                                }
+                                            </Button>
+
+                                            <Button
+                                                onClick={handlePdfRespaldo}
+                                                variant="outline"
+                                                className="h-9 gap-2 px-4 border-blue-200 hover:bg-blue-50 text-blue-700 animate-in fade-in zoom-in duration-300"
+                                            >
+                                                <FileText className="w-4 h-4" />
+                                                {selectedIds.length > 0
+                                                    ? `PDF Respaldo (${selectedIds.length})`
+                                                    : 'PDF Respaldo (Listo)'
+                                                }
+                                            </Button>
+
+                                            <Button
+                                                onClick={handleGenerarFichas}
+                                                variant="outline"
+                                                className="h-9 gap-2 px-4 border-purple-200 hover:bg-purple-50 text-purple-700 animate-in fade-in zoom-in duration-300"
+                                            >
+                                                <Package className="w-4 h-4" />
+                                                {selectedIds.length > 0
+                                                    ? `Generar Fichas (${selectedIds.length})`
+                                                    : 'Generar Fichas (Listo)'
+                                                }
+                                            </Button>
+                                        </>
+                                    )}
+                                </div>
 
                                 <div className="relative w-full md:w-64">
                                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
