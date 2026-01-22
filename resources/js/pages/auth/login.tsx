@@ -5,8 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import AuthLayout from '@/layouts/auth-layout';
-import { register } from '@/routes';
+import AuthGlassLayout from '@/layouts/auth/auth-glass-layout';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
@@ -20,12 +19,11 @@ interface LoginProps {
 export default function Login({
     status,
     canResetPassword,
-    canRegister,
 }: LoginProps) {
     return (
-        <AuthLayout
-            title="Inicia sesión en tu cuenta"
-            description="Ingresa tu correo electrónico y contraseña a continuación para iniciar sesión"
+        <AuthGlassLayout
+            title="Inicia Sesión"
+            description="Bienvenido de nuevo. Ingresa tus credenciales."
         >
             <Head title="Iniciar sesión" />
 
@@ -98,14 +96,6 @@ export default function Login({
                             </Button>
                         </div>
 
-                        {canRegister && (
-                            <div className="text-center text-sm text-muted-foreground">
-                                ¿No tienes una cuenta?{' '}
-                                <TextLink href={register()} tabIndex={5}>
-                                    Regístrate
-                                </TextLink>
-                            </div>
-                        )}
                     </>
                 )}
             </Form>
@@ -115,6 +105,6 @@ export default function Login({
                     {status}
                 </div>
             )}
-        </AuthLayout>
+        </AuthGlassLayout>
     );
 }

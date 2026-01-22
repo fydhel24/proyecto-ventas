@@ -1,5 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Tomorrow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import 'tailwindcss';
-
 @import "tw-animate-css";
 
 @source '../views';
@@ -9,7 +9,7 @@
 
 @theme {
     --font-sans:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+        'Tomorrow', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 
@@ -98,6 +98,7 @@
     /* Dynamic theme colors - updated by JavaScript */
     --theme-primary: #2563eb;
     --theme-secondary: #3b82f6;
+    --whatsapp-primary: #2563eb;
     --accent-1: #2563eb;
     --accent-2: #0ea5e9;
     --accent-3: #ec4899;
@@ -113,38 +114,38 @@
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
+    --background: #222831;
     --foreground: oklch(0.985 0 0);
-    --card: oklch(0.145 0 0);
+    --card: #2d343f;
     --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.145 0 0);
+    --popover: #2d343f;
     --popover-foreground: oklch(0.985 0 0);
     --primary: oklch(0.985 0 0);
     --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
+    --secondary: #1a1e26;
     --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
+    --muted: #1a1e26;
     --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
+    --accent: #1a1e26;
     --accent-foreground: oklch(0.985 0 0);
     --destructive: oklch(0.396 0.141 25.723);
     --destructive-foreground: oklch(0.637 0.237 25.331);
-    --border: oklch(0.269 0 0);
-    --input: oklch(0.269 0 0);
-    --ring: oklch(0.439 0 0);
+    --border: color-mix(in srgb, var(--theme-primary) 15%, #393e46);
+    --input: color-mix(in srgb, var(--theme-primary) 15%, #393e46);
+    --ring: var(--theme-primary);
     --chart-1: oklch(0.488 0.243 264.376);
     --chart-2: oklch(0.696 0.17 162.48);
     --chart-3: oklch(0.769 0.188 70.08);
     --chart-4: oklch(0.627 0.265 303.9);
     --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: oklch(0.205 0 0);
+    --sidebar: #222831;
     --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.985 0 0);
+    --sidebar-primary: var(--theme-primary);
     --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent: #393e46;
     --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(0.269 0 0);
-    --sidebar-ring: oklch(0.439 0 0);
+    --sidebar-border: color-mix(in srgb, var(--theme-primary) 20%, #1a1e26);
+    --sidebar-ring: var(--theme-primary);
 }
 
 @layer base {
@@ -153,6 +154,115 @@
     }
 
     body {
-        @apply bg-background text-foreground;
+        @apply bg-background text-foreground font-sans;
     }
+}
+
+/* Tomorrow Font Weights */
+.tomorrow-thin {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 100;
+    font-style: normal;
+}
+
+.tomorrow-extralight {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 200;
+    font-style: normal;
+}
+
+.tomorrow-light {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 300;
+    font-style: normal;
+}
+
+.tomorrow-regular {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.tomorrow-medium {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 500;
+    font-style: normal;
+}
+
+.tomorrow-semibold {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 600;
+    font-style: normal;
+}
+
+.tomorrow-bold {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 700;
+    font-style: normal;
+}
+
+.tomorrow-extrabold {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 800;
+    font-style: normal;
+}
+
+.tomorrow-black {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 900;
+    font-style: normal;
+}
+
+.tomorrow-thin-italic {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 100;
+    font-style: italic;
+}
+
+.tomorrow-extralight-italic {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 200;
+    font-style: italic;
+}
+
+.tomorrow-light-italic {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 300;
+    font-style: italic;
+}
+
+.tomorrow-regular-italic {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 400;
+    font-style: italic;
+}
+
+.tomorrow-medium-italic {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 500;
+    font-style: italic;
+}
+
+.tomorrow-semibold-italic {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 600;
+    font-style: italic;
+}
+
+.tomorrow-bold-italic {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 700;
+    font-style: italic;
+}
+
+.tomorrow-extrabold-italic {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 800;
+    font-style: italic;
+}
+
+.tomorrow-black-italic {
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 900;
+    font-style: italic;
 }
