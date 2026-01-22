@@ -1,13 +1,16 @@
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ColorThemeSelector } from '@/components/color-theme-selector';
 import { NavUser } from '@/components/nav-user';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
+import { type BreadcrumbItem } from '@/types';
 
 interface AppTopbarProps {
+    breadcrumbs?: BreadcrumbItem[];
     className?: string;
 }
 
-export function AppTopbar({ className }: AppTopbarProps) {
+export function AppTopbar({ breadcrumbs = [], className }: AppTopbarProps) {
     return (
         <header
             className={cn(
@@ -17,6 +20,8 @@ export function AppTopbar({ className }: AppTopbarProps) {
         >
             <div className="flex items-center gap-2">
                 <SidebarTrigger className="-ml-1" />
+                <div className="w-px h-4 bg-border/30 mx-1" />
+                <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
 
             <div className="flex items-center gap-3 ml-auto">

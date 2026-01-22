@@ -25,12 +25,32 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                     const hasSubItems = item.items && item.items.length > 0;
                     const isActive = page.url.startsWith(resolveUrl(item.href));
 
+                    // Unified item rendering logic
+                    const ItemContent = (
+                        <div className="flex items-center w-full">
+                            {item.icon && (
+                                <item.icon
+                                    className={cn(
+                                        "transition-all duration-300",
+                                        isActive ? "text-[var(--theme-primary)] scale-110 drop-shadow-[0_0_3px_var(--theme-primary)]" : "group-hover/btn:text-foreground"
+                                    )}
+                                />
+                            )}
+                            <span className={cn(
+                                "transition-all duration-300 ml-1 truncate",
+                                isActive ? "font-bold tracking-tight text-[var(--theme-primary)]" : "group-hover/btn:text-foreground font-medium"
+                            )}>
+                                {item.title}
+                            </span>
+                        </div>
+                    );
+
                     if (!hasSubItems) {
                         return (
                             <SidebarMenuItem key={item.title} className="relative px-2">
                                 {isActive && (
                                     <div
-                                        className="absolute left-0 top-1 bottom-1 w-1.5 rounded-full bg-[var(--theme-primary)] shadow-[0_0_12px_var(--theme-primary)] z-20 transition-all duration-500 animate-in fade-in zoom-in-y"
+                                        className="absolute left-0 top-1 bottom-1 w-1.5 rounded-full bg-[var(--theme-primary)] shadow-[0_0_12px_var(--theme-primary)] z-20"
                                     />
                                 )}
                                 <SidebarMenuButton
@@ -44,21 +64,8 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                             : "hover:translate-x-1 hover:bg-sidebar-accent/50"
                                     )}
                                 >
-                                    <Link href={item.href} prefetch className="flex items-center w-full">
-                                        {item.icon && (
-                                            <item.icon
-                                                className={cn(
-                                                    "transition-all duration-300",
-                                                    isActive ? "text-[var(--theme-primary)] scale-110 drop-shadow-[0_0_3px_var(--theme-primary)]" : "group-hover/btn:text-foreground"
-                                                )}
-                                            />
-                                        )}
-                                        <span className={cn(
-                                            "transition-all duration-300 ml-1",
-                                            isActive ? "font-bold tracking-tight text-[var(--theme-primary)]" : "group-hover/btn:text-foreground font-medium"
-                                        )}>
-                                            {item.title}
-                                        </span>
+                                    <Link href={item.href} prefetch>
+                                        {ItemContent}
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
@@ -67,37 +74,50 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
 
                     return (
                         <Collapsible key={item.title} asChild defaultOpen={isActive} className="group/collapsible">
-                            <SidebarMenuItem>
+                            <SidebarMenuItem className="px-2">
                                 <CollapsibleTrigger asChild>
-                                    <SidebarMenuButton tooltip={{ children: item.title }}>
-                                        {item.icon && <item.icon />}
-                                        <span>{item.title}</span>
+                                    <SidebarMenuButton
+                                        tooltip={{ children: item.title }}
+                                        className={cn(
+                                            "transition-all duration-300 relative group/btn overflow-hidden",
+                                            isActive
+                                                ? "bg-gradient-to-r from-[var(--theme-primary)]/10 to-transparent"
+                                                : "hover:bg-sidebar-accent/50"
+                                        )}
+                                    >
+                                        {ItemContent}
                                         <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                                     </SidebarMenuButton>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent>
-                                    <SidebarMenuSub>
-                                        {item.items?.map((subItem) => (
-                                            <SidebarMenuSubItem key={subItem.title} className="px-1">
-                                                <SidebarMenuSubButton
-                                                    asChild
-                                                    isActive={page.url === resolveUrl(subItem.href)}
-                                                    className={cn(
-                                                        "h-9 transition-all duration-300",
-                                                        page.url === resolveUrl(subItem.href) && "bg-[var(--theme-primary)]/10 translate-x-1"
+                                    <SidebarMenuSub className="mt-1">
+                                        {item.items?.map((subItem) => {
+                                            const isSubActive = page.url === resolveUrl(subItem.href);
+                                            return (
+                                                <SidebarMenuSubItem key={subItem.title} className="pl-9 pr-1 relative">
+                                                    {isSubActive && (
+                                                        <div className="absolute left-7 top-2 bottom-2 w-1 rounded-full bg-[var(--theme-primary)]/60" />
                                                     )}
-                                                >
-                                                    <Link href={subItem.href}>
-                                                        <span className={cn(
-                                                            "transition-colors text-sm",
-                                                            page.url === resolveUrl(subItem.href) ? "font-bold text-[var(--theme-primary)]" : "font-medium"
-                                                        )}>
-                                                            {subItem.title}
-                                                        </span>
-                                                    </Link>
-                                                </SidebarMenuSubButton>
-                                            </SidebarMenuSubItem>
-                                        ))}
+                                                    <SidebarMenuSubButton
+                                                        asChild
+                                                        isActive={isSubActive}
+                                                        className={cn(
+                                                            "h-9 transition-all duration-300",
+                                                            isSubActive && "bg-[var(--theme-primary)]/10 translate-x-1"
+                                                        )}
+                                                    >
+                                                        <Link href={subItem.href}>
+                                                            <span className={cn(
+                                                                "transition-colors text-sm",
+                                                                isSubActive ? "font-bold text-[var(--theme-primary)]" : "font-medium"
+                                                            )}>
+                                                                {subItem.title}
+                                                            </span>
+                                                        </Link>
+                                                    </SidebarMenuSubButton>
+                                                </SidebarMenuSubItem>
+                                            );
+                                        })}
                                     </SidebarMenuSub>
                                 </CollapsibleContent>
                             </SidebarMenuItem>
