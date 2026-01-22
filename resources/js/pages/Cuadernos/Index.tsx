@@ -200,7 +200,7 @@ export default function CuadernosIndex({
             };
         });
         setLocalState(initialState);
-    }, [cuadernos.data]);
+    }, [cuadernos?.data]);
 
     const updateLocalState = (id: number, field: keyof Cuaderno, value: string | boolean) => {
         setLocalState(prev => ({ ...prev, [id]: { ...prev[id], [field]: value } }));
@@ -243,6 +243,7 @@ export default function CuadernosIndex({
     };
 
     const hasConfirmedSelection = () => {
+        if (!cuadernos?.data) return false;
         return selectedIds.some(id => {
             const c = cuadernos.data.find(item => item.id === id);
             return c?.estado === 'Confirmado';
@@ -476,7 +477,7 @@ export default function CuadernosIndex({
     );
 
     const table = useReactTable({
-        data: cuadernos.data,
+        data: cuadernos?.data || [],
         columns,
         getRowId: row => row.id.toString(),
         onSortingChange: setSorting,
@@ -572,10 +573,10 @@ export default function CuadernosIndex({
                             </div>
                             <div className="flex items-center justify-between mt-4">
                                 <div className="text-sm text-muted-foreground">
-                                    Página {cuadernos.current_page} de {cuadernos.last_page} ({cuadernos.total} registros)
+                                    Página {cuadernos?.current_page || 0} de {cuadernos?.last_page || 0} ({cuadernos?.total || 0} registros)
                                 </div>
                                 <div className="flex gap-1">
-                                    {cuadernos.links.map((link, i) => (
+                                    {cuadernos?.links?.map((link, i) => (
                                         <Button key={i} variant={link.active ? "default" : "outline"} size="sm" asChild={!!link.url} disabled={!link.url} className="h-8 min-w-[32px]">
                                             {link.url ? (
                                                 <Link href={link.url} preserveState preserveScroll>
@@ -592,7 +593,7 @@ export default function CuadernosIndex({
                     </Card>
                 </div>
             </div>
-            <AddProductoModal open={modalOpen} onClose={() => setModalOpen(false)} onSave={handleAddProducto} productos={productos} />
+            <AddProductoModal open={modalOpen} onClose={() => setModalOpen(false)} onSave={handleAddProducto} />
             <Dialog open={imageModalOpen} onOpenChange={setImageModalOpen}>
                 <DialogContent className="sm:max-w-[600px]">
                     <DialogHeader><DialogTitle>Vista Previa de Imagen</DialogTitle></DialogHeader>

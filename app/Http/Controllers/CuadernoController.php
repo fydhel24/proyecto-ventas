@@ -34,7 +34,7 @@ class CuadernoController extends Controller
         $productos = []; 
 
         return Inertia::render('Cuadernos/Index', [
-            'cuadernos' => Inertia::lazy(function () use ($search, $filter) {
+            'cuadernos' => (function () use ($search, $filter) {
                 // Manejar errores de forma segura para que nunca rompa PHP-FPM
                 try {
                     $cuadernosQuery = Cuaderno::with([
@@ -84,7 +84,7 @@ class CuadernoController extends Controller
                     \Log::error('Error cargando cuadernos: ' . $e->getMessage());
                     return collect(); // fallback vacío
                 }
-            }),
+            })(),
             'productos' => $productos,
             'filters' => $request->only(['search']),
         ]);
