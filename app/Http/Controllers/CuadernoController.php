@@ -934,4 +934,37 @@ class CuadernoController extends Controller
         $pdf->SetFont('Arial', 'B', 7);
         $pdf->MultiCell(0, 4, utf8_decode('GRACIAS POR SU PEDIDO!!!'), 0, 'C');
     }
+
+    private function prepararPdfConfirmacion($cuadernos, $titulo)
+    {
+        $pdf = new FPDF('P', 'mm', 'A4');
+        $pdf->AddPage();
+        
+        // Cabecera
+        $pdf->SetFont('Arial', 'B', 16);
+        $pdf->Cell(0, 10, utf8_decode($titulo), 0, 1, 'C');
+        $pdf->SetFont('Arial', '', 10);
+        $pdf->Cell(0, 10, utf8_decode('Fecha de reporte: ' . date('d/m/Y H:i:s')), 0, 1, 'R');
+        $pdf->Ln(5);
+
+        // Tabla
+        $pdf->SetFillColor(240, 240, 240);
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->Cell(15, 8, 'ID', 1, 0, 'C', true);
+        $pdf->Cell(60, 8, 'Cliente', 1, 0, 'L', true);
+        $pdf->Cell(30, 8, 'CI', 1, 0, 'C', true);
+        $pdf->Cell(30, 8, 'Celular', 1, 0, 'C', true);
+        $pdf->Cell(55, 8, 'Ubicacion', 1, 1, 'L', true);
+
+        $pdf->SetFont('Arial', '', 9);
+        foreach ($cuadernos as $c) {
+            $pdf->Cell(15, 7, $c->id, 1, 0, 'C');
+            $pdf->Cell(60, 7, utf8_decode($c->nombre), 1, 0, 'L');
+            $pdf->Cell(30, 7, utf8_decode($c->ci), 1, 0, 'C');
+            $pdf->Cell(30, 7, utf8_decode($c->celular), 1, 0, 'C');
+            $pdf->Cell(55, 7, utf8_decode($c->departamento . ' - ' . $c->provincia), 1, 1, 'L');
+        }
+
+        return $pdf;
+    }
 }
