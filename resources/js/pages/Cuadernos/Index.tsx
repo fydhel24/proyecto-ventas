@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
-import { Head, router, Form } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import * as routes from '@/routes/cuadernos';
 import {
     flexRender,
@@ -36,6 +36,7 @@ import {
     type ColumnFiltersState,
     type SortingState,
     type VisibilityState,
+    type RowSelectionState,
 } from '@tanstack/react-table'
 import {
     DropdownMenu,
@@ -60,15 +61,11 @@ import {
     PlusIcon,
     Search,
     IdCard,
-    ChevronLeft,
-    ChevronRight,
-    ChevronsLeft,
-    ChevronsRight,
     Trash2,
     Check
 } from 'lucide-react';
-import React, { useEffect, useState, useCallback } from 'react';
-import { Link } from '@inertiajs/react'; // Import Link for pagination
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { Link } from '@inertiajs/react';
 import { Image as ImageIcon } from 'lucide-react';
 
 interface Imagen {
@@ -115,11 +112,9 @@ interface Cuaderno {
     imagenes?: Imagen[];
 }
 
-// Estado local para optimizar la UX
 type LocalState = Record<number, Partial<Cuaderno>>;
 
-// Pagination interfaces
-interface Link {
+interface PaginationLink {
     url: string | null;
     label: string;
     active: boolean;
@@ -127,7 +122,7 @@ interface Link {
 
 interface PaginatedResponse<T> {
     data: T[];
-    links: Link[];
+    links: PaginationLink[];
     current_page: number;
     last_page: number;
     from: number;
@@ -145,7 +140,6 @@ export default function CuadernosIndex({
     cuadernos: PaginatedResponse<Cuaderno>;
     productos: ProductoModal[];
     filters: { search?: string };
-    flash?: { success?: string; error?: string };
 }) {
     const [localState, setLocalState] = useState<LocalState>({});
     const [modalOpen, setModalOpen] = useState(false);
@@ -154,15 +148,39 @@ export default function CuadernosIndex({
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [rowSelection, setRowSelection] = useState({});
+
+    // --- Única fuente de verdad para la selección ---
+    const [rowSelection, setRowSelection] = useState<RowSelectionState>(() => {
+        if (typeof window === 'undefined') return {};
+        const saved = localStorage.getItem('selected_cuadernos_v3');
+        if (!saved) return {};
+        try {
+            return JSON.parse(saved);
+        } catch (e) {
+            console.error("Error al cargar seleccion de localStorage", e);
+            return {};
+        }
+    });
+
     const [filter, setFilter] = useState(new URLSearchParams(window.location.search).get('filter') || '');
     const [imageModalOpen, setImageModalOpen] = useState(false);
     const [currentImage, setCurrentImage] = useState<string | null>(null);
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);
     const saveTimeouts = React.useRef<Record<number, Record<string, ReturnType<typeof setTimeout>>>>({});
 
-    // Debounce local search -> apply as column filter
+    // Persistir selección
+    useEffect(() => {
+        localStorage.setItem('selected_cuadernos_v3', JSON.stringify(rowSelection));
+    }, [rowSelection]);
+
+    // IDs seleccionados derivados para compatibilidad con lógica de backend/PDF
+    const selectedIds = useMemo(() => {
+        return Object.keys(rowSelection)
+            .filter(id => rowSelection[id])
+            .map(id => parseInt(id));
+    }, [rowSelection]);
+
+    // Debounce búsqueda
     useEffect(() => {
         const t = setTimeout(() => {
             setColumnFilters((prev) => {
@@ -174,7 +192,7 @@ export default function CuadernosIndex({
         return () => clearTimeout(t);
     }, [search]);
 
-    // Update local state when cuadernos data changes
+    // Sincronizar estado local de inputs
     useEffect(() => {
         const initialState: LocalState = {};
         cuadernos.data.forEach((c) => {
@@ -183,22 +201,24 @@ export default function CuadernosIndex({
                 enviado: c.enviado,
                 p_listo: c.p_listo,
                 p_pendiente: c.p_pendiente,
+                nombre: c.nombre,
+                ci: c.ci,
+                celular: c.celular,
+                departamento: c.departamento,
+                provincia: c.provincia
             };
         });
         setLocalState(initialState);
-        // Clear selection when data changes to avoid stale ids
-        setSelectedIds((prev) => prev.filter((id) => cuadernos.data.some((c) => c.id === id)));
     }, [cuadernos.data]);
 
-    // Build react-table columns
     const columns = React.useMemo<ColumnDef<Cuaderno>[]>(
         () => [
             {
                 id: 'select',
                 header: ({ table }) => (
                     <Checkbox
-                        checked={table.getIsAllRowsSelected() || (table.getIsSomeRowsSelected() && 'indeterminate')}
-                        onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
+                        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+                        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
                         aria-label="Select all"
                     />
                 ),
@@ -257,15 +277,7 @@ export default function CuadernosIndex({
                                     placeholder="Nombre"
                                     value={local.nombre ?? item.nombre ?? ''}
                                     onChange={(e) => updateLocalState(item.id, 'nombre', e.target.value)}
-                                    onBlur={(e) => {
-                                        const key = 'nombre';
-                                        const t = saveTimeouts.current[item.id]?.[key];
-                                        if (t) {
-                                            clearTimeout(t);
-                                            delete saveTimeouts.current[item.id][key];
-                                        }
-                                        persistChange(item.id, 'nombre', e.target.value);
-                                    }}
+                                    onBlur={(e) => persistChange(item.id, 'nombre', e.target.value)}
                                 />
                             </div>
                             <div className="relative">
@@ -275,15 +287,7 @@ export default function CuadernosIndex({
                                     placeholder="CI"
                                     value={local.ci ?? item.ci ?? ''}
                                     onChange={(e) => updateLocalState(item.id, 'ci', e.target.value)}
-                                    onBlur={(e) => {
-                                        const key = 'ci';
-                                        const t = saveTimeouts.current[item.id]?.[key];
-                                        if (t) {
-                                            clearTimeout(t);
-                                            delete saveTimeouts.current[item.id][key];
-                                        }
-                                        persistChange(item.id, 'ci', e.target.value);
-                                    }}
+                                    onBlur={(e) => persistChange(item.id, 'ci', e.target.value)}
                                 />
                             </div>
                             <div className="relative">
@@ -293,15 +297,7 @@ export default function CuadernosIndex({
                                     placeholder="Celular"
                                     value={local.celular ?? item.celular ?? ''}
                                     onChange={(e) => updateLocalState(item.id, 'celular', e.target.value)}
-                                    onBlur={(e) => {
-                                        const key = 'celular';
-                                        const t = saveTimeouts.current[item.id]?.[key];
-                                        if (t) {
-                                            clearTimeout(t);
-                                            delete saveTimeouts.current[item.id][key];
-                                        }
-                                        persistChange(item.id, 'celular', e.target.value);
-                                    }}
+                                    onBlur={(e) => persistChange(item.id, 'celular', e.target.value)}
                                 />
                             </div>
                         </div>
@@ -323,15 +319,7 @@ export default function CuadernosIndex({
                                     placeholder="Departamento"
                                     value={local.departamento ?? item.departamento ?? ''}
                                     onChange={(e) => updateLocalState(item.id, 'departamento', e.target.value)}
-                                    onBlur={(e) => {
-                                        const key = 'departamento';
-                                        const t = saveTimeouts.current[item.id]?.[key];
-                                        if (t) {
-                                            clearTimeout(t);
-                                            delete saveTimeouts.current[item.id][key];
-                                        }
-                                        persistChange(item.id, 'departamento', e.target.value);
-                                    }}
+                                    onBlur={(e) => persistChange(item.id, 'departamento', e.target.value)}
                                 />
                             </div>
                             <div className="relative">
@@ -341,15 +329,7 @@ export default function CuadernosIndex({
                                     placeholder="Provincia"
                                     value={local.provincia ?? item.provincia ?? ''}
                                     onChange={(e) => updateLocalState(item.id, 'provincia', e.target.value)}
-                                    onBlur={(e) => {
-                                        const key = 'provincia';
-                                        const t = saveTimeouts.current[item.id]?.[key];
-                                        if (t) {
-                                            clearTimeout(t);
-                                            delete saveTimeouts.current[item.id][key];
-                                        }
-                                        persistChange(item.id, 'provincia', e.target.value);
-                                    }}
+                                    onBlur={(e) => persistChange(item.id, 'provincia', e.target.value)}
                                 />
                             </div>
                         </div>
@@ -392,7 +372,7 @@ export default function CuadernosIndex({
                                 item.imagenes.map((img) => (
                                     <div key={img.id} className="flex items-center gap-1">
                                         <Button variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => { setCurrentImage(img.url); setImageModalOpen(true); }}>
-                                            {img.pivot?.tipo === 'producto' ? 'Producto' : img.pivot?.tipo === 'comprobante' ? 'Comprobante' : 'Ver Imagen'}
+                                            {img.pivot?.tipo === 'producto' ? 'Producto' : img.pivot?.tipo === 'comprobante' ? 'Comprobante' : 'Ver'}
                                         </Button>
                                         {img.pivot?.tipo === 'producto' && img.pivot?.cantidad > 0 && (
                                             <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full border border-purple-200">{img.pivot.cantidad}</span>
@@ -426,20 +406,21 @@ export default function CuadernosIndex({
                     const item = row.original;
                     return (
                         <div className="flex justify-end gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-green-500 hover:text-green-600 hover:bg-green-100" onClick={() => handleConfirm(item.id)} title="Confirmar"><Check className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-100" onClick={() => handleDelete(item.id)} title="Eliminar"><Trash2 className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-green-500 hover:text-green-600 hover:bg-green-100" onClick={() => handleConfirm(item.id)} title="Confirm"><Check className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-100" onClick={() => handleDelete(item.id)} title="Delete"><Trash2 className="h-4 w-4" /></Button>
                         </div>
                     );
                 },
                 enableHiding: false,
             },
         ],
-        [localState],
+        [localState]
     );
 
     const table = useReactTable({
         data: cuadernos.data,
         columns,
+        getRowId: row => row.id.toString(), // Clave para la selección persistente por ID
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
@@ -455,394 +436,151 @@ export default function CuadernosIndex({
         },
     });
 
-    // Update selectedIds whenever rowSelection changes
-    useEffect(() => {
-        const selection = rowSelection as Record<string, boolean>;
-        const selected = Object.keys(selection)
-            .filter((key) => selection[key])
-            .map((key) => cuadernos.data[parseInt(key)]?.id)
-            .filter(Boolean) as number[];
-
-        setSelectedIds(selected);
-    }, [rowSelection, cuadernos.data]);
-
-    // Actualiza solo el estado local (para inputs de texto)
-    const updateLocalState = (
-        id: number,
-        field: keyof Cuaderno,
-        value: string | boolean,
-    ) => {
-        setLocalState((prev) => ({
-            ...prev,
-            [id]: {
-                ...prev[id],
-                [field]: value,
-            },
-        }));
-
-        // Debounced save: clear existing timeout and schedule a new one
-        const key = String(field);
-        if (!saveTimeouts.current[id]) saveTimeouts.current[id] = {};
-        const existing = saveTimeouts.current[id][key];
-        if (existing) clearTimeout(existing);
-        saveTimeouts.current[id][key] = setTimeout(() => {
-            persistChange(id, field, value);
-            delete saveTimeouts.current[id][key];
-        }, 700);
+    const updateLocalState = (id: number, field: keyof Cuaderno, value: string | boolean) => {
+        setLocalState(prev => ({ ...prev, [id]: { ...prev[id], [field]: value } }));
     };
 
-    // Envía los cambios al servidor
-    const persistChange = (
-        id: number,
-        field: keyof Cuaderno,
-        value: string | boolean,
-    ) => {
-        router.patch(
-            `/cuadernos/${id}`,
-            { [field]: value },
-            {
-                preserveState: true,
-                preserveScroll: true,
-                onError: () => {
-                    // Revertimos en caso de error buscando el valor original
-                    const original = cuadernos.data.find((c) => c.id === id);
-                    if (original) {
-                        // @ts-ignore - Dynamic access is safe here given the context
-                        updateLocalState(id, field, original[field]);
-                    }
-                },
-            },
-        );
+    const persistChange = (id: number, field: keyof Cuaderno, value: string | boolean) => {
+        router.patch(`/cuadernos/${id}`, { [field]: value }, { preserveState: true, preserveScroll: true });
     };
 
-    // Helper para actualizar y guardar inmediatamente (para checkboxes)
-    const updateAndSave = (
-        id: number,
-        field: keyof Cuaderno,
-        value: boolean,
-    ) => {
+    const updateAndSave = (id: number, field: keyof Cuaderno, value: boolean) => {
         updateLocalState(id, field, value);
         persistChange(id, field, value);
     };
 
-    const handleAddProducto = (
-        productoId: number,
-        cantidad: number,
-        precioVenta: number,
-    ) => {
+    const handleAddProducto = (productoId: number, cantidad: number, precioVenta: number) => {
         if (!selectedCuadernoId) return;
-
-        router.post(
-            `/cuadernos/${selectedCuadernoId}/productos`,
-            {
-                producto_id: productoId,
-                cantidad,
-                precio_venta: precioVenta,
-            },
-            {
-                onSuccess: () => {
-                    // Reload to update the productos list
-                    router.reload();
-                },
-            },
-        );
+        router.post(`/cuadernos/${selectedCuadernoId}/productos`, { producto_id: productoId, cantidad, precio_venta: precioVenta }, { onSuccess: () => setModalOpen(false) });
     };
+
     const handleConfirm = (id: number) => {
-        if (confirm('¿Confirmar pedido? Esto marcará el estado como Confirmado y Enviado.')) {
-            router.patch(`/cuadernos/${id}`, {
-                estado: 'Confirmado',
-                enviado: true,
-            });
+        if (confirm('¿Confirmar pedido?')) {
+            router.patch(`/cuadernos/${id}`, { estado: 'Confirmado', enviado: true });
         }
     };
 
     const handleDelete = (id: number) => {
-        if (confirm('¿Estás seguro de eliminar este registro?')) {
+        if (confirm('¿Eliminar registro?')) {
             router.delete(`/cuadernos/${id}`);
         }
     };
 
     const hasConfirmedSelection = () => {
         return selectedIds.some(id => {
-            const cuaderno = cuadernos.data.find(c => c.id === id);
-            return cuaderno?.estado === 'Confirmado';
+            const c = cuadernos.data.find(item => item.id === id);
+            return c?.estado === 'Confirmado';
         });
     };
 
     const handlePdfRespaldo = () => {
-        if (selectedIds.length === 0) {
-            alert('Por favor selecciona al menos un registro para generar el PDF de respaldo.');
-            return;
-        }
-
-        const pdfUrl = routes.confirmarSeleccion.url({
-            query: {
-                ids: selectedIds.map(id => id.toString()),
-                view_pdf: '1'
-            }
-        });
-        window.open(pdfUrl, '_blank');
+        if (selectedIds.length === 0) return alert('Selecciona al menos uno');
+        const url = routes.confirmarSeleccion.url({ query: { ids: selectedIds.map(String), view_pdf: '1' } });
+        window.open(url, '_blank');
     };
 
     const handleGenerarFichas = () => {
-        const pdfUrl = routes.generarFichas.url({
-            query: {
-                ids: selectedIds.map(id => id.toString())
-            }
-        });
-        window.open(pdfUrl, '_blank');
+        const url = routes.generarFichas.url({ query: { ids: selectedIds.map(String) } });
+        window.open(url, '_blank');
     };
 
     const handleGenerarNotas = () => {
-        const pdfUrl = routes.generarNotas.url({
-            query: {
-                ids: selectedIds.map(id => id.toString())
-            }
-        });
-        window.open(pdfUrl, '_blank');
+        const url = routes.generarNotas.url({ query: { ids: selectedIds.map(String) } });
+        window.open(url, '_blank');
     };
 
     const handleBulkConfirm = () => {
-        if (hasConfirmedSelection()) {
-            alert('No se pueden confirmar pedidos que ya están en estado "Confirmado". Por favor desmarca los pedidos confirmados para continuar.');
-            return;
-        }
-
-        const hasSelection = selectedIds.length > 0;
-        const message = hasSelection
-            ? `¿Estás seguro de confirmar los ${selectedIds.length} pedidos seleccionados? Esto marcará su estado como Confirmado y Enviado y se generará un PDF.`
-            : '¿Estás seguro de confirmar TODOS los pedidos que están en estado "Listo"? Esto marcará su estado como Confirmado y Enviado y se generará un PDF.';
-
-        if (confirm(message)) {
+        if (hasConfirmedSelection()) return alert('Hay pedidos ya confirmados');
+        const count = selectedIds.length;
+        const msg = count > 0 ? `Confirmar ${count} pedidos?` : 'Confirmar TODO lo que está LISTO?';
+        if (confirm(msg)) {
             setIsProcessing(true);
-
-            router.post(routes.confirmarSeleccion.url(), {
-                ids: selectedIds
-            }, {
+            router.post(routes.confirmarSeleccion.url(), { ids: selectedIds }, {
                 onSuccess: () => {
-                    // Abrir el PDF en una nueva pestaña usando GET
-                    const pdfUrl = routes.confirmarSeleccion.url({
-                        query: {
-                            ids: selectedIds.map(id => id.toString()),
-                            view_pdf: '1'
-                        }
-                    });
-                    window.open(pdfUrl, '_blank');
-
+                    const url = routes.confirmarSeleccion.url({ query: { ids: selectedIds.map(String), view_pdf: '1' } });
+                    window.open(url, '_blank');
                     setRowSelection({});
+                    localStorage.removeItem('selected_cuadernos_v3');
                 },
-                onFinish: () => {
-                    setIsProcessing(false);
-                }
+                onFinish: () => setIsProcessing(false)
             });
         }
     };
-
-    const isAllSelected = cuadernos.data.length > 0 && selectedIds.length === cuadernos.data.length;
-
-    const toggleSelectAll = (checked: boolean) => {
-        if (checked) {
-            setSelectedIds(cuadernos.data.map((c) => c.id));
-        } else {
-            setSelectedIds([]);
-        }
-    };
-
-    const toggleSelectOne = (id: number, checked: boolean) => {
-        setSelectedIds((prev) => {
-            if (checked) {
-                if (prev.includes(id)) return prev;
-                return [...prev, id];
-            }
-            return prev.filter((i) => i !== id);
-        });
-    };
-
 
     return (
         <AppLayout>
             <Head title="Cuadernos" />
             <div className="container mx-auto py-6">
                 <div className="flex flex-col gap-6">
-                    <div className="flex flex-col gap-2">
-                        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Gestión de Cuadernos</h1>
-                        <p className="text-muted-foreground">Administra las ventas, clientes y estados de los pedidos.</p>
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">Gestión de Cuadernos</h1>
+                        <p className="text-muted-foreground">Administra las ventas y clientes.</p>
                     </div>
 
                     <Card className="border-none shadow-md">
-                        <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4">
-                            <div className="flex flex-col gap-1">
-                                <CardTitle className="text-xl">Listado de Ordenes</CardTitle>
-                                <CardDescription>Gestiona el seguimiento y detalles de cada venta.</CardDescription>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                                <div className="flex bg-muted p-1 rounded-lg gap-1 overflow-x-auto">
-                                    <Button
-                                        variant={filter === '' ? 'secondary' : 'ghost'}
-                                        size="sm"
-                                        className="h-8 text-xs px-3"
-                                        onClick={() => setFilter('')}
-                                    >
-                                        Todos
-                                    </Button>
-                                    <Button
-                                        variant={filter === 'la_paz' ? 'secondary' : 'ghost'}
-                                        size="sm"
-                                        className="h-8 text-xs px-3 gap-1.5"
-                                        onClick={() => setFilter('la_paz')}
-                                    >
-                                        <MapPin className="w-3.5 h-3.5 text-blue-500" />
-                                        La Paz
-                                    </Button>
-                                    <Button
-                                        variant={filter === 'enviado' ? 'secondary' : 'ghost'}
-                                        size="sm"
-                                        className="h-8 text-xs px-3 gap-1.5"
-                                        onClick={() => setFilter('enviado')}
-                                    >
-                                        <Truck className="w-3.5 h-3.5 text-orange-500" />
-                                        Enviado
-                                    </Button>
-                                    <Button
-                                        variant={filter === 'p_listo' ? 'secondary' : 'ghost'}
-                                        size="sm"
-                                        className="h-8 text-xs px-3 gap-1.5"
-                                        onClick={() => setFilter('p_listo')}
-                                    >
-                                        <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-                                        Listo
-                                    </Button>
-                                    <Button
-                                        variant={filter === 'p_pendiente' ? 'secondary' : 'ghost'}
-                                        size="sm"
-                                        className="h-8 text-xs px-3 gap-1.5"
-                                        onClick={() => setFilter('p_pendiente')}
-                                    >
-                                        <Clock className="w-3.5 h-3.5 text-red-500" />
-                                        Pendiente
-                                    </Button>
-                                </div>
-
+                        <CardHeader className="flex flex-col md:flex-row items-center justify-between gap-4 pb-4">
+                            <div className="flex flex-wrap items-center gap-2">
                                 <div className="flex gap-2">
                                     {filter === 'p_listo' && (
                                         <>
-                                            <Button
-                                                onClick={handleBulkConfirm}
-                                                disabled={isProcessing || hasConfirmedSelection()}
-                                                variant="default"
-                                                className={cn(
-                                                    "h-9 bg-green-600 hover:bg-green-700 text-white gap-2 px-4 shadow-lg animate-in fade-in zoom-in duration-300",
-                                                    hasConfirmedSelection() && "opacity-50 cursor-not-allowed"
-                                                )}
-                                            >
-                                                <CheckCircle className="w-4 h-4" />
-                                                {selectedIds.length > 0
-                                                    ? `Confirmar ${selectedIds.length} ${selectedIds.length === 1 ? 'Pedido' : 'Pedidos'}`
-                                                    : 'Confirmar Todo (Listo)'
-                                                }
+                                            <Button onClick={handleBulkConfirm} disabled={isProcessing} className="bg-green-600 hover:bg-green-700 h-9">
+                                                <CheckCircle className="w-4 h-4 mr-2" />
+                                                {selectedIds.length > 0 ? `Confirmar ${selectedIds.length}` : 'Confirmar Todo'}
                                             </Button>
-
-                                            <Button
-                                                onClick={handlePdfRespaldo}
-                                                variant="outline"
-                                                className="h-9 gap-2 px-4 border-blue-200 hover:bg-blue-50 text-blue-700 animate-in fade-in zoom-in duration-300"
-                                            >
-                                                <FileText className="w-4 h-4" />
-                                                {selectedIds.length > 0
-                                                    ? `PDF Respaldo (${selectedIds.length})`
-                                                    : 'PDF Respaldo (Listo)'
-                                                }
+                                            <Button onClick={handlePdfRespaldo} variant="outline" className="h-9 border-blue-200 text-blue-700">
+                                                <FileText className="w-4 h-4 mr-2" />
+                                                {selectedIds.length > 0 ? `Respaldo (${selectedIds.length})` : 'Respaldo (Listo)'}
                                             </Button>
-
-                                            <Button
-                                                onClick={handleGenerarFichas}
-                                                variant="outline"
-                                                className="h-9 gap-2 px-4 border-purple-200 hover:bg-purple-50 text-purple-700 animate-in fade-in zoom-in duration-300"
-                                            >
-                                                <Package className="w-4 h-4" />
-                                                {selectedIds.length > 0
-                                                    ? `Generar Fichas (${selectedIds.length})`
-                                                    : 'Generar Fichas (Listo)'
-                                                }
+                                            <Button onClick={handleGenerarFichas} variant="outline" className="h-9 border-purple-200 text-purple-700">
+                                                <Package className="w-4 h-4 mr-2" />
+                                                Fichas ({selectedIds.length || 'Listo'})
                                             </Button>
-
-                                            <Button
-                                                onClick={handleGenerarNotas}
-                                                variant="outline"
-                                                className="h-9 gap-2 px-4 border-orange-200 hover:bg-orange-50 text-orange-700 animate-in fade-in zoom-in duration-300"
-                                            >
-                                                <FileText className="w-4 h-4" />
-                                                {selectedIds.length > 0
-                                                    ? `Notas de Venta (${selectedIds.length})`
-                                                    : 'Notas de Venta (Listo)'
-                                                }
+                                            <Button onClick={handleGenerarNotas} variant="outline" className="h-9 border-orange-200 text-orange-700">
+                                                <FileText className="w-4 h-4 mr-2" />
+                                                Notas ({selectedIds.length || 'Listo'})
                                             </Button>
                                         </>
                                     )}
                                 </div>
-
-                                <div className="relative w-full md:w-64">
-                                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Buscar..."
-                                        className="pl-8 h-9"
-                                        value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
-                                    />
+                                <div className="relative">
+                                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                    <Input placeholder="Buscar..." className="pl-8 h-9 w-64" value={search} onChange={(e) => setSearch(e.target.value)} />
                                 </div>
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="overflow-hidden rounded-md border">
+                            <div className="rounded-md border overflow-hidden">
                                 <Table>
                                     <TableHeader>
-                                        {table.getHeaderGroups().map((headerGroup) => (
-                                            <TableRow key={headerGroup.id}>
-                                                {headerGroup.headers.map((header) => (
-                                                    <TableHead key={header.id}>{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</TableHead>
+                                        {table.getHeaderGroups().map(group => (
+                                            <TableRow key={group.id}>
+                                                {group.headers.map(header => (
+                                                    <TableHead key={header.id}>{flexRender(header.column.columnDef.header, header.getContext())}</TableHead>
                                                 ))}
                                             </TableRow>
                                         ))}
                                     </TableHeader>
                                     <TableBody>
-                                        {table.getRowModel().rows?.length ? (
-                                            table.getRowModel().rows.map((row) => (
-                                                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                                                    {row.getVisibleCells().map((cell) => (
+                                        {table.getRowModel().rows.length ? (
+                                            table.getRowModel().rows.map(row => (
+                                                <TableRow key={row.id}>
+                                                    {row.getVisibleCells().map(cell => (
                                                         <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                                                     ))}
                                                 </TableRow>
                                             ))
                                         ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={columns.length} className="h-24 text-center">No results.</TableCell>
-                                            </TableRow>
+                                            <TableRow><TableCell colSpan={columns.length} className="h-24 text-center">Sin resultados.</TableCell></TableRow>
                                         )}
                                     </TableBody>
                                 </Table>
                             </div>
-                            {/* Pagination */}
                             <div className="flex items-center justify-between mt-4">
-                                <div className="text-sm text-muted-foreground">
-                                    Mostrando {cuadernos.from} a {cuadernos.to} de {cuadernos.total} resultados
-                                </div>
-                                <div className="flex items-center gap-1">
+                                <div className="text-sm text-muted-foreground">Página {cuadernos.current_page} de {cuadernos.last_page} ({cuadernos.total} total)</div>
+                                <div className="flex gap-1">
                                     {cuadernos.links.map((link, i) => (
-                                        <Button
-                                            key={i}
-                                            variant={link.active ? "default" : "outline"}
-                                            size="sm"
-                                            className={cn("h-8 w-8 p-0", !link.url && "opacity-50 cursor-not-allowed")}
-                                            asChild={!!link.url}
-                                            disabled={!link.url}
-                                        >
-                                            {link.url ? (
-                                                <Link href={link.url} preserveState preserveScroll>
-                                                    <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                                                </Link>
-                                            ) : (
-                                                <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                                            )}
+                                        <Button key={i} variant={link.active ? "default" : "outline"} size="sm" asChild={!!link.url} disabled={!link.url} className="h-8 min-w-[32px]">
+                                            {link.url ? <Link href={link.url} preserveState preserveScroll><span dangerouslySetInnerHTML={{ __html: link.label }} /></Link> : <span dangerouslySetInnerHTML={{ __html: link.label }} />}
                                         </Button>
                                     ))}
                                 </div>
@@ -851,26 +589,11 @@ export default function CuadernosIndex({
                     </Card>
                 </div>
             </div>
-            <AddProductoModal
-                open={modalOpen}
-                onClose={() => setModalOpen(false)}
-                onSave={handleAddProducto}
-                productos={productos}
-            />
+            <AddProductoModal open={modalOpen} onClose={() => setModalOpen(false)} onSave={handleAddProducto} productos={productos} />
             <Dialog open={imageModalOpen} onOpenChange={setImageModalOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Vista de Imagen</DialogTitle>
-                    </DialogHeader>
-                    <div className="flex items-center justify-center p-4">
-                        {currentImage && (
-                            <img
-                                src={currentImage}
-                                alt="Vista previa"
-                                className="max-w-full max-h-[80vh] object-contain rounded-md"
-                            />
-                        )}
-                    </div>
+                <DialogContent>
+                    <DialogHeader><DialogTitle>Vista Previa</DialogTitle></DialogHeader>
+                    {currentImage && <img src={currentImage} className="max-w-full rounded-md" />}
                 </DialogContent>
             </Dialog>
         </AppLayout>
