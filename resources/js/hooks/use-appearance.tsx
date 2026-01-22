@@ -1,6 +1,192 @@
 import { useCallback, useEffect, useState } from 'react';
+import { applyThemeColors } from '@/lib/theme-colors';
 
 export type Appearance = 'light' | 'dark' | 'system';
+export type ThemeColor = 'red' | 'green' | 'blue' | 'cyan' | 'white' | 'black';
+
+// Complete theme color palettes with light and dark modes
+const COLOR_THEMES: Record<ThemeColor, { light: Record<string, string>; dark: Record<string, string> }> = {
+    red: {
+        light: {
+            '--primary': 'oklch(0.5 0.2 25)', // red primary
+            '--primary-foreground': 'oklch(0.985 0 0)', // white
+            '--background': 'oklch(0.98 0 0)', // near white
+            '--foreground': 'oklch(0.145 0 0)', // dark text
+            '--card': 'oklch(1 0 0)', // white
+            '--card-foreground': 'oklch(0.145 0 0)',
+            '--muted': 'oklch(0.97 0 0)', // light gray
+            '--muted-foreground': 'oklch(0.556 0 0)', // medium gray
+            '--accent': 'oklch(0.5 0.2 25)', // same as primary
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.45 0.15 25)', // darker red
+            '--secondary-foreground': 'oklch(0.985 0 0)',
+        },
+        dark: {
+            '--primary': 'oklch(0.5 0.2 25)', // red primary
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': '#222831',
+            '--foreground': 'oklch(0.985 0 0)',
+            '--card': '#2d343f',
+            '--card-foreground': 'oklch(0.985 0 0)',
+            '--muted': '#1a1e26',
+            '--muted-foreground': 'oklch(0.708 0 0)',
+            '--accent': 'oklch(0.5 0.2 25)',
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.6 0.2 25)',
+            '--secondary-foreground': 'oklch(0.145 0 0)',
+        },
+    },
+    green: {
+        light: {
+            '--primary': 'oklch(0.55 0.18 142)', // green primary
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': 'oklch(0.98 0 0)',
+            '--foreground': 'oklch(0.145 0 0)',
+            '--card': 'oklch(1 0 0)',
+            '--card-foreground': 'oklch(0.145 0 0)',
+            '--muted': 'oklch(0.97 0 0)',
+            '--muted-foreground': 'oklch(0.556 0 0)',
+            '--accent': 'oklch(0.55 0.18 142)',
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.45 0.15 142)',
+            '--secondary-foreground': 'oklch(0.985 0 0)',
+        },
+        dark: {
+            '--primary': 'oklch(0.55 0.18 142)',
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': '#222831',
+            '--foreground': 'oklch(0.985 0 0)',
+            '--card': '#2d343f',
+            '--card-foreground': 'oklch(0.985 0 0)',
+            '--muted': '#1a1e26',
+            '--muted-foreground': 'oklch(0.708 0 0)',
+            '--accent': 'oklch(0.55 0.18 142)',
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.6 0.15 142)',
+            '--secondary-foreground': 'oklch(0.145 0 0)',
+        },
+    },
+    blue: {
+        light: {
+            '--primary': 'oklch(0.5 0.2 264)', // blue primary
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': 'oklch(0.98 0 0)',
+            '--foreground': 'oklch(0.145 0 0)',
+            '--card': 'oklch(1 0 0)',
+            '--card-foreground': 'oklch(0.145 0 0)',
+            '--muted': 'oklch(0.97 0 0)',
+            '--muted-foreground': 'oklch(0.556 0 0)',
+            '--accent': 'oklch(0.5 0.2 264)',
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.45 0.15 264)',
+            '--secondary-foreground': 'oklch(0.985 0 0)',
+        },
+        dark: {
+            '--primary': 'oklch(0.5 0.2 264)',
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': '#222831',
+            '--foreground': 'oklch(0.985 0 0)',
+            '--card': '#2d343f',
+            '--card-foreground': 'oklch(0.985 0 0)',
+            '--muted': '#1a1e26',
+            '--muted-foreground': 'oklch(0.708 0 0)',
+            '--accent': 'oklch(0.5 0.2 264)',
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.6 0.2 264)',
+            '--secondary-foreground': 'oklch(0.145 0 0)',
+        },
+    },
+    cyan: {
+        light: {
+            '--primary': 'oklch(0.65 0.15 200)', // cyan primary
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': 'oklch(0.98 0 0)',
+            '--foreground': 'oklch(0.145 0 0)',
+            '--card': 'oklch(1 0 0)',
+            '--card-foreground': 'oklch(0.145 0 0)',
+            '--muted': 'oklch(0.97 0 0)',
+            '--muted-foreground': 'oklch(0.556 0 0)',
+            '--accent': 'oklch(0.65 0.15 200)',
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.55 0.12 200)',
+            '--secondary-foreground': 'oklch(0.985 0 0)',
+        },
+        dark: {
+            '--primary': '#00ADB5',
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': '#222831',
+            '--foreground': 'oklch(0.985 0 0)',
+            '--card': '#2d343f',
+            '--card-foreground': 'oklch(0.985 0 0)',
+            '--muted': '#1a1e26',
+            '--muted-foreground': 'oklch(0.708 0 0)',
+            '--accent': '#00FFF5',
+            '--accent-foreground': 'oklch(0.145 0 0)',
+            '--secondary': '#00FFF5',
+            '--secondary-foreground': 'oklch(0.145 0 0)',
+        },
+    },
+    white: {
+        light: {
+            '--primary': 'oklch(0.98 0 0)', // white primary
+            '--primary-foreground': 'oklch(0.145 0 0)',
+            '--background': 'oklch(0.98 0 0)',
+            '--foreground': 'oklch(0.145 0 0)',
+            '--card': 'oklch(1 0 0)',
+            '--card-foreground': 'oklch(0.145 0 0)',
+            '--muted': 'oklch(0.97 0 0)',
+            '--muted-foreground': 'oklch(0.556 0 0)',
+            '--accent': 'oklch(0.98 0 0)',
+            '--accent-foreground': 'oklch(0.145 0 0)',
+            '--secondary': 'oklch(0.95 0 0)',
+            '--secondary-foreground': 'oklch(0.145 0 0)',
+        },
+        dark: {
+            '--primary': 'oklch(0.98 0 0)',
+            '--primary-foreground': 'oklch(0.145 0 0)',
+            '--background': '#222831',
+            '--foreground': 'oklch(0.985 0 0)',
+            '--card': '#2d343f',
+            '--card-foreground': 'oklch(0.985 0 0)',
+            '--muted': '#1a1e26',
+            '--muted-foreground': 'oklch(0.708 0 0)',
+            '--accent': 'oklch(0.98 0 0)',
+            '--accent-foreground': 'oklch(0.145 0 0)',
+            '--secondary': 'oklch(0.2 0 0)',
+            '--secondary-foreground': 'oklch(0.985 0 0)',
+        },
+    },
+    black: {
+        light: {
+            '--primary': 'oklch(0.2 0 0)', // black primary
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': 'oklch(0.98 0 0)',
+            '--foreground': 'oklch(0.145 0 0)',
+            '--card': 'oklch(1 0 0)',
+            '--card-foreground': 'oklch(0.145 0 0)',
+            '--muted': 'oklch(0.97 0 0)',
+            '--muted-foreground': 'oklch(0.556 0 0)',
+            '--accent': 'oklch(0.2 0 0)',
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.15 0 0)',
+            '--secondary-foreground': 'oklch(0.985 0 0)',
+        },
+        dark: {
+            '--primary': 'oklch(0.2 0 0)',
+            '--primary-foreground': 'oklch(0.985 0 0)',
+            '--background': '#222831',
+            '--foreground': 'oklch(0.985 0 0)',
+            '--card': '#2d343f',
+            '--card-foreground': 'oklch(0.985 0 0)',
+            '--muted': '#1a1e26',
+            '--muted-foreground': 'oklch(0.708 0 0)',
+            '--accent': 'oklch(0.2 0 0)',
+            '--accent-foreground': 'oklch(0.985 0 0)',
+            '--secondary': 'oklch(0.3 0 0)',
+            '--secondary-foreground': 'oklch(0.985 0 0)',
+        },
+    },
+};
 
 const prefersDark = () => {
     if (typeof window === 'undefined') {
@@ -19,12 +205,23 @@ const setCookie = (name: string, value: string, days = 365) => {
     document.cookie = `${name}=${value};path=/;max-age=${maxAge};SameSite=Lax`;
 };
 
-const applyTheme = (appearance: Appearance) => {
+const applyTheme = (appearance: Appearance, color: ThemeColor = 'blue') => {
     const isDark =
         appearance === 'dark' || (appearance === 'system' && prefersDark());
 
     document.documentElement.classList.toggle('dark', isDark);
     document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+
+    // Apply complete color theme palette
+    const themeMode = isDark ? 'dark' : 'light';
+    const colorTheme = COLOR_THEMES[color][themeMode];
+
+    Object.entries(colorTheme).forEach(([key, value]) => {
+        document.documentElement.style.setProperty(key, value);
+    });
+
+    // Apply dynamic chart and accent colors
+    applyThemeColors(color, isDark);
 };
 
 const mediaQuery = () => {
@@ -35,23 +232,32 @@ const mediaQuery = () => {
     return window.matchMedia('(prefers-color-scheme: dark)');
 };
 
-const handleSystemThemeChange = () => {
+const handleSystemThemeChange = (color: ThemeColor = 'blue') => {
     const currentAppearance = localStorage.getItem('appearance') as Appearance;
-    applyTheme(currentAppearance || 'system');
+    applyTheme(currentAppearance || 'system', color);
 };
 
 export function initializeTheme() {
     const savedAppearance =
         (localStorage.getItem('appearance') as Appearance) || 'system';
+    const savedColor = (localStorage.getItem('themeColor') as ThemeColor) || 'blue';
 
-    applyTheme(savedAppearance);
+    applyTheme(savedAppearance, savedColor);
 
     // Add the event listener for system theme changes...
-    mediaQuery()?.addEventListener('change', handleSystemThemeChange);
+    mediaQuery()?.addEventListener('change', () => handleSystemThemeChange(savedColor));
 }
 
 export function useAppearance() {
-    const [appearance, setAppearance] = useState<Appearance>('system');
+    const [appearance, setAppearance] = useState<Appearance>(() => {
+        if (typeof window === 'undefined') return 'system';
+        return (localStorage.getItem('appearance') as Appearance) || 'system';
+    });
+
+    const [themeColor, setThemeColor] = useState<ThemeColor>(() => {
+        if (typeof window === 'undefined') return 'blue';
+        return (localStorage.getItem('themeColor') as ThemeColor) || 'blue';
+    });
 
     const updateAppearance = useCallback((mode: Appearance) => {
         setAppearance(mode);
@@ -62,23 +268,41 @@ export function useAppearance() {
         // Store in cookie for SSR...
         setCookie('appearance', mode);
 
-        applyTheme(mode);
+        const savedColor = (localStorage.getItem('themeColor') as ThemeColor) || 'blue';
+        applyTheme(mode, savedColor);
+    }, []);
+
+    const updateThemeColor = useCallback((color: ThemeColor) => {
+        setThemeColor(color);
+
+        // Store in localStorage for client-side persistence...
+        localStorage.setItem('themeColor', color);
+
+        // Store in cookie for SSR...
+        setCookie('themeColor', color);
+
+        const savedAppearance = (localStorage.getItem('appearance') as Appearance) || 'system';
+        applyTheme(savedAppearance, color);
     }, []);
 
     useEffect(() => {
-        const savedAppearance = localStorage.getItem(
-            'appearance',
-        ) as Appearance | null;
+        const savedAppearance = localStorage.getItem('appearance') as Appearance | null;
+        const savedColor = localStorage.getItem('themeColor') as ThemeColor | null;
 
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        updateAppearance(savedAppearance || 'system');
+        const appearance = savedAppearance || 'system';
+        const color = savedColor || 'blue';
+
+        applyTheme(appearance, color);
+
+        const handleChange = () => handleSystemThemeChange(color);
+        mediaQuery()?.addEventListener('change', handleChange);
 
         return () =>
             mediaQuery()?.removeEventListener(
                 'change',
-                handleSystemThemeChange,
+                handleChange,
             );
-    }, [updateAppearance]);
+    }, []);
 
-    return { appearance, updateAppearance } as const;
+    return { appearance, updateAppearance, themeColor, updateThemeColor } as const;
 }

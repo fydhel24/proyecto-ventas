@@ -1,0 +1,330 @@
+import { ThemeColor } from '@/hooks/use-appearance';
+
+export interface ThemeColorSet {
+    primary: string;
+    secondary: string;
+    chart1: string;
+    chart2: string;
+    chart3: string;
+    chart4: string;
+    chart5: string;
+    // Variables para tarjetas de métricas
+    accent1: string;
+    accent2: string;
+    accent3: string;
+    accent4: string;
+    // Variantes light/dark para backgrounds
+    accent1Light: string;
+    accent1Dark: string;
+    accent2Light: string;
+    accent2Dark: string;
+    accent3Light: string;
+    accent3Dark: string;
+    accent4Light: string;
+    accent4Dark: string;
+}
+
+// Definición de paletas de colores para cada tema
+const themeColors: Record<ThemeColor, { light: ThemeColorSet; dark: ThemeColorSet }> = {
+    red: {
+        light: {
+            primary: '#dc2626',
+            secondary: '#ef4444',
+            chart1: '#dc2626',
+            chart2: '#f87171',
+            chart3: '#fca5a5',
+            chart4: '#fecaca',
+            chart5: '#fee2e2',
+            accent1: '#dc2626',
+            accent2: '#f97316',
+            accent3: '#8b5cf6',
+            accent4: '#f59e0b',
+            accent1Light: 'rgb(220, 38, 38 / 0.05)',
+            accent1Dark: 'rgb(127, 29, 29 / 0.2)',
+            accent2Light: 'rgb(249, 115, 22 / 0.05)',
+            accent2Dark: 'rgb(120, 53, 15 / 0.2)',
+            accent3Light: 'rgb(139, 92, 246 / 0.05)',
+            accent3Dark: 'rgb(76, 29, 149 / 0.2)',
+            accent4Light: 'rgb(245, 158, 11 / 0.05)',
+            accent4Dark: 'rgb(120, 53, 15 / 0.2)',
+        },
+        dark: {
+            primary: '#fca5a5',
+            secondary: '#f87171',
+            chart1: '#fca5a5',
+            chart2: '#f87171',
+            chart3: '#fecaca',
+            chart4: '#fee2e2',
+            chart5: '#dc2626',
+            accent1: '#fca5a5',
+            accent2: '#fb923c',
+            accent3: '#c4b5fd',
+            accent4: '#fbbf24',
+            accent1Light: 'rgb(252, 165, 165 / 0.1)',
+            accent1Dark: 'rgb(220, 38, 38 / 0.3)',
+            accent2Light: 'rgb(251, 146, 60 / 0.1)',
+            accent2Dark: 'rgb(194, 65, 12 / 0.3)',
+            accent3Light: 'rgb(196, 181, 253 / 0.1)',
+            accent3Dark: 'rgb(147, 51, 234 / 0.3)',
+            accent4Light: 'rgb(251, 191, 36 / 0.1)',
+            accent4Dark: 'rgb(202, 138, 4 / 0.3)',
+        },
+    },
+    green: {
+        light: {
+            primary: '#16a34a',
+            secondary: '#22c55e',
+            chart1: '#16a34a',
+            chart2: '#4ade80',
+            chart3: '#86efac',
+            chart4: '#bbf7d0',
+            chart5: '#dbeafe',
+            accent1: '#16a34a',
+            accent2: '#059669',
+            accent3: '#6366f1',
+            accent4: '#ec4899',
+            accent1Light: 'rgb(22, 163, 74 / 0.05)',
+            accent1Dark: 'rgb(20, 83, 40 / 0.2)',
+            accent2Light: 'rgb(5, 150, 105 / 0.05)',
+            accent2Dark: 'rgb(17, 94, 89 / 0.2)',
+            accent3Light: 'rgb(99, 102, 241 / 0.05)',
+            accent3Dark: 'rgb(55, 65, 164 / 0.2)',
+            accent4Light: 'rgb(236, 72, 153 / 0.05)',
+            accent4Dark: 'rgb(190, 24, 93 / 0.2)',
+        },
+        dark: {
+            primary: '#86efac',
+            secondary: '#4ade80',
+            chart1: '#86efac',
+            chart2: '#4ade80',
+            chart3: '#bbf7d0',
+            chart4: '#dbeafe',
+            chart5: '#16a34a',
+            accent1: '#86efac',
+            accent2: '#10b981',
+            accent3: '#818cf8',
+            accent4: '#f472b6',
+            accent1Light: 'rgb(134, 239, 172 / 0.1)',
+            accent1Dark: 'rgb(21, 128, 61 / 0.3)',
+            accent2Light: 'rgb(16, 185, 129 / 0.1)',
+            accent2Dark: 'rgb(5, 122, 85 / 0.3)',
+            accent3Light: 'rgb(129, 140, 248 / 0.1)',
+            accent3Dark: 'rgb(79, 70, 229 / 0.3)',
+            accent4Light: 'rgb(244, 114, 182 / 0.1)',
+            accent4Dark: 'rgb(236, 72, 153 / 0.3)',
+        },
+    },
+    blue: {
+        light: {
+            primary: '#2563eb',
+            secondary: '#3b82f6',
+            chart1: '#2563eb',
+            chart2: '#60a5fa',
+            chart3: '#93c5fd',
+            chart4: '#bfdbfe',
+            chart5: '#dbeafe',
+            accent1: '#2563eb',
+            accent2: '#0ea5e9',
+            accent3: '#ec4899',
+            accent4: '#f59e0b',
+            accent1Light: 'rgb(37, 99, 235 / 0.05)',
+            accent1Dark: 'rgb(30, 64, 175 / 0.2)',
+            accent2Light: 'rgb(14, 165, 233 / 0.05)',
+            accent2Dark: 'rgb(12, 115, 170 / 0.2)',
+            accent3Light: 'rgb(236, 72, 153 / 0.05)',
+            accent3Dark: 'rgb(190, 24, 93 / 0.2)',
+            accent4Light: 'rgb(245, 158, 11 / 0.05)',
+            accent4Dark: 'rgb(120, 53, 15 / 0.2)',
+        },
+        dark: {
+            primary: '#93c5fd',
+            secondary: '#60a5fa',
+            chart1: '#93c5fd',
+            chart2: '#60a5fa',
+            chart3: '#bfdbfe',
+            chart4: '#dbeafe',
+            chart5: '#2563eb',
+            accent1: '#93c5fd',
+            accent2: '#06b6d4',
+            accent3: '#f472b6',
+            accent4: '#fbbf24',
+            accent1Light: 'rgb(147, 197, 253 / 0.1)',
+            accent1Dark: 'rgb(37, 99, 235 / 0.3)',
+            accent2Light: 'rgb(6, 182, 212 / 0.1)',
+            accent2Dark: 'rgb(14, 116, 144 / 0.3)',
+            accent3Light: 'rgb(244, 114, 182 / 0.1)',
+            accent3Dark: 'rgb(236, 72, 153 / 0.3)',
+            accent4Light: 'rgb(251, 191, 36 / 0.1)',
+            accent4Dark: 'rgb(202, 138, 4 / 0.3)',
+        },
+    },
+    cyan: {
+        light: {
+            primary: '#0891b2',
+            secondary: '#06b6d4',
+            chart1: '#0891b2',
+            chart2: '#22d3ee',
+            chart3: '#67e8f9',
+            chart4: '#a5f3fc',
+            chart5: '#cffafe',
+            accent1: '#0891b2',
+            accent2: '#06b6d4',
+            accent3: '#a78bfa',
+            accent4: '#34d399',
+            accent1Light: 'rgb(8, 145, 178 / 0.05)',
+            accent1Dark: 'rgb(15, 76, 98 / 0.2)',
+            accent2Light: 'rgb(6, 182, 212 / 0.05)',
+            accent2Dark: 'rgb(14, 116, 144 / 0.2)',
+            accent3Light: 'rgb(167, 139, 250 / 0.05)',
+            accent3Dark: 'rgb(109, 72, 222 / 0.2)',
+            accent4Light: 'rgb(52, 211, 153 / 0.05)',
+            accent4Dark: 'rgb(17, 94, 89 / 0.2)',
+        },
+        dark: {
+            primary: '#00ADB5',
+            secondary: '#00FFF5',
+            chart1: '#00ADB5',
+            chart2: '#00FFF5',
+            chart3: '#393e46',
+            chart4: '#eeeeee',
+            chart5: '#222831',
+            accent1: '#00ADB5',
+            accent2: '#00FFF5',
+            accent3: '#393e46',
+            accent4: '#eeeeee',
+            accent1Light: 'rgb(0, 173, 181 / 0.1)',
+            accent1Dark: 'rgb(0, 173, 181 / 0.3)',
+            accent2Light: 'rgb(0, 255, 245 / 0.1)',
+            accent2Dark: 'rgb(0, 255, 245 / 0.3)',
+            accent3Light: 'rgb(57, 62, 70 / 0.1)',
+            accent3Dark: 'rgb(57, 62, 70 / 0.3)',
+            accent4Light: 'rgb(238, 238, 238 / 0.1)',
+            accent4Dark: 'rgb(238, 238, 238 / 0.3)',
+        },
+    },
+    white: {
+        light: {
+            primary: '#64748b',
+            secondary: '#78716c',
+            chart1: '#64748b',
+            chart2: '#475569',
+            chart3: '#374151',
+            chart4: '#1f2937',
+            chart5: '#0f172a',
+            accent1: '#64748b',
+            accent2: '#6b7280',
+            accent3: '#6366f1',
+            accent4: '#8b5cf6',
+            accent1Light: 'rgb(100, 116, 139 / 0.05)',
+            accent1Dark: 'rgb(51, 65, 85 / 0.2)',
+            accent2Light: 'rgb(107, 114, 128 / 0.05)',
+            accent2Dark: 'rgb(75, 85, 99 / 0.2)',
+            accent3Light: 'rgb(99, 102, 241 / 0.05)',
+            accent3Dark: 'rgb(55, 65, 164 / 0.2)',
+            accent4Light: 'rgb(139, 92, 246 / 0.05)',
+            accent4Dark: 'rgb(76, 29, 149 / 0.2)',
+        },
+        dark: {
+            primary: '#cbd5e1',
+            secondary: '#9ca3af',
+            chart1: '#cbd5e1',
+            chart2: '#9ca3af',
+            chart3: '#6b7280',
+            chart4: '#6366f1',
+            chart5: '#8b5cf6',
+            accent1: '#cbd5e1',
+            accent2: '#9ca3af',
+            accent3: '#818cf8',
+            accent4: '#c4b5fd',
+            accent1Light: 'rgb(203, 213, 225 / 0.1)',
+            accent1Dark: 'rgb(100, 116, 139 / 0.3)',
+            accent2Light: 'rgb(156, 163, 175 / 0.1)',
+            accent2Dark: 'rgb(107, 114, 128 / 0.3)',
+            accent3Light: 'rgb(129, 140, 248 / 0.1)',
+            accent3Dark: 'rgb(79, 70, 229 / 0.3)',
+            accent4Light: 'rgb(196, 181, 253 / 0.1)',
+            accent4Dark: 'rgb(147, 51, 234 / 0.3)',
+        },
+    },
+    black: {
+        light: {
+            primary: '#0f172a',
+            secondary: '#1e293b',
+            chart1: '#0f172a',
+            chart2: '#1e293b',
+            chart3: '#334155',
+            chart4: '#475569',
+            chart5: '#64748b',
+            accent1: '#0f172a',
+            accent2: '#1e293b',
+            accent3: '#6366f1',
+            accent4: '#ec4899',
+            accent1Light: 'rgb(15, 23, 42 / 0.05)',
+            accent1Dark: 'rgb(15, 23, 42 / 0.2)',
+            accent2Light: 'rgb(30, 41, 59 / 0.05)',
+            accent2Dark: 'rgb(30, 41, 59 / 0.2)',
+            accent3Light: 'rgb(99, 102, 241 / 0.05)',
+            accent3Dark: 'rgb(55, 65, 164 / 0.2)',
+            accent4Light: 'rgb(236, 72, 153 / 0.05)',
+            accent4Dark: 'rgb(190, 24, 93 / 0.2)',
+        },
+        dark: {
+            primary: '#e2e8f0',
+            secondary: '#cbd5e1',
+            chart1: '#e2e8f0',
+            chart2: '#cbd5e1',
+            chart3: '#9ca3af',
+            chart4: '#6366f1',
+            chart5: '#8b5cf6',
+            accent1: '#e2e8f0',
+            accent2: '#cbd5e1',
+            accent3: '#818cf8',
+            accent4: '#f472b6',
+            accent1Light: 'rgb(226, 232, 240 / 0.1)',
+            accent1Dark: 'rgb(100, 116, 139 / 0.3)',
+            accent2Light: 'rgb(203, 213, 225 / 0.1)',
+            accent2Dark: 'rgb(79, 110, 159 / 0.3)',
+            accent3Light: 'rgb(129, 140, 248 / 0.1)',
+            accent3Dark: 'rgb(79, 70, 229 / 0.3)',
+            accent4Light: 'rgb(244, 114, 182 / 0.1)',
+            accent4Dark: 'rgb(236, 72, 153 / 0.3)',
+        },
+    },
+};
+
+export function applyThemeColors(themeColor: ThemeColor, isDark: boolean) {
+    const colors = themeColors[themeColor][isDark ? 'dark' : 'light'];
+
+    const cssVariables = {
+        '--theme-primary': colors.primary,
+        '--theme-secondary': colors.secondary,
+        '--whatsapp-primary': colors.primary, // Para componentes WhatsApp
+        '--chart-1': colors.chart1,
+        '--chart-2': colors.chart2,
+        '--chart-3': colors.chart3,
+        '--chart-4': colors.chart4,
+        '--chart-5': colors.chart5,
+        '--accent-1': colors.accent1,
+        '--accent-2': colors.accent2,
+        '--accent-3': colors.accent3,
+        '--accent-4': colors.accent4,
+        '--accent-1-light': colors.accent1Light,
+        '--accent-1-dark': colors.accent1Dark,
+        '--accent-2-light': colors.accent2Light,
+        '--accent-2-dark': colors.accent2Dark,
+        '--accent-3-light': colors.accent3Light,
+        '--accent-3-dark': colors.accent3Dark,
+        '--accent-4-light': colors.accent4Light,
+        '--accent-4-dark': colors.accent4Dark,
+    };
+
+    // Aplicar variables CSS al elemento root
+    const root = document.documentElement;
+    Object.entries(cssVariables).forEach(([key, value]) => {
+        root.style.setProperty(key, value);
+    });
+}
+
+export function getThemeColors(themeColor: ThemeColor, isDark: boolean): ThemeColorSet {
+    return themeColors[themeColor][isDark ? 'dark' : 'light'];
+}

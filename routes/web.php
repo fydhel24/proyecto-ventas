@@ -27,9 +27,7 @@ Route::get('/checkout', [App\Http\Controllers\ShopController::class, 'checkout']
 Route::post('/cuadernos/pedidos', [CuadernoController::class, 'pedidos'])->name('cuadernos.pedidos');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::resource('productos', ProductoController::class)
         ->names('productos');
     // Rutas para crear marcas y categorías desde los modales
@@ -40,6 +38,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/api/productos/search', [CuadernoController::class, 'searchProductos'])->name('productos.search');
     Route::patch('/cuadernos/{cuaderno}', [CuadernoController::class, 'update'])->name('cuadernos.update');
     Route::post('/cuadernos/{cuaderno}/productos', [CuadernoController::class, 'addProducto'])->name('cuadernos.addProducto');
+    Route::match(['get', 'post'], '/cuadernos/confirmar-seleccion', [CuadernoController::class, 'confirmarSeleccionados'])->name('cuadernos.confirmarSeleccion');
+    Route::get('/cuadernos/generar-fichas', [CuadernoController::class, 'generarPdfFichas'])->name('cuadernos.generarFichas');
+    Route::get('/cuadernos/generar-notas', [CuadernoController::class, 'generarNotasVenta'])->name('cuadernos.generarNotas');
     Route::delete('/cuadernos/{cuaderno}', [CuadernoController::class, 'destroy'])->name('cuadernos.destroy');
 
     Route::get('/whatsapp-miranda', function () {
