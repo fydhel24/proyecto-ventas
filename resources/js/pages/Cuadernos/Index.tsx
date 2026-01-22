@@ -593,6 +593,15 @@ export default function CuadernosIndex({
         window.open(pdfUrl, '_blank');
     };
 
+    const handleGenerarNotas = () => {
+        const pdfUrl = routes.generarNotas.url({
+            query: {
+                ids: selectedIds.map(id => id.toString())
+            }
+        });
+        window.open(pdfUrl, '_blank');
+    };
+
     const handleBulkConfirm = () => {
         if (hasConfirmedSelection()) {
             alert('No se pueden confirmar pedidos que ya están en estado "Confirmado". Por favor desmarca los pedidos confirmados para continuar.');
@@ -754,6 +763,18 @@ export default function CuadernosIndex({
                                                 {selectedIds.length > 0
                                                     ? `Generar Fichas (${selectedIds.length})`
                                                     : 'Generar Fichas (Listo)'
+                                                }
+                                            </Button>
+
+                                            <Button
+                                                onClick={handleGenerarNotas}
+                                                variant="outline"
+                                                className="h-9 gap-2 px-4 border-orange-200 hover:bg-orange-50 text-orange-700 animate-in fade-in zoom-in duration-300"
+                                            >
+                                                <FileText className="w-4 h-4" />
+                                                {selectedIds.length > 0
+                                                    ? `Notas de Venta (${selectedIds.length})`
+                                                    : 'Notas de Venta (Listo)'
                                                 }
                                             </Button>
                                         </>

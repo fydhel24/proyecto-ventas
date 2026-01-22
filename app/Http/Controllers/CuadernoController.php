@@ -789,4 +789,149 @@ class CuadernoController extends Controller
         $pdf->SetXY($x + $padding, $y + $h - $padding - 3);
         $pdf->Cell(0, 4, utf8_decode('Generado: ' . date('d/m/Y H:i')), 0, 0, 'L');
     }
+
+    public function generarNotasVenta(Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        // Si ids está vacío, buscamos todos los que tengan p_listo true
+        if (empty($ids)) {
+            $ids = Cuaderno::where('p_listo', true)->pluck('id')->toArray();
+        }
+
+        if (empty($ids)) {
+            return back()->with('error', 'No hay pedidos marcados como listos para generar notas.');
+        }
+
+        $cuadernos = Cuaderno::with('productos')
+            ->whereIn('id', $ids)
+            ->get();
+
+        // Formato Ticket (80mm aprox)
+        $pdf = new FPDF('P', 'mm', [80, 200]);
+        $pdf->SetAutoPageBreak(true, 10);
+
+        foreach ($cuadernos as $cuaderno) {
+            $pdf->AddPage();
+            
+            // Preparar datos para la nota
+            $totalCantidad = 0;
+            $totalPrecio = 0;
+            $nombresProductos = [];
+            foreach ($cuaderno->productos as $p) {
+                $totalCantidad += $p->pivot->cantidad;
+                $sub = ($p->pivot->cantidad * $p->pivot->precio_venta);
+                $totalPrecio += $sub;
+                $nombresProductos[] = "{$p->pivot->cantidad}x {$p->nombre} ({$p->pivot->precio_venta} Bs)";
+            }
+
+            $datosNota = [
+                'id' => $cuaderno->id,
+                'nombre_cliente' => $cuaderno->nombre,
+                'ci' => $cuaderno->ci,
+                'celular' => $cuaderno->celular,
+                'fecha' => $cuaderno->created_at ? $cuaderno->created_at->format('d/m/Y H:i') : date('d/m/Y H:i'),
+                'cantidad' => $totalCantidad,
+                'subtotal' => number_format($totalPrecio, 2),
+                'total' => number_format($totalPrecio, 2),
+                'productos' => implode("\n", $nombresProductos),
+                'detalle' => $cuaderno->detalle,
+                'departamento' => $cuaderno->departamento,
+                'provincia' => $cuaderno->provincia,
+            ];
+
+            $this->dibujarNotaPDF($pdf, $datosNota);
+        }
+
+        return response($pdf->Output('S', 'notas_venta.pdf'))
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="notas_venta.pdf"');
+    }
+
+    private function dibujarNotaPDF($pdf, $cuaderno)
+    {
+        $pdf->SetY(5);
+
+        // Logo centrado
+        $logoPath = public_path('images/logo.png');
+        if (file_exists($logoPath)) {
+            $pdf->Image($logoPath, 30, 5, 20, 20);
+        }
+        $pdf->Ln(15);
+
+        // Cabecera
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->Cell(0, 4, utf8_decode('IMPORTADORA MIRANDA S.A.'), 0, 1, 'C');
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->Cell(0, 4, utf8_decode('A un Click del Producto que Necesita!!'), 0, 1, 'C');
+        $pdf->Cell(0, 4, utf8_decode('Telefono: 70621016'), 0, 1, 'C');
+        $pdf->Cell(0, 4, utf8_decode('Direccion: Caparazon Mall Center, Planta Baja'), 0, 1, 'C');
+        $pdf->Cell(0, 4, utf8_decode('Fecha: ' . $cuaderno['fecha']), 0, 1, 'C');
+
+        // Línea separadora
+        $pdf->Ln(2);
+        $pdf->Cell(0, 0, '', 'T');
+        $pdf->Ln(2);
+
+        // Título
+        $pdf->SetFont('Arial', 'B', 8);
+        $pdf->Cell(0, 4, utf8_decode('NOTA DE PEDIDO #' . $cuaderno['id']), 0, 1, 'C');
+        $pdf->SetFont('Arial', '', 8);
+
+        // Línea separadora
+        $pdf->Ln(2);
+        $pdf->Cell(0, 0, '', 'T');
+        $pdf->Ln(2);
+
+        // Información del cliente
+        $pdf->Cell(0, 4, utf8_decode('Cliente: ' . $cuaderno['nombre_cliente']), 0, 1, 'L');
+        $pdf->Cell(0, 4, utf8_decode('CI / NIT: ' . $cuaderno['ci']), 0, 1, 'L');
+        $pdf->Cell(0, 4, utf8_decode('Celular: ' . $cuaderno['celular']), 0, 1, 'L');
+        $pdf->Cell(0, 4, utf8_decode('Ubicación: ' . $cuaderno['departamento'] . ' - ' . $cuaderno['provincia']), 0, 1, 'L');
+
+        // Línea separadora
+        $pdf->Ln(2);
+        $pdf->Cell(0, 0, '', 'T');
+        $pdf->Ln(2);
+
+        // Detalle de productos
+        $pdf->SetFont('Arial', 'B', 8);
+        $pdf->Cell(32.5, 4, utf8_decode('Cantidad'), 1, 0, 'C');
+        $pdf->Cell(32.5, 4, utf8_decode('SubTotal'), 1, 1, 'C');
+        $pdf->SetFont('Arial', '', 7);
+
+        $pdf->Cell(32.5, 4, utf8_decode($cuaderno['cantidad']), 1, 0, 'C');
+        $pdf->SetFont('Arial', 'B', 7);
+        $pdf->Cell(32.5, 4, utf8_decode('Bs. ' . $cuaderno['subtotal']), 1, 1, 'C');
+
+        $pdf->SetFont('Arial', 'B', 8);
+        $pdf->Cell(65, 4, utf8_decode('Productos'), 1, 1, 'C');
+        $pdf->SetFont('Arial', '', 5);
+        $pdf->MultiCell(65, 3, utf8_decode($cuaderno['productos']), 1, 'L');
+
+        // Descripción
+        if (! empty($cuaderno['detalle'])) {
+            $pdf->SetFont('Arial', 'B', 8);
+            $pdf->Cell(65, 4, utf8_decode('Descripcion'), 1, 1, 'C');
+            $pdf->SetFont('Arial', '', 5);
+            $pdf->MultiCell(65, 3, utf8_decode($cuaderno['detalle']), 1, 'L');
+        }
+
+        // Total
+        $pdf->Ln(2);
+        $pdf->SetFont('Arial', 'B', 8);
+        $pdf->MultiCell(0, 4, utf8_decode('Total: Bs. ' . $cuaderno['total']), 0, 'R');
+
+        // Línea separadora
+        $pdf->Ln(2);
+        $pdf->Cell(0, 0, '', 'T');
+        $pdf->Ln(5);
+
+        // Mensaje de agradecimiento
+        $pdf->SetFont('Arial', '', 6);
+        $pdf->MultiCell(0, 4, utf8_decode('Por favor, revise sus productos antes de salir.'), 0, 'C');
+        $pdf->MultiCell(0, 4, utf8_decode('Agradecemos su confianza.'), 0, 'C');
+        $pdf->SetFont('Arial', 'B', 7);
+        $pdf->MultiCell(0, 4, utf8_decode('GRACIAS POR SU PEDIDO!!!'), 0, 'C');
+    }
 }
