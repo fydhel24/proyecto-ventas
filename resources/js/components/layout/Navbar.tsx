@@ -136,9 +136,16 @@ export function Navbar({ auth }: { auth: any }) {
 
                             <div className="hidden sm:block w-[1px] h-8 bg-border mx-2" />
 
-                            <Button variant="ghost" size="icon" className="hidden sm:flex h-11 w-11">
-                                <User className="h-6 w-6" />
-                            </Button>
+                            <div className="hidden sm:flex items-center gap-2">
+                                <Button variant="ghost" size="icon" className="h-11 w-11">
+                                    <User className="h-6 w-6" />
+                                </Button>
+                                <Button asChild className="rounded-xl h-10 px-6 font-bold">
+                                    <Link href={auth.user ? "/dashboard" : "/login"}>
+                                        {auth.user ? "Sistema" : "Iniciar sesión"}
+                                    </Link>
+                                </Button>
+                            </div>
 
                             {/* Mobile Menu */}
                             <div className="lg:hidden">
@@ -152,7 +159,8 @@ export function Navbar({ auth }: { auth: any }) {
                                                 { name: 'Inicio', path: '/' },
                                                 { name: 'Tienda', path: '/tienda' },
                                                 { name: 'Pedidos', path: '/pedido' },
-                                                { name: 'Verificar pedido', path: '/qr' }
+                                                { name: 'Verificar pedido', path: '/qr' },
+                                                { name: auth.user ? 'Dashboard' : 'Iniciar sesión', path: auth.user ? '/dashboard' : '/login' }
                                             ].map(item => (
                                                 <Link key={item.name} href={item.path} className="text-2xl font-black border-b pb-2">{item.name}</Link>
                                             ))}
