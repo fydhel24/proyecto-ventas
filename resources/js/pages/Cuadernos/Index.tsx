@@ -562,9 +562,12 @@ export default function CuadernosIndex({
     };
 
     const handleBulkConfirm = () => {
-        if (selectedIds.length === 0) return;
+        const hasSelection = selectedIds.length > 0;
+        const message = hasSelection
+            ? `¿Estás seguro de confirmar los ${selectedIds.length} pedidos seleccionados? Esto marcará su estado como Confirmado y Enviado y se generará un PDF.`
+            : '¿Estás seguro de confirmar TODOS los pedidos que están en estado "Listo"? Esto marcará su estado como Confirmado y Enviado y se generará un PDF.';
 
-        if (confirm(`¿Estás seguro de confirmar los ${selectedIds.length} pedidos seleccionados? Esto marcará su estado como Confirmado y Enviado y se generará un PDF.`)) {
+        if (confirm(message)) {
             setIsProcessing(true);
 
             router.post(routes.confirmarSeleccion.url(), {
@@ -674,7 +677,7 @@ export default function CuadernosIndex({
                                     </Button>
                                 </div>
 
-                                {selectedIds.length > 0 && (
+                                {filter === 'p_listo' && (
                                     <Button
                                         onClick={handleBulkConfirm}
                                         disabled={isProcessing}
@@ -682,7 +685,10 @@ export default function CuadernosIndex({
                                         className="h-9 bg-green-600 hover:bg-green-700 text-white gap-2 px-4 shadow-lg animate-in fade-in zoom-in duration-300"
                                     >
                                         <CheckCircle className="w-4 h-4" />
-                                        Confirmar {selectedIds.length} {selectedIds.length === 1 ? 'Pedido' : 'Pedidos'}
+                                        {selectedIds.length > 0
+                                            ? `Confirmar ${selectedIds.length} ${selectedIds.length === 1 ? 'Pedido' : 'Pedidos'}`
+                                            : 'Confirmar Todo (Listo)'
+                                        }
                                     </Button>
                                 )}
 

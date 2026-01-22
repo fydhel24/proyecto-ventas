@@ -586,8 +586,13 @@ class CuadernoController extends Controller
     {
         $ids = $request->input('ids', []);
 
+        // Si ids está vacío, buscamos todos los que tengan p_listo true
         if (empty($ids)) {
-            return back()->with('error', 'No se seleccionaron pedidos.');
+            $ids = Cuaderno::where('p_listo', true)->pluck('id')->toArray();
+        }
+
+        if (empty($ids)) {
+            return back()->with('error', 'No hay pedidos marcados como listos para confirmar.');
         }
 
         // Si es una solicitud GET para ver el PDF
@@ -610,6 +615,7 @@ class CuadernoController extends Controller
                 $cuaderno->update([
                     'estado' => 'Confirmado',
                     'enviado' => true,
+                    // 'p_listo' => false, // Opcional: podrías desmarcar p_listo si lo deseas
                 ]);
                 $cuadernosValidos[] = $cuaderno;
             }
