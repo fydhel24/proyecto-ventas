@@ -1,15 +1,16 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, ChartStyle } from '@/components/ui/chart';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import * as React from 'react';
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, Pie, PieChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
-import { Package, ShoppingCart, AlertCircle, MessageSquare } from 'lucide-react';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Label, LabelList, Line, LineChart, Pie, PieChart, ResponsiveContainer, Sector, XAxis, YAxis } from 'recharts';
+import { type PieSectorDataItem } from "recharts/types/polar/Pie";
+import { Package, ShoppingCart, AlertCircle, MessageSquare, TrendingUp } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -37,49 +38,55 @@ const statusChartConfig = {
     },
     la_paz: {
         label: "La Paz",
-        color: "hsl(var(--chart-1))",
+        color: "var(--chart-1)",
     },
     enviado: {
         label: "Enviado",
-        color: "hsl(var(--chart-2))",
+        color: "var(--chart-2)",
     },
     listo: {
         label: "Listo",
-        color: "hsl(var(--chart-3))",
+        color: "var(--chart-3)",
     },
     pendiente: {
         label: "Pendiente",
-        color: "hsl(var(--chart-4))",
+        color: "var(--chart-4)",
     },
 } satisfies ChartConfig;
 
 const categoryChartConfig = {
     count: {
         label: "Productos",
-        color: "hsl(var(--chart-1))",
     },
-} satisfies ChartConfig;
+    // We'll map these dynamically or use standard keys
+} as ChartConfig;
 
 const ordersChartConfig = {
     count: {
         label: "Pedidos",
-        color: "hsl(var(--chart-2))",
+        color: "var(--chart-2)",
     },
 } satisfies ChartConfig;
 
 const whatsappChartConfig = {
     enviados: {
         label: "Enviados",
-        color: "hsl(var(--chart-1))",
+        color: "var(--chart-1)",
     },
     fallidos: {
         label: "Fallidos",
-        color: "hsl(var(--chart-5))",
+        color: "var(--chart-5)",
     },
 } satisfies ChartConfig;
 
 export default function Dashboard({ stats }: DashboardProps) {
     const [timeRange, setTimeRange] = React.useState("30d");
+    const [activeStatus, setActiveStatus] = React.useState(stats.statusDistribution[0]?.status || "");
+
+    const activeIndex = React.useMemo(
+        () => stats.statusDistribution.findIndex((item) => item.status === activeStatus),
+        [activeStatus, stats.statusDistribution]
+    );
 
     const filteredData = React.useMemo(() => {
         const referenceDate = new Date();
@@ -144,9 +151,9 @@ export default function Dashboard({ stats }: DashboardProps) {
                     </Card>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <div className="grid gap-4 lg:grid-cols-7">
                     {/* Orders Over Time Interactive Area Chart */}
-                    <Card className="lg:col-span-4 border-none shadow-sm pt-0">
+                    <Card className="md:col-span-1 lg:col-span-4 border-none shadow-sm pt-0">
                         <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
                             <div className="grid flex-1 gap-1">
                                 <CardTitle>Crecimiento de Pedidos</CardTitle>
@@ -234,73 +241,169 @@ export default function Dashboard({ stats }: DashboardProps) {
                         </CardContent>
                     </Card>
 
-                    {/* Status Distribution Pie Chart */}
-                    <Card className="lg:col-span-3 border-none shadow-sm h-full">
-                        <CardHeader>
-                            <CardTitle>Estado de Pedidos</CardTitle>
-                            <CardDescription>Distribución actual</CardDescription>
+                    {/* Status Distribution Interactive Pie Chart */}
+                    <Card data-chart="pie-interactive" className="md:col-span-1 lg:col-span-3 border-none shadow-sm flex flex-col pt-0">
+                        <ChartStyle id="pie-interactive" config={statusChartConfig} />
+                        <CardHeader className="flex-row items-start space-y-0 border-b py-5">
+                            <div className="grid flex-1 gap-1">
+                                <CardTitle>Estado de Pedidos</CardTitle>
+                                <CardDescription>Distribución actual</CardDescription>
+                            </div>
+                            <Select value={activeStatus} onValueChange={setActiveStatus}>
+                                <SelectTrigger
+                                    className="ml-auto h-7 w-[130px] rounded-lg pl-2.5"
+                                    aria-label="Seleccionar estado"
+                                >
+                                    <SelectValue placeholder="Estado" />
+                                </SelectTrigger>
+                                <SelectContent align="end" className="rounded-xl">
+                                    {stats.statusDistribution.map((item) => {
+                                        const configKey = item.status.toLowerCase().replace(/\s+/g, '_');
+                                        const config = statusChartConfig[configKey as keyof typeof statusChartConfig];
+
+                                        return (
+                                            <SelectItem
+                                                key={item.status}
+                                                value={item.status}
+                                                className="rounded-lg [&_span]:flex"
+                                            >
+                                                <div className="flex items-center gap-2 text-xs">
+                                                    <span
+                                                        className="flex h-3 w-3 shrink-0 rounded-[2px]"
+                                                        style={{
+                                                            backgroundColor: item.fill,
+                                                        }}
+                                                    />
+                                                    {config?.label || item.status}
+                                                </div>
+                                            </SelectItem>
+                                        );
+                                    })}
+                                </SelectContent>
+                            </Select>
                         </CardHeader>
-                        <CardContent className="flex-1 pb-0 flex flex-col justify-center">
-                            <ChartContainer config={statusChartConfig} className="mx-auto aspect-square max-h-[250px]">
+                        <CardContent className="flex flex-1 justify-center pb-0 pt-4">
+                            <ChartContainer
+                                id="pie-interactive"
+                                config={statusChartConfig}
+                                className="mx-auto aspect-square w-full max-w-[250px]"
+                            >
                                 <PieChart>
-                                    <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                                    <ChartTooltip
+                                        cursor={false}
+                                        content={<ChartTooltipContent hideLabel />}
+                                    />
                                     <Pie
                                         data={stats.statusDistribution}
                                         dataKey="count"
                                         nameKey="status"
                                         innerRadius={60}
                                         strokeWidth={5}
+                                        activeIndex={activeIndex}
+                                        activeShape={({
+                                            outerRadius = 0,
+                                            ...props
+                                        }: PieSectorDataItem) => (
+                                            <g>
+                                                <Sector {...props} outerRadius={outerRadius + 10} />
+                                                <Sector
+                                                    {...props}
+                                                    outerRadius={outerRadius + 20}
+                                                    innerRadius={outerRadius + 12}
+                                                />
+                                            </g>
+                                        )}
                                     >
                                         {stats.statusDistribution.map((entry, index) => {
-                                            // Map status labels to config keys for color consistency
                                             const configKey = entry.status.toLowerCase().replace(/\s+/g, '_');
                                             const color = statusChartConfig[configKey as keyof typeof statusChartConfig]?.color || entry.fill;
                                             return <Cell key={`cell-${index}`} fill={color} />;
                                         })}
+                                        <Label
+                                            content={({ viewBox }) => {
+                                                if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                                                    return (
+                                                        <text
+                                                            x={viewBox.cx}
+                                                            y={viewBox.cy}
+                                                            textAnchor="middle"
+                                                            dominantBaseline="middle"
+                                                        >
+                                                            <tspan
+                                                                x={viewBox.cx}
+                                                                y={viewBox.cy}
+                                                                className="fill-foreground text-3xl font-bold"
+                                                            >
+                                                                {stats.statusDistribution[activeIndex].count.toLocaleString()}
+                                                            </tspan>
+                                                            <tspan
+                                                                x={viewBox.cx}
+                                                                y={(viewBox.cy || 0) + 24}
+                                                                className="fill-muted-foreground text-xs"
+                                                            >
+                                                                Pedidos
+                                                            </tspan>
+                                                        </text>
+                                                    );
+                                                }
+                                            }}
+                                        />
                                     </Pie>
                                 </PieChart>
                             </ChartContainer>
-                            <div className="grid grid-cols-2 gap-2 mt-4 text-xs pb-4">
-                                {stats.statusDistribution.map((item) => (
-                                    <div key={item.status} className="flex items-center gap-1">
-                                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.fill }} />
-                                        <span>{item.status}: {item.count}</span>
-                                    </div>
-                                ))}
-                            </div>
                         </CardContent>
                     </Card>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                    {/* Products by Category Bar Chart */}
-                    <Card className="lg:col-span-4 border-none shadow-sm">
+                <div className="grid gap-4 lg:grid-cols-7">
+                    {/* Products by Category Mixed Bar Chart */}
+                    <Card className="md:col-span-1 lg:col-span-4 border-none shadow-sm">
                         <CardHeader>
                             <CardTitle>Productos por Categoría</CardTitle>
                             <CardDescription>Stock por tipo</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <ChartContainer config={categoryChartConfig} className="h-[300px] w-full">
-                                <BarChart data={stats.productsByCategory} layout="vertical" margin={{ left: -20 }}>
-                                    <XAxis type="number" hide />
+                            <ChartContainer config={categoryChartConfig} className="min-h-[300px] w-full">
+                                <BarChart
+                                    accessibilityLayer
+                                    data={stats.productsByCategory.map((item, index) => ({
+                                        ...item,
+                                        fill: `var(--chart-${(index % 5) + 1})`
+                                    }))}
+                                    layout="vertical"
+                                    margin={{ left: 0 }}
+                                >
                                     <YAxis
                                         dataKey="category"
                                         type="category"
                                         tickLine={false}
                                         tickMargin={10}
                                         axisLine={false}
+                                        tickFormatter={(value) => value}
                                     />
-                                    <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                                    <Bar dataKey="count" fill="var(--color-count)" radius={5}>
+                                    <XAxis dataKey="count" type="number" hide />
+                                    <ChartTooltip
+                                        cursor={false}
+                                        content={<ChartTooltipContent hideLabel />}
+                                    />
+                                    <Bar dataKey="count" layout="vertical" radius={5}>
                                         <LabelList dataKey="count" position="right" offset={8} className="fill-foreground" fontSize={12} />
                                     </Bar>
                                 </BarChart>
                             </ChartContainer>
                         </CardContent>
+                        <CardFooter className="flex-col items-start gap-2 text-sm border-t pt-4">
+                            <div className="flex gap-2 leading-none font-medium">
+                                Tendencia al alza este mes <TrendingUp className="h-4 w-4" />
+                            </div>
+                            <div className="text-muted-foreground leading-none">
+                                Mostrando el total de productos por cada categoría disponible
+                            </div>
+                        </CardFooter>
                     </Card>
 
                     {/* WhatsApp Bot Stats Bar Chart */}
-                    <Card className="lg:col-span-3 border-none shadow-sm">
+                    <Card className="md:col-span-1 lg:col-span-3 border-none shadow-sm">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <MessageSquare className="h-5 w-5 text-green-500" />
@@ -309,7 +412,7 @@ export default function Dashboard({ stats }: DashboardProps) {
                             <CardDescription>Actividad semanal</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <ChartContainer config={whatsappChartConfig} className="h-[250px] w-full">
+                            <ChartContainer config={whatsappChartConfig} className="min-h-[250px] w-full">
                                 <BarChart data={stats.whatsappStats}>
                                     <CartesianGrid vertical={false} />
                                     <XAxis
@@ -323,13 +426,13 @@ export default function Dashboard({ stats }: DashboardProps) {
                                     <Bar dataKey="fallidos" fill="var(--color-fallidos)" radius={[4, 4, 0, 0]} />
                                 </BarChart>
                             </ChartContainer>
-                            <div className="flex items-center justify-center gap-4 mt-4 text-xs">
+                            <div className="flex items-center justify-center gap-4 mt-4 text-xs pb-2">
                                 <div className="flex items-center gap-1">
-                                    <div className="w-3 h-3 rounded-full bg-[hsl(var(--chart-1))]" />
+                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'var(--chart-1)' }} />
                                     <span>Enviados</span>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <div className="w-3 h-3 rounded-full bg-[hsl(var(--chart-5))]" />
+                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'var(--chart-5)' }} />
                                     <span>Fallidos</span>
                                 </div>
                             </div>
