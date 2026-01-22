@@ -638,19 +638,6 @@ class CuadernoController extends Controller
 
         $cuadernos = Cuaderno::with('productos')
             ->whereIn('id', $ids)
-            ->orderByRaw("
-            FIELD(departamento,
-                'La Paz',
-                'Santa Cruz',
-                'Cochabamba',
-                'Potosí',
-                'Oruro',
-                'Chuquisaca',
-                'Tarija',
-                'Beni',
-                'Pando'
-            )
-        ")
             ->get();
 
         $pdf = new FPDF('P', 'mm', [216, 330]);
