@@ -20,7 +20,7 @@ Route::get('/pedido', [CuadernoController::class, 'createPedido'])->name('pedido
 Route::get('/qr', [CuadernoController::class, 'qrDetails'])->name('qr.details');
 
 // Rutas Públicas de la Tienda
-Route::get('/api/search-suggestions', [App\Http\Controllers\ShopController::class, 'searchSuggestions'])->name('shop.suggestions');
+Route::get('/search-suggestions', [App\Http\Controllers\ShopController::class, 'searchSuggestions'])->name('shop.suggestions');
 Route::get('/tienda', [App\Http\Controllers\ShopController::class, 'index'])->name('shop.index');
 Route::get('/tienda/{producto}', [App\Http\Controllers\ShopController::class, 'show'])->name('shop.show');
 Route::get('/checkout', [App\Http\Controllers\ShopController::class, 'checkout'])->name('shop.checkout');
@@ -35,7 +35,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/categorias', [CategoriaController::class, 'store']);
 
     Route::get('/cuadernos', [CuadernoController::class, 'index'])->name('cuadernos.index');
-    Route::get('/api/productos/search', [CuadernoController::class, 'searchProductos'])->name('productos.search');
+    Route::get('/productos/search', [CuadernoController::class, 'searchProductos'])->name('productos.search');
     Route::patch('/cuadernos/{cuaderno}', [CuadernoController::class, 'update'])->name('cuadernos.update');
     Route::post('/cuadernos/{cuaderno}/productos', [CuadernoController::class, 'addProducto'])->name('cuadernos.addProducto');
     Route::match(['get', 'post'], '/cuadernos/confirmar-seleccion', [CuadernoController::class, 'confirmarSeleccionados'])->name('cuadernos.confirmarSeleccion');

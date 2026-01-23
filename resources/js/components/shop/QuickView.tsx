@@ -80,7 +80,6 @@ export function QuickView({ producto, open, onOpenChange }: QuickViewProps) {
                             <span className="text-4xl font-black text-primary">
                                 {formatPrice(producto.precio_1)}
                             </span>
-                            <span className="text-xs text-muted-foreground font-bold uppercase">IVA Incluido</span>
                         </div>
 
                         <div className="flex flex-col gap-3 mt-auto">

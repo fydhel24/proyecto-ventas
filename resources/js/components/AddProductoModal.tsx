@@ -62,7 +62,7 @@ function AddProductoModal({
         const delayDebounceFn = setTimeout(async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(`/api/productos/search?search=${encodeURIComponent(searchTerm)}`);
+                const response = await fetch(`/productos/search?search=${encodeURIComponent(searchTerm)}`);
                 const data = await response.json();
                 setProductos(data);
             } catch (error) {
@@ -119,8 +119,8 @@ function AddProductoModal({
                             </PopoverTrigger>
                             <PopoverContent className="w-[400px] p-0" align="start">
                                 <Command shouldFilter={false}>
-                                    <CommandInput 
-                                        placeholder="Escribe para buscar..." 
+                                    <CommandInput
+                                        placeholder="Escribe para buscar..."
                                         value={searchTerm}
                                         onValueChange={setSearchTerm}
                                     />

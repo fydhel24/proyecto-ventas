@@ -75,8 +75,8 @@ export default function Welcome({ productos, categorias, marcas = [], canRegiste
                                         <img src="/favicon.ico" className="size-12 md:size-16" alt="Logo" />
                                     </div>
                                     <div className="flex flex-col">
-                                        <h2 className="text-3xl md:text-4xl font-black italic tracking-tighter uppercase leading-none">{name}</h2>
-                                        <p className="text-[10px] font-bold tracking-[0.4em] text-muted-foreground uppercase mt-1">Sytem Architect</p>
+                                        <h2 className="text-3xl md:text-4xl font-black italic tracking-tighter  leading-none">{name}</h2>
+                                        <p className="text-[10px] font-bold tracking-[0.4em] text-muted-foreground uppercase mt-1">Inovamos tu Live</p>
                                     </div>
                                 </div>
 

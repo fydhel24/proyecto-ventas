@@ -108,8 +108,7 @@ export function ProductCard({ producto }: ProductCardProps) {
                                     <p className="text-sm md:text-2xl font-black text-primary leading-none">
                                         {formatPrice(producto.precio_1)}
                                     </p>
-                                    <span className="text-[8px] md:text-[10px] font-bold uppercase text-muted-foreground hidden md:block mt-1">IVA Incluido</span>
-                                </div>
+                                                                   </div>
                                 <Button
                                     size="icon"
                                     className="md:hidden h-8 w-8 rounded-lg flex-shrink-0"

@@ -6,25 +6,48 @@ use App\Models\Producto;
 use App\Models\Categoria;
 use App\Models\Marca;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class ShopController extends Controller
 {
     public function searchSuggestions(Request $request)
     {
-        $query = $request->input('q');
-        
-        if (!$query) {
+        try {
+            $query = $request->input('q');
+            $limit = $request->input('limit', 6);
+
+            if (!$query || strlen($query) < 2) {
+                return response()->json([]);
+            }
+
+            $productos = Producto::where('nombre', 'like', "%{$query}%")
+                ->orWhere('caracteristicas', 'like', "%{$query}%")
+                ->with('fotos')
+                ->where('stock', '>', 0)
+                ->select('id', 'nombre', 'precio_1')
+                ->limit((int)$limit)
+                ->get();
+
+            // Format response to avoid serialization issues
+            $formatted = $productos->map(function ($producto) {
+                return [
+                    'id' => $producto->id,
+                    'nombre' => $producto->nombre,
+                    'precio_1' => (float) $producto->precio_1,
+                    'fotos' => $producto->fotos ? $producto->fotos->map(function ($foto) {
+                        return [
+                            'url' => $foto->url ?? null,
+                        ];
+                    })->filter(fn($f) => $f['url'])->toArray() : [],
+                ];
+            });
+
+            return response()->json($formatted);
+        } catch (\Exception $e) {
+            Log::error('Search suggestions error: ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
             return response()->json([]);
         }
-
-        $productos = Producto::where('nombre', 'like', "%{$query}%")
-            ->orWhere('caracteristicas', 'like', "%{$query}%")
-            ->select('id', 'nombre', 'slug', 'precio_1') // Adjust fields as needed
-            ->limit(5)
-            ->get();
-
-        return response()->json($productos);
     }
 
     public function index(Request $request)
