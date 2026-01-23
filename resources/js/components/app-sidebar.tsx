@@ -28,6 +28,12 @@ const mainNavItems: NavItem[] = [
         href: productos.index().url,
         icon: Package,
     },
+    
+    {
+        title: 'WhatsApp Bot',
+        href: whatsappMiranda().url,
+        icon: MessageCircle,
+    },
     {
         title: 'Cuaderno',
         href: cuadernos.index().url,
@@ -59,11 +65,6 @@ const mainNavItems: NavItem[] = [
                 icon: Clock,
             },
         ],
-    },
-    {
-        title: 'WhatsApp Miranda',
-        href: whatsappMiranda().url,
-        icon: MessageCircle,
     },
     {
         title: 'Reportes',
