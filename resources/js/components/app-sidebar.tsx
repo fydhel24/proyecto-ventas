@@ -14,7 +14,7 @@ import productos from '@/routes/productos';
 import cuadernos from '@/routes/cuadernos';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpenText, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Send } from 'lucide-react';
+import { BarChart3, BookOpenText, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Send } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -64,6 +64,23 @@ const mainNavItems: NavItem[] = [
         title: 'WhatsApp Miranda',
         href: whatsappMiranda().url,
         icon: MessageCircle,
+    },
+    {
+        title: 'Reportes',
+        href: '/reports',
+        icon: BarChart3,
+        items: [
+            {
+                title: 'Ventas Confirmadas',
+                href: '/reports/orders',
+                icon: CheckCircle2,
+            },
+            {
+                title: 'Productos',
+                href: '/reports/products',
+                icon: Package,
+            },
+        ],
     },
 ];
 

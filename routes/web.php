@@ -46,6 +46,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/whatsapp-miranda', function () {
         return Inertia::render('whatsapp-miranda');
     })->name('whatsapp-miranda');
+
+    // Rutas de Reportes
+    Route::get('/reports', [App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/orders', [App\Http\Controllers\ReportController::class, 'ordersReport'])->name('reports.orders');
+    Route::get('/reports/products', [App\Http\Controllers\ReportController::class, 'productsReport'])->name('reports.products');
 });
 
 require __DIR__.'/settings.php';
