@@ -120,7 +120,7 @@ export default function Index({ productos, categorias = [], marcas = [], filters
                             onValueChange={(v) => handleFilterChange('sort', v)}
                         >
                             <SelectTrigger className="w-[200px] h-12 rounded-2xl font-black bg-card border-2 shadow-sm">
-                                <SelectValue placeholder="Ordenar por" />
+                                <SelectValue placeholder="Más Relevantes" />
                             </SelectTrigger>
                             <SelectContent className="rounded-2xl border-2">
                                 <SelectItem value="latest">Más Relevantes</SelectItem>

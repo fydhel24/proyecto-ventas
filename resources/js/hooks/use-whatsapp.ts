@@ -64,7 +64,7 @@ export const useWhatsApp = () => {
     const updateSettings = useCallback(async (userId: string, settings: any) => {
         setLoading(true);
         try {
-            const response = await whatsappClient.patch(`/whatsapp/config/${userId}/settings`, settings);
+            const response = await whatsappClient.patch(`/whatsapp/config/${userId}/settings?sessionName=default`, settings);
             return response.data;
         } catch (err: any) {
             setError(err.response?.data?.message || 'Error al actualizar configuración');
@@ -77,7 +77,7 @@ export const useWhatsApp = () => {
     const addPreset = useCallback(async (userId: string, preset: any) => {
         setLoading(true);
         try {
-            const response = await whatsappClient.post(`/whatsapp/config/${userId}/preset`, preset);
+            const response = await whatsappClient.post(`/whatsapp/config/${userId}/preset?sessionName=default`, preset);
             return response.data;
         } catch (err: any) {
             setError(err.response?.data?.message || 'Error al añadir respuesta');
@@ -90,7 +90,7 @@ export const useWhatsApp = () => {
     const getConfig = useCallback(async (userId: string) => {
         setLoading(true);
         try {
-            const response = await whatsappClient.get(`/whatsapp/config/${userId}`);
+            const response = await whatsappClient.get(`/whatsapp/config/${userId}?sessionName=default`);
             return response.data;
         } catch (err: any) {
             setError(err.response?.data?.message || 'Error al obtener configuración');
@@ -103,7 +103,7 @@ export const useWhatsApp = () => {
     const updatePreset = useCallback(async (presetId: number, preset: any) => {
         setLoading(true);
         try {
-            const response = await whatsappClient.patch(`/whatsapp/config/preset/${presetId}`, preset);
+            const response = await whatsappClient.patch(`/whatsapp/config/preset/${presetId}?sessionName=default`, preset);
             return response.data;
         } catch (err: any) {
             setError(err.response?.data?.message || 'Error al actualizar respuesta');
@@ -116,7 +116,7 @@ export const useWhatsApp = () => {
     const deletePreset = useCallback(async (presetId: number) => {
         setLoading(true);
         try {
-            const response = await whatsappClient.delete(`/whatsapp/config/preset/${presetId}`);
+            const response = await whatsappClient.delete(`/whatsapp/config/preset/${presetId}?sessionName=default`);
             return response.data;
         } catch (err: any) {
             setError(err.response?.data?.message || 'Error al eliminar respuesta');

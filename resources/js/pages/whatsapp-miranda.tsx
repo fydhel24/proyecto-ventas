@@ -303,12 +303,21 @@ export default function WhatsAppMiranda() {
         e.preventDefault();
         try {
             const userId = import.meta.env.VITE_WHATSAPP_USER_ID || '1';
+
+            // Normalizar mediaUrl para evitar 400 Bad Request en la API si está vacío
+            const normalizedPreset = {
+                ...preset,
+                mediaUrl: preset.mediaUrl?.trim() || null,
+                mediaType: preset.mediaUrl?.trim() ? 'image' : 'text',
+                tipo: preset.mediaUrl?.trim() ? 'IMAGE' : 'TEXT'
+            };
+
             if (editingPreset) {
-                await updatePreset(editingPreset.id, preset);
+                await updatePreset(editingPreset.id, normalizedPreset);
                 setEditingPreset(null);
                 toast.success('Respuesta actualizada');
             } else {
-                await addPreset(userId, preset);
+                await addPreset(userId, normalizedPreset);
                 toast.success('Respuesta añadida');
             }
             setPreset({ mediaUrl: '', caption: '' });
