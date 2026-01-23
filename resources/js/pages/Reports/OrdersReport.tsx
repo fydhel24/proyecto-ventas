@@ -151,6 +151,15 @@ export default function OrdersReport({ orders, summary, filters }: OrdersReportP
                                 <p className="text-xs text-muted-foreground mt-1">En el rango seleccionado</p>
                             </CardContent>
                         </Card>
+                        <Card className="shadow-none border-border/60 bg-green-50/50 dark:bg-green-950/10 border-green-200/50 dark:border-green-900/20">
+                            <CardHeader className="py-4">
+                                <CardTitle className="text-sm font-black uppercase tracking-widest text-green-600 dark:text-green-500">Total a Pagar</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-black text-green-700 dark:text-green-400">{orders.total * 2} Bs</div>
+                                <p className="text-xs text-muted-foreground mt-1">Costo: 2 Bs por pedido</p>
+                            </CardContent>
+                        </Card>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
