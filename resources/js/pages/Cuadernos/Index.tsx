@@ -207,7 +207,15 @@ export default function CuadernosIndex({
     };
 
     const persistChange = (id: number, field: keyof Cuaderno, value: string | boolean) => {
+        const item = cuadernos?.data.find(c => c.id === id);
+        if (item && item[field] === value) return;
         router.patch(`/cuadernos/${id}`, { [field]: value }, { preserveState: true, preserveScroll: true });
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.currentTarget.blur();
+        }
     };
 
     const updateAndSave = (id: number, field: keyof Cuaderno, value: boolean) => {
@@ -320,15 +328,16 @@ export default function CuadernosIndex({
                         <Clock className="w-4 h-4 text-red-500" />
                     </div>
                 ),
-                cell: ({ row }) => {
+                cell: ({ row, table }) => {
                     const item = row.original;
-                    const local = localState[item.id] || {};
+                    const meta = table.options.meta as any;
+                    const local = meta?.localState[item.id] || {};
                     return (
                         <div className="flex gap-2 justify-center">
-                            <Checkbox checked={local.la_paz ?? item.la_paz} onCheckedChange={(v) => updateAndSave(item.id, 'la_paz', Boolean(v))} />
-                            <Checkbox checked={local.enviado ?? item.enviado} onCheckedChange={(v) => updateAndSave(item.id, 'enviado', Boolean(v))} />
-                            <Checkbox checked={local.p_listo ?? item.p_listo} onCheckedChange={(v) => updateAndSave(item.id, 'p_listo', Boolean(v))} />
-                            <Checkbox checked={local.p_pendiente ?? item.p_pendiente} onCheckedChange={(v) => updateAndSave(item.id, 'p_pendiente', Boolean(v))} />
+                            <Checkbox checked={local.la_paz ?? item.la_paz} onCheckedChange={(v) => meta?.updateAndSave(item.id, 'la_paz', Boolean(v))} />
+                            <Checkbox checked={local.enviado ?? item.enviado} onCheckedChange={(v) => meta?.updateAndSave(item.id, 'enviado', Boolean(v))} />
+                            <Checkbox checked={local.p_listo ?? item.p_listo} onCheckedChange={(v) => meta?.updateAndSave(item.id, 'p_listo', Boolean(v))} />
+                            <Checkbox checked={local.p_pendiente ?? item.p_pendiente} onCheckedChange={(v) => meta?.updateAndSave(item.id, 'p_pendiente', Boolean(v))} />
                         </div>
                     );
                 },
@@ -337,9 +346,10 @@ export default function CuadernosIndex({
             {
                 accessorKey: 'nombre',
                 header: 'Cliente',
-                cell: ({ row }) => {
+                cell: ({ row, table }) => {
                     const item = row.original;
-                    const local = localState[item.id] || {};
+                    const meta = table.options.meta as any;
+                    const local = meta?.localState[item.id] || {};
                     return (
                         <div className="flex flex-col gap-2 min-w-[180px]">
                             <div className="relative">
@@ -348,8 +358,9 @@ export default function CuadernosIndex({
                                     className="h-7 pl-7 text-xs border-transparent bg-transparent hover:bg-muted focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-input transition-all"
                                     placeholder="Nombre"
                                     value={local.nombre ?? item.nombre ?? ''}
-                                    onChange={(e) => updateLocalState(item.id, 'nombre', e.target.value)}
-                                    onBlur={(e) => persistChange(item.id, 'nombre', e.target.value)}
+                                    onChange={(e) => meta?.updateLocalState(item.id, 'nombre', e.target.value)}
+                                    onBlur={(e) => meta?.persistChange(item.id, 'nombre', e.target.value)}
+                                    onKeyDown={meta?.handleKeyDown}
                                 />
                             </div>
                             <div className="relative">
@@ -358,8 +369,9 @@ export default function CuadernosIndex({
                                     className="h-7 pl-7 text-xs border-transparent bg-muted hover:bg-muted focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-ring transition-all"
                                     placeholder="CI"
                                     value={local.ci ?? item.ci ?? ''}
-                                    onChange={(e) => updateLocalState(item.id, 'ci', e.target.value)}
-                                    onBlur={(e) => persistChange(item.id, 'ci', e.target.value)}
+                                    onChange={(e) => meta?.updateLocalState(item.id, 'ci', e.target.value)}
+                                    onBlur={(e) => meta?.persistChange(item.id, 'ci', e.target.value)}
+                                    onKeyDown={meta?.handleKeyDown}
                                 />
                             </div>
                         </div>
@@ -369,9 +381,10 @@ export default function CuadernosIndex({
             {
                 id: 'ubicacion',
                 header: 'Ubicación',
-                cell: ({ row }) => {
+                cell: ({ row, table }) => {
                     const item = row.original;
-                    const local = localState[item.id] || {};
+                    const meta = table.options.meta as any;
+                    const local = meta?.localState[item.id] || {};
                     return (
                         <div className="flex flex-col gap-2 min-w-[160px]">
                             <div className="relative">
@@ -380,8 +393,9 @@ export default function CuadernosIndex({
                                     className="h-7 pl-7 text-xs border-transparent bg-transparent hover:bg-muted transition-all"
                                     placeholder="Departamento"
                                     value={local.departamento ?? item.departamento ?? ''}
-                                    onChange={(e) => updateLocalState(item.id, 'departamento', e.target.value)}
-                                    onBlur={(e) => persistChange(item.id, 'departamento', e.target.value)}
+                                    onChange={(e) => meta?.updateLocalState(item.id, 'departamento', e.target.value)}
+                                    onBlur={(e) => meta?.persistChange(item.id, 'departamento', e.target.value)}
+                                    onKeyDown={meta?.handleKeyDown}
                                 />
                             </div>
                             <div className="relative">
@@ -390,8 +404,9 @@ export default function CuadernosIndex({
                                     className="h-7 pl-7 text-xs border-transparent bg-transparent hover:bg-muted transition-all"
                                     placeholder="Provincia"
                                     value={local.provincia ?? item.provincia ?? ''}
-                                    onChange={(e) => updateLocalState(item.id, 'provincia', e.target.value)}
-                                    onBlur={(e) => persistChange(item.id, 'provincia', e.target.value)}
+                                    onChange={(e) => meta?.updateLocalState(item.id, 'provincia', e.target.value)}
+                                    onBlur={(e) => meta?.persistChange(item.id, 'provincia', e.target.value)}
+                                    onKeyDown={meta?.handleKeyDown}
                                 />
                             </div>
                         </div>
@@ -473,7 +488,7 @@ export default function CuadernosIndex({
                 enableHiding: false,
             },
         ],
-        [localState]
+        []
     );
 
     const table = useReactTable({
@@ -487,6 +502,13 @@ export default function CuadernosIndex({
         getFilteredRowModel: getFilteredRowModel(),
         onColumnVisibilityChange: setColumnVisibility,
         onRowSelectionChange: setRowSelection,
+        meta: {
+            localState,
+            updateLocalState,
+            persistChange,
+            handleKeyDown,
+            updateAndSave,
+        },
         state: {
             sorting,
             columnFilters,
