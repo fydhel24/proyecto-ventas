@@ -847,11 +847,10 @@ class CuadernoController extends Controller
 
         // Cabecera
         $pdf->SetFont('Arial', 'B', 9);
-        $pdf->Cell(0, 4, utf8_decode('IMPORTADORA MIRANDA S.A.'), 0, 1, 'C');
+        $pdf->Cell(0, 4, utf8_decode('MIRACODE S.A.'), 0, 1, 'C');
         $pdf->SetFont('Arial', '', 8);
-        $pdf->Cell(0, 4, utf8_decode('A un Click del Producto que Necesita!!'), 0, 1, 'C');
-        $pdf->Cell(0, 4, utf8_decode('Telefono: 70621016'), 0, 1, 'C');
-        $pdf->Cell(0, 4, utf8_decode('Direccion: Caparazon Mall Center, Planta Baja'), 0, 1, 'C');
+        $pdf->Cell(0, 4, utf8_decode('Mirando hacia el futuro!!'), 0, 1, 'C');
+        $pdf->Cell(0, 4, utf8_decode('Telefono: 71234567'), 0, 1, 'C');
         $pdf->Cell(0, 4, utf8_decode('Fecha: ' . $cuaderno['fecha']), 0, 1, 'C');
 
         // Línea separadora
