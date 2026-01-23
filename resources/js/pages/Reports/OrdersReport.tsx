@@ -133,7 +133,7 @@ export default function OrdersReport({ orders, summary, filters }: OrdersReportP
 
                     {/* Summary Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <Card className="bg-primary/5 border-primary/20">
+                        <Card className="bg-primary/5 dark:bg-primary/10 border-primary/20 dark:border-primary/30 shadow-none">
                             <CardHeader className="py-4">
                                 <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Ganancia Total</CardTitle>
                             </CardHeader>
@@ -142,7 +142,7 @@ export default function OrdersReport({ orders, summary, filters }: OrdersReportP
                                 <p className="text-xs text-muted-foreground mt-1">Basado en precio de venta</p>
                             </CardContent>
                         </Card>
-                        <Card>
+                        <Card className="shadow-none border-border/60">
                             <CardHeader className="py-4">
                                 <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Total Pedidos</CardTitle>
                             </CardHeader>
@@ -155,8 +155,8 @@ export default function OrdersReport({ orders, summary, filters }: OrdersReportP
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Main Table */}
-                        <Card className="lg:col-span-2">
-                            <CardHeader className="pb-4 border-b">
+                        <Card className="lg:col-span-2 shadow-sm border-border/50 overflow-hidden">
+                            <CardHeader className="pb-4 border-b bg-muted/20">
                                 <div className="flex flex-wrap items-end gap-4">
                                     <div className="space-y-2">
                                         <label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
@@ -166,7 +166,7 @@ export default function OrdersReport({ orders, summary, filters }: OrdersReportP
                                             type="date"
                                             value={startDate}
                                             onChange={(e) => setStartDate(e.target.value)}
-                                            className="h-10 w-48"
+                                            className="h-10 w-48 bg-background border-border/40"
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -177,21 +177,21 @@ export default function OrdersReport({ orders, summary, filters }: OrdersReportP
                                             type="date"
                                             value={endDate}
                                             onChange={(e) => setEndDate(e.target.value)}
-                                            className="h-10 w-48"
+                                            className="h-10 w-48 bg-background border-border/40"
                                         />
                                     </div>
-                                    <Button onClick={handleFilter} className="h-10 px-6 font-bold">
+                                    <Button onClick={handleFilter} className="h-10 px-6 font-bold shadow-md shadow-primary/10">
                                         <Search className="w-4 h-4 mr-2" /> Filtrar
                                     </Button>
                                 </div>
                             </CardHeader>
                             <CardContent className="p-0">
                                 <Table>
-                                    <TableHeader>
+                                    <TableHeader className="bg-muted/30">
                                         {table.getHeaderGroups().map(group => (
-                                            <TableRow key={group.id}>
+                                            <TableRow key={group.id} className="border-b border-border/40 transition-none">
                                                 {group.headers.map(header => (
-                                                    <TableHead key={header.id} className="font-bold text-xs uppercase">
+                                                    <TableHead key={header.id} className="font-bold text-[10px] uppercase tracking-wider h-11">
                                                         {flexRender(header.column.columnDef.header, header.getContext())}
                                                     </TableHead>
                                                 ))}
@@ -201,9 +201,9 @@ export default function OrdersReport({ orders, summary, filters }: OrdersReportP
                                     <TableBody>
                                         {table.getRowModel().rows.length ? (
                                             table.getRowModel().rows.map(row => (
-                                                <TableRow key={row.id}>
+                                                <TableRow key={row.id} className="border-b border-border/20 transition-none hover:bg-muted/10">
                                                     {row.getVisibleCells().map(cell => (
-                                                        <TableCell key={cell.id} className="py-3">
+                                                        <TableCell key={cell.id} className="py-4 px-4">
                                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                         </TableCell>
                                                     ))}
@@ -222,28 +222,28 @@ export default function OrdersReport({ orders, summary, filters }: OrdersReportP
                         </Card>
 
                         {/* Aggregates Table */}
-                        <Card>
-                            <CardHeader className="pb-4 border-b">
+                        <Card className="shadow-sm border-border/50 overflow-hidden">
+                            <CardHeader className="pb-4 border-b bg-muted/20">
                                 <CardTitle className="text-lg font-black flex items-center gap-2">
                                     <Package className="w-5 h-5 text-primary" /> Productos Enviados
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-0">
                                 <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="text-xs uppercase font-bold">Producto</TableHead>
-                                            <TableHead className="text-xs uppercase font-bold text-right">Cant.</TableHead>
-                                            <TableHead className="text-xs uppercase font-bold text-right">Total Bs</TableHead>
+                                    <TableHeader className="bg-muted/10">
+                                        <TableRow className="border-b border-border/40">
+                                            <TableHead className="text-[10px] uppercase font-bold h-11 tracking-wider">Producto</TableHead>
+                                            <TableHead className="text-[10px] uppercase font-bold text-right h-11 tracking-wider">Cant.</TableHead>
+                                            <TableHead className="text-[10px] uppercase font-bold text-right h-11 tracking-wider">Total Bs</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {summary.product_aggregates.length ? (
                                             summary.product_aggregates.map((item, i) => (
-                                                <TableRow key={i}>
-                                                    <TableCell className="text-xs font-medium">{item.nombre}</TableCell>
-                                                    <TableCell className="text-xs font-black text-right">{item.total_qty}</TableCell>
-                                                    <TableCell className="text-xs font-mono text-right">{item.total_revenue}</TableCell>
+                                                <TableRow key={i} className="border-b border-border/10 transition-none hover:bg-muted/5">
+                                                    <TableCell className="text-xs font-semibold">{item.nombre}</TableCell>
+                                                    <TableCell className="text-xs font-black text-right text-primary">{item.total_qty}</TableCell>
+                                                    <TableCell className="text-xs font-mono font-bold text-right">{item.total_revenue}</TableCell>
                                                 </TableRow>
                                             ))
                                         ) : (
@@ -261,7 +261,7 @@ export default function OrdersReport({ orders, summary, filters }: OrdersReportP
 
                     {/* Simple Pagination */}
                     <div className="flex items-center justify-between mt-2 px-2">
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                             Mostrando {orders.data.length} de {orders.total} registros
                         </div>
                     </div>
