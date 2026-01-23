@@ -33,68 +33,100 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const HelpSection = ({ isConnected }: { isConnected: boolean }) => (
-    <div className="space-y-12 p-8 md:p-12">
-        <div className="flex flex-col gap-2">
-            <h3 className="font-black text-3xl flex items-center gap-3 text-foreground">
-                <Shield className="w-8 h-8 text-primary" />
+    <div className="space-y-12 p-8 md:p-12 bg-background">
+        <div className="flex flex-col gap-3">
+            <h3 className="font-black text-4xl flex items-center gap-4 text-foreground tracking-tight">
+                <Shield className="w-10 h-10 text-primary" />
                 🛡️ Sistema Anti-Baneo Miranda
             </h3>
-            <p className="text-muted-foreground font-medium">Guía oficial para una operación segura y eficiente.</p>
+            <p className="text-xl text-muted-foreground font-medium max-w-2xl">
+                Guía oficial para una operación segura, rápida y eficiente en WhatsApp.
+            </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-6 bg-primary/5 rounded-2xl border border-primary/10">
-                <h4 className="font-black text-primary mb-3 text-lg">⚡ Flujo Operativo</h4>
-                <ul className="space-y-3 text-sm text-foreground/80 font-bold">
-                    <li className="flex gap-2"><span>1.</span> <span>Cliente envía trigger (ej. "miranda")</span></li>
-                    <li className="flex gap-2"><span>2.</span> <span>Bot simula lectura (1-3 seg)</span></li>
-                    <li className="flex gap-2"><span>3.</span> <span>Bot simula escritura (1-2 seg)</span></li>
-                    <li className="flex gap-2"><span>4.</span> <span>Respuesta directa con contenido multimedia</span></li>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="p-8 bg-primary/5 rounded-[2rem] border border-primary/10 space-y-4">
+                <h4 className="font-black text-primary text-xl flex items-center gap-2">
+                    <TrendingUp className="w-6 h-6" /> ⚡ Cómo Funciona
+                </h4>
+                <ul className="space-y-4 text-base text-foreground/80 font-bold">
+                    <li className="flex gap-3">
+                        <span className="text-primary">1.</span>
+                        <span><b>Cliente envía "miranda"</b> → Bot responde en <b>1-3 segundos</b> con QR + mensaje</span>
+                    </li>
+                    <li className="flex gap-3">
+                        <span className="text-primary">2.</span>
+                        <span><b>Sin confirmaciones</b> → Respuesta directa e inmediata</span>
+                    </li>
+                    <li className="flex gap-3">
+                        <span className="text-primary">3.</span>
+                        <span><b>Sin límite de 24h</b> → Pueden usar el trigger múltiples veces al día</span>
+                    </li>
+                    <li className="flex gap-3 border-t border-primary/10 pt-4 mt-4">
+                        <Shield className="w-5 h-5 text-primary shrink-0 mt-1" />
+                        <span className="text-sm">Protecciones activas: Delays aleatorios, typing y rate limiting global.</span>
+                    </li>
                 </ul>
             </div>
-            <div className="p-6 bg-primary/10 rounded-2xl border border-primary/20">
-                <h4 className="font-black text-primary mb-3 text-lg">✅ Parámetros de Seguridad</h4>
-                <ul className="space-y-3 text-sm text-foreground/80 font-bold">
-                    <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> Delays Aleatorios Activos</li>
-                    <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> Simulación Humana de Escritura</li>
-                    <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> Cooldown de 30s por contacto</li>
-                    <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> Rate limiting dinámico</li>
-                </ul>
+            <div className="p-8 bg-muted/50 rounded-[2rem] border border-border space-y-4">
+                <h4 className="font-black text-foreground text-xl flex items-center gap-2">
+                    <CheckCircle2 className="w-6 h-6 text-primary" /> ✅ Protecciones Activas
+                </h4>
+                <div className="space-y-4">
+                    <div className="space-y-1">
+                        <p className="font-black text-sm uppercase tracking-widest text-muted-foreground">Delays Biológicos</p>
+                        <p className="text-sm font-bold">0.8 - 2s lectura simulada | 1 - 2.5s escritura simulada</p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="font-black text-sm uppercase tracking-widest text-muted-foreground">Límites Globales</p>
+                        <p className="text-sm font-bold">50 msgs/hora | 500 msgs/día | 30s cooldown por contacto</p>
+                    </div>
+                    <div className="p-4 bg-background rounded-xl border border-border">
+                        <p className="text-xs font-bold text-muted-foreground italic">
+                            Identificación: Chrome (Linux) Realista. Variaciones automáticas de texto activas.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div className="space-y-6">
-            <h3 className="font-black text-2xl flex items-center gap-3 text-foreground">
-                <MessageSquare className="w-8 h-8 text-primary" />
+        <div className="space-y-8">
+            <h3 className="font-black text-3xl flex items-center gap-4 text-foreground tracking-tight">
+                <MessageSquare className="w-10 h-10 text-primary" />
                 📝 Documentación API Directa
             </h3>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-4">
                 {[
-                    { method: 'GET', path: '/whatsapp/qr', desc: 'Obtener QR y conectar sesión.', color: 'text-emerald-500' },
-                    { method: 'GET', path: '/whatsapp/status', desc: 'Verificar estado actual.', color: 'text-blue-500' },
-                    { method: 'POST', path: '/whatsapp/toggle-auto-responder', desc: 'Activar/desactivar el bot.', color: 'text-amber-500' },
-                    { method: 'GET', path: '/whatsapp/stats', desc: 'Estadísticas y límites.', color: 'text-cyan-500' },
+                    { method: 'GET', path: '/whatsapp/qr', desc: 'Obtener QR y conectar sesión inteligente.', color: 'text-emerald-500' },
+                    { method: 'GET', path: '/whatsapp/status', desc: 'Verificar estado de conexión y auto-responder.', color: 'text-blue-500' },
+                    { method: 'PATCH', path: '/whatsapp/config/:userId/settings', desc: 'Actualizar palabras clave y límites críticos.', color: 'text-amber-500' },
+                    { method: 'POST', path: '/whatsapp/config/:userId/preset', desc: 'Agregar mensaje (Texto o URL de Imagen).', color: 'text-cyan-500' },
+                    { method: 'DELETE', path: '/whatsapp/session', desc: 'Cerrar sesión y borrar datos locales.', color: 'text-red-500' },
                 ].map((api) => (
-                    <div key={api.path} className="p-5 bg-muted rounded-2xl border border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div key={api.path} className="group p-6 bg-muted/30 hover:bg-muted/50 rounded-2xl border border-border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="font-mono text-sm">
-                            <span className={`font-black uppercase mr-3 ${api.color}`}>{api.method}</span>
-                            <span className="text-foreground/70">{api.path}</span>
+                            <span className={`font-black uppercase mr-4 px-2 py-1 rounded bg-background ${api.color}`}>{api.method}</span>
+                            <span className="text-foreground/80 font-bold">{api.path}</span>
                         </div>
-                        <p className="text-muted-foreground text-xs font-bold italic">{api.desc}</p>
+                        <p className="text-muted-foreground text-sm font-bold">{api.desc}</p>
                     </div>
                 ))}
             </div>
         </div>
 
-        <div className="p-8 rounded-2xl bg-primary/5 border-2 border-primary/10 flex items-start gap-5">
-            <div className="p-3 bg-primary rounded-xl text-primary-foreground shadow-lg shadow-primary/20">
-                <Info className="w-6 h-6" />
+        <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-primary/10 to-transparent border-2 border-primary/10 flex flex-col md:flex-row items-center gap-8">
+            <div className="p-5 bg-primary rounded-[1.5rem] text-primary-foreground shadow-2xl shadow-primary/20">
+                <Info className="w-10 h-10" />
             </div>
-            <div>
-                <h4 className="font-black text-foreground mb-1 text-lg">Información del Servidor</h4>
-                <p className="text-muted-foreground font-bold">
-                    API Endpoint: <code className="bg-muted px-2 py-1 rounded text-primary font-black text-sm">{import.meta.env.VITE_WHATSAPP_API_URL}</code>
+            <div className="text-center md:text-left">
+                <h4 className="font-black text-foreground mb-2 text-2xl">Integración Laravel</h4>
+                <p className="text-muted-foreground font-bold text-lg mb-4">
+                    Base URL: <code className="bg-background px-3 py-1 rounded-lg text-primary font-black border border-primary/20">{import.meta.env.VITE_WHATSAPP_API_URL || 'http://localhost:3000'}</code>
                 </p>
+                <div className="flex flex-wrap gap-3">
+                    <Badge variant="outline" className="rounded-full px-4 py-1 font-bold">JWT Auth Required</Badge>
+                    <Badge variant="outline" className="rounded-full px-4 py-1 font-bold">Inertia Shared Data</Badge>
+                </div>
             </div>
         </div>
     </div>
@@ -380,12 +412,12 @@ export default function WhatsAppMiranda() {
                             <Button
                                 variant="outline"
                                 size="lg"
-                                className="bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground transition-all h-12 rounded-xl font-bold"
+                                className="bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive hover:text-white transition-all h-12 rounded-xl font-bold"
                                 onClick={handleLogout}
                                 disabled={loading}
                             >
                                 <Power className="w-4 h-4 mr-2" />
-                                Sesión
+                                Cerrar Sesión
                             </Button>
                         </div>
                     </div>
@@ -837,21 +869,21 @@ export default function WhatsAppMiranda() {
                                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                                 {/* Connection Status */}
                                                 <Card className="border-none shadow-lg rounded-3xl overflow-hidden">
-                                                    <CardHeader className="bg-blue-50 pb-4">
-                                                        <CardTitle className="text-lg font-black flex items-center gap-2">
+                                                    <CardHeader className="bg-primary/5 pb-4">
+                                                        <CardTitle className="text-lg font-black flex items-center gap-2 text-foreground">
                                                             <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
                                                             Estado de Conexión
                                                         </CardTitle>
                                                     </CardHeader>
                                                     <CardContent className="pt-8">
                                                         <div className="space-y-4">
-                                                            <div className="flex justify-between items-center p-4 bg-slate-50 rounded-xl">
-                                                                <span className="font-bold">Estado:</span>
-                                                                <Badge className="bg-green-100 text-green-800 font-black">{stats.estadoConexion}</Badge>
+                                                            <div className="flex justify-between items-center p-4 bg-muted/50 rounded-xl">
+                                                                <span className="font-bold text-foreground">Estado:</span>
+                                                                <Badge className="bg-primary/10 text-primary border-primary/20 font-black">{stats.estadoConexion}</Badge>
                                                             </div>
-                                                            <div className="flex justify-between items-center p-4 bg-slate-50 rounded-xl">
-                                                                <span className="font-bold">Respondedor:</span>
-                                                                <Badge className={`font-black ${stats.autoResponderActivo ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-800'}`}>
+                                                            <div className="flex justify-between items-center p-4 bg-muted/50 rounded-xl">
+                                                                <span className="font-bold text-foreground">Respondedor:</span>
+                                                                <Badge className={`font-black ${stats.autoResponderActivo ? 'bg-primary/10 text-primary border-primary/20' : 'bg-muted text-muted-foreground'}`}>
                                                                     {stats.autoResponderActivo ? 'ACTIVO' : 'PAUSADO'}
                                                                 </Badge>
                                                             </div>
@@ -861,22 +893,22 @@ export default function WhatsAppMiranda() {
 
                                                 {/* Contacts */}
                                                 <Card className="border-none shadow-lg rounded-3xl overflow-hidden">
-                                                    <CardHeader className="bg-purple-50 pb-4">
-                                                        <CardTitle className="text-lg font-black">Contactos</CardTitle>
+                                                    <CardHeader className="bg-primary/10 pb-4">
+                                                        <CardTitle className="text-lg font-black text-foreground">Contactos</CardTitle>
                                                     </CardHeader>
                                                     <CardContent className="pt-8">
                                                         <div className="space-y-4">
-                                                            <div className="flex justify-between items-center p-4 bg-slate-50 rounded-xl">
-                                                                <span className="font-bold">Total:</span>
-                                                                <span className="font-black text-2xl text-purple-600">{stats.contactos.total}</span>
+                                                            <div className="flex justify-between items-center p-4 bg-muted/50 rounded-xl">
+                                                                <span className="font-bold text-foreground">Total:</span>
+                                                                <span className="font-black text-2xl text-primary">{stats.contactos.total}</span>
                                                             </div>
-                                                            <div className="flex justify-between items-center p-4 bg-slate-50 rounded-xl">
-                                                                <span className="font-bold">Últimas 24h:</span>
-                                                                <span className="font-black text-2xl text-green-600">{stats.contactos.activos24h}</span>
+                                                            <div className="flex justify-between items-center p-4 bg-muted/50 rounded-xl">
+                                                                <span className="font-bold text-foreground">Últimas 24h:</span>
+                                                                <span className="font-black text-2xl text-primary">{stats.contactos.activos24h}</span>
                                                             </div>
-                                                            <div className="flex justify-between items-center p-4 bg-slate-50 rounded-xl">
-                                                                <span className="font-bold">Inactivos:</span>
-                                                                <span className="font-black text-2xl text-slate-400">{stats.contactos.inactivos}</span>
+                                                            <div className="flex justify-between items-center p-4 bg-muted/50 rounded-xl">
+                                                                <span className="font-bold text-foreground">Inactivos:</span>
+                                                                <span className="font-black text-2xl text-muted-foreground">{stats.contactos.inactivos}</span>
                                                             </div>
                                                         </div>
                                                     </CardContent>
@@ -885,26 +917,26 @@ export default function WhatsAppMiranda() {
 
                                             {/* Messages Stats */}
                                             <Card className="border-none shadow-lg rounded-3xl overflow-hidden">
-                                                <CardHeader className="bg-orange-50 pb-4">
-                                                    <CardTitle className="text-lg font-black">Mensajes</CardTitle>
+                                                <CardHeader className="bg-primary/5 pb-4">
+                                                    <CardTitle className="text-lg font-black text-foreground">Mensajes</CardTitle>
                                                 </CardHeader>
                                                 <CardContent className="pt-8">
                                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                        <div className="p-4 bg-slate-50 rounded-xl">
-                                                            <p className="text-xs font-black uppercase text-slate-500 mb-2">Enviados</p>
-                                                            <p className="font-black text-3xl text-orange-600">{stats.mensajes.totalEnviados}</p>
+                                                        <div className="p-4 bg-muted/50 rounded-xl">
+                                                            <p className="text-xs font-black uppercase text-muted-foreground mb-2">Enviados</p>
+                                                            <p className="font-black text-3xl text-primary">{stats.mensajes.totalEnviados}</p>
                                                         </div>
-                                                        <div className="p-4 bg-slate-50 rounded-xl">
-                                                            <p className="text-xs font-black uppercase text-slate-500 mb-2">Recibidos</p>
-                                                            <p className="font-black text-3xl text-blue-600">{stats.mensajes.totalRecibidos}</p>
+                                                        <div className="p-4 bg-muted/50 rounded-xl">
+                                                            <p className="text-xs font-black uppercase text-muted-foreground mb-2">Recibidos</p>
+                                                            <p className="font-black text-3xl text-foreground">{stats.mensajes.totalRecibidos}</p>
                                                         </div>
-                                                        <div className="p-4 bg-slate-50 rounded-xl">
-                                                            <p className="text-xs font-black uppercase text-slate-500 mb-2">Automáticos</p>
-                                                            <p className="font-black text-3xl text-green-600">{stats.mensajes.automaticosEnviados}</p>
+                                                        <div className="p-4 bg-muted/50 rounded-xl">
+                                                            <p className="text-xs font-black uppercase text-muted-foreground mb-2">Automáticos</p>
+                                                            <p className="font-black text-3xl text-primary">{stats.mensajes.automaticosEnviados}</p>
                                                         </div>
-                                                        <div className="p-4 bg-slate-50 rounded-xl">
-                                                            <p className="text-xs font-black uppercase text-slate-500 mb-2">Ratio</p>
-                                                            <p className="font-black text-3xl text-purple-600">{stats.mensajes.ratio}x</p>
+                                                        <div className="p-4 bg-muted/50 rounded-xl">
+                                                            <p className="text-xs font-black uppercase text-muted-foreground mb-2">Ratio</p>
+                                                            <p className="font-black text-3xl text-primary">{stats.mensajes.ratio}x</p>
                                                         </div>
                                                     </div>
                                                 </CardContent>
@@ -913,52 +945,52 @@ export default function WhatsAppMiranda() {
                                             {/* Rate Limits */}
                                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                                 <Card className="border-none shadow-lg rounded-3xl overflow-hidden">
-                                                    <CardHeader className="bg-cyan-50 pb-4">
-                                                        <CardTitle className="text-lg font-black">Límite Horario</CardTitle>
+                                                    <CardHeader className="bg-primary/10 pb-4">
+                                                        <CardTitle className="text-lg font-black text-foreground">Límite Horario</CardTitle>
                                                     </CardHeader>
                                                     <CardContent className="pt-8">
                                                         <div className="space-y-6">
                                                             <div>
                                                                 <div className="flex justify-between items-center mb-3">
-                                                                    <span className="font-bold">Uso: {stats.rateLimits.horario.porcentaje}</span>
-                                                                    <span className="font-black text-sm text-slate-500">{stats.rateLimits.horario.usados} / {stats.rateLimits.horario.limite}</span>
+                                                                    <span className="font-bold text-foreground">Uso: {stats.rateLimits.horario.porcentaje}</span>
+                                                                    <span className="font-black text-sm text-muted-foreground">{stats.rateLimits.horario.usados} / {stats.rateLimits.horario.limite}</span>
                                                                 </div>
-                                                                <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                                                                <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
                                                                     <div
-                                                                        className="h-full bg-gradient-to-r from-cyan-400 to-cyan-600 rounded-full transition-all"
+                                                                        className="h-full bg-primary rounded-full transition-all"
                                                                         style={{ width: stats.rateLimits.horario.porcentaje }}
                                                                     />
                                                                 </div>
                                                             </div>
-                                                            <div className="p-4 bg-cyan-50 rounded-xl">
-                                                                <p className="text-xs font-black uppercase text-slate-500 mb-1">Disponibles</p>
-                                                                <p className="font-black text-2xl text-cyan-600">{stats.rateLimits.horario.disponibles}</p>
+                                                            <div className="p-4 bg-muted/50 rounded-xl">
+                                                                <p className="text-xs font-black uppercase text-muted-foreground mb-1">Disponibles</p>
+                                                                <p className="font-black text-2xl text-primary">{stats.rateLimits.horario.disponibles}</p>
                                                             </div>
                                                         </div>
                                                     </CardContent>
                                                 </Card>
 
                                                 <Card className="border-none shadow-lg rounded-3xl overflow-hidden">
-                                                    <CardHeader className="bg-amber-50 pb-4">
-                                                        <CardTitle className="text-lg font-black">Límite Diario</CardTitle>
+                                                    <CardHeader className="bg-primary/5 pb-4">
+                                                        <CardTitle className="text-lg font-black text-foreground">Límite Diario</CardTitle>
                                                     </CardHeader>
                                                     <CardContent className="pt-8">
                                                         <div className="space-y-6">
                                                             <div>
                                                                 <div className="flex justify-between items-center mb-3">
-                                                                    <span className="font-bold">Uso: {stats.rateLimits.diario.porcentaje}</span>
-                                                                    <span className="font-black text-sm text-slate-500">{stats.rateLimits.diario.usados} / {stats.rateLimits.diario.limite}</span>
+                                                                    <span className="font-bold text-foreground">Uso: {stats.rateLimits.diario.porcentaje}</span>
+                                                                    <span className="font-black text-sm text-muted-foreground">{stats.rateLimits.diario.usados} / {stats.rateLimits.diario.limite}</span>
                                                                 </div>
-                                                                <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                                                                <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
                                                                     <div
-                                                                        className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all"
+                                                                        className="h-full bg-primary rounded-full transition-all"
                                                                         style={{ width: stats.rateLimits.diario.porcentaje }}
                                                                     />
                                                                 </div>
                                                             </div>
-                                                            <div className="p-4 bg-amber-50 rounded-xl">
-                                                                <p className="text-xs font-black uppercase text-slate-500 mb-1">Disponibles</p>
-                                                                <p className="font-black text-2xl text-amber-600">{stats.rateLimits.diario.disponibles}</p>
+                                                            <div className="p-4 bg-muted/50 rounded-xl">
+                                                                <p className="text-xs font-black uppercase text-muted-foreground mb-1">Disponibles</p>
+                                                                <p className="font-black text-2xl text-primary">{stats.rateLimits.diario.disponibles}</p>
                                                             </div>
                                                         </div>
                                                     </CardContent>
@@ -1039,6 +1071,6 @@ export default function WhatsAppMiranda() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </AppLayout>
+        </AppLayout >
     );
 }
