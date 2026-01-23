@@ -245,7 +245,7 @@ class CuadernoController extends Controller
             $responseParams['pdf_base64'] = $pdfBase64;
         }
 
-        return response()->json($responseParams);
+        return redirect()->back()->with('pedido_resultado', $responseParams);
     }
 
     public function qrDetails(Request $request)

@@ -47,6 +47,32 @@ export default function Checkout() {
         })));
     }, [items]);
 
+    const { flash } = usePage<SharedData & { flash: any }>().props;
+
+    useEffect(() => {
+        if (flash?.pedido_resultado) {
+            const res = flash.pedido_resultado;
+            setIsFinished(true);
+            clearCart();
+            toast.success(res.message || 'Pedido realizado con éxito');
+
+            // Descarga automática si viene el PDF en base64
+            if (res.pdf_base64) {
+                try {
+                    const linkSource = `data:application/pdf;base64,${res.pdf_base64}`;
+                    const downloadLink = document.createElement("a");
+                    const fileName = `pedido_${res.id}.pdf`;
+                    downloadLink.href = linkSource;
+                    downloadLink.download = fileName;
+                    downloadLink.click();
+                    toast.success('Descargando comprobante...');
+                } catch (err) {
+                    console.error('Error downloading PDF:', err);
+                }
+            }
+        }
+    }, [flash]);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (items.length === 0) {
@@ -55,11 +81,7 @@ export default function Checkout() {
         }
 
         post('/cuadernos/pedidos', {
-            onSuccess: () => {
-                setIsFinished(true);
-                clearCart();
-                toast.success('Pedido realizado con éxito');
-            },
+            preserveScroll: true,
             onError: (errors) => {
                 console.error('Checkout errors:', errors);
                 toast.error('Hubo un error al procesar tu pedido');
