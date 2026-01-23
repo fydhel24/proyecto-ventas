@@ -47,6 +47,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'app_url' => config('app.url'),
+            'csrf_token' => $request->session()->token(),
         ];
     }
 }

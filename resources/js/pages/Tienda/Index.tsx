@@ -1,6 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import PublicLayout from '@/layouts/public-layout';
 import { ProductCard } from '@/components/shop/ProductCard';
+import { SearchBar } from '@/components/shop/SearchBar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -104,44 +105,13 @@ export default function Index({ productos, categorias = [], marcas = [], filters
                     </div>
 
                     {/* Search Bar */}
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            if (searchInput.trim()) {
-                                handleFilterChange('search', searchInput);
-                            } else {
-                                handleFilterChange('search', null);
-                            }
+                    <SearchBar
+                        initialSearch={filters?.search || ''}
+                        onSearchChange={(query) => {
+                            setSearchInput(query);
                         }}
-                        className="relative max-w-2xl"
-                    >
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                            placeholder="Buscar productos por nombre, marca o categoría..."
-                            className="h-14 pl-12 pr-32 text-base rounded-2xl border-2 bg-background shadow-sm"
-                        />
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-2">
-                            {searchInput && (
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                        setSearchInput('');
-                                        handleFilterChange('search', null);
-                                    }}
-                                    className="h-10 px-3"
-                                >
-                                    Limpiar
-                                </Button>
-                            )}
-                            <Button type="submit" size="sm" className="h-10 px-6 font-black">
-                                Buscar
-                            </Button>
-                        </div>
-                    </form>
+                        className="w-full md:max-w-2xl"
+                    />
 
                     {/* Sort and Filter Toggle */}
                     <div className="flex items-center gap-3">

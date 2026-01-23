@@ -166,7 +166,7 @@ export default function Create() {
         });
 
         try {
-            const response = await axios.post('/api/shoppedidos', formData, {
+            const response = await axios.post('/shoppedidos', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 

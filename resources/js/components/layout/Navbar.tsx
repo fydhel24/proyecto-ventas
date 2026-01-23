@@ -1,50 +1,29 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, router } from '@inertiajs/react';
-import { Search, ShoppingCart, Menu, User, Sun, Moon } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { Search, ShoppingCart, Menu, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import gsap from 'gsap';
 import { useCart } from '@/hooks/use-cart';
 import { CartDrawer } from '@/components/shop/CartDrawer';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { ColorThemeSelector } from '@/components/color-theme-selector';
 
-export function Navbar({ auth }: { auth: any }) {
+export function Navbar({ auth }: { auth: { user?: any } }) {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
-    const [isDark, setIsDark] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
 
     const { itemCount } = useCart();
     const navRef = useRef<HTMLElement>(null);
-    const themeBtnRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
-        const theme = localStorage.getItem('theme');
-        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-            setIsDark(true);
-        }
-
         const handleScroll = () => {
             setScrolled(window.scrollY > 20);
         };
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
-
-    const toggleTheme = () => {
-        const root = document.documentElement;
-        const newTheme = root.classList.toggle('dark') ? 'dark' : 'light';
-        localStorage.setItem('theme', newTheme);
-        setIsDark(newTheme === 'dark');
-
-        gsap.fromTo(themeBtnRef.current,
-            { rotate: 0, scale: 0.8 },
-            { rotate: 360, scale: 1, duration: 0.4, ease: "back.out" }
-        );
-    };
 
     return (
         <>
@@ -90,26 +69,28 @@ export function Navbar({ auth }: { auth: any }) {
                     <div className="flex items-center justify-end flex-1 gap-2">
 
                         {/* Buscador */}
-                        <div className="relative flex items-center justify-end flex-1 max-w-sm">
+                        <div className="flex-1 md:flex-initial flex items-center justify-end">
                             <div className={cn(
-                                "absolute right-0 z-20 overflow-visible md:relative md:w-full md:opacity-100 md:block transition-all",
-                                isSearchOpen ? "flex w-full bg-background md:bg-transparent" : "hidden md:flex"
+                                "w-full md:w-auto transition-all",
+                                isSearchOpen ? "fixed left-0 right-0 top-20 z-[60] md:relative md:top-auto md:max-w-sm" : "hidden md:block md:max-w-sm"
                             )}>
-                                <SearchInput
-                                    onClose={() => setIsSearchOpen(false)}
-                                    autoFocus={isSearchOpen}
-                                    className={cn(
-                                        "w-full",
-                                        isSearchOpen ? "min-w-[200px]" : ""
-                                    )}
-                                />
+                                <div className={cn(
+                                    "w-full px-2 md:p-0",
+                                    isSearchOpen && "bg-background/95 backdrop-blur-sm md:bg-transparent p-2 rounded-b-xl"
+                                )}>
+                                    <SearchInput
+                                        onClose={() => setIsSearchOpen(false)}
+                                        autoFocus={isSearchOpen}
+                                        className="w-full"
+                                    />
+                                </div>
                             </div>
 
                             {!isSearchOpen && (
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="md:hidden"
+                                    className="md:hidden h-11 w-11"
                                     onClick={() => setIsSearchOpen(true)}
                                 >
                                     <Search className="h-6 w-6" />

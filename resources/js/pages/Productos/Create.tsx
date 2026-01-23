@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import {
   Check,
   ChevronDown,
@@ -75,6 +75,8 @@ export default function Create({
 
   const [nuevaMarca, setNuevaMarca] = useState('');
   const [nuevaCategoria, setNuevaCategoria] = useState('');
+  const { props } = usePage();
+  const csrfToken = (props as any).csrf_token;
 
   const handleCreateMarca = async () => {
     if (!nuevaMarca.trim()) return;
@@ -82,8 +84,7 @@ export default function Create({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN':
-          document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'X-CSRF-TOKEN': csrfToken || '',
       },
       body: JSON.stringify({ nombre_marca: nuevaMarca.trim() }),
     });
@@ -102,8 +103,7 @@ export default function Create({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN':
-          document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'X-CSRF-TOKEN': csrfToken || '',
       },
       body: JSON.stringify({ nombre_cat: nuevaCategoria.trim() }),
     });

@@ -182,7 +182,7 @@ export default function Checkout() {
                                     </div>
                                     <div className="flex flex-col justify-center">
                                         <p className="font-black text-xl leading-none mb-2">{item.title}</p>
-                                        <p className="text-xs text-muted-foreground font-black uppercase tracking-widest opacity-80">{item.desc}</p>
+                                        <p className="text-xs text-muted-foreground font-black  tracking-widest opacity-80">{item.desc}</p>
                                     </div>
                                 </div>
                             ))}

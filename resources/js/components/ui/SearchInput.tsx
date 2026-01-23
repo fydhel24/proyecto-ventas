@@ -57,8 +57,8 @@ export function SearchInput({ className, onClose, autoFocus }: SearchInputProps)
         const fetchSuggestions = async () => {
             setIsLoading(true);
             try {
-                // Using the existing endpoint structure
-                const res = await fetch(`/api/search-suggestions?q=${encodeURIComponent(debouncedQuery)}`);
+                // Using the existing endpoint structure - fetch 5 results for navbar
+                const res = await fetch(`/search-suggestions?q=${encodeURIComponent(debouncedQuery)}&limit=5`);
                 if (res.ok) {
                     const data = await res.json();
                     setSuggestions(data);
@@ -74,11 +74,18 @@ export function SearchInput({ className, onClose, autoFocus }: SearchInputProps)
         fetchSuggestions();
     }, [debouncedQuery]);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleViewAll = () => {
+        // Redirect to tienda with search query autocompleted
         router.get('/tienda', { search: query });
         setIsOpen(false);
         onClose?.();
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (query.trim()) {
+            handleViewAll();
+        }
     };
 
     return (
@@ -114,7 +121,7 @@ export function SearchInput({ className, onClose, autoFocus }: SearchInputProps)
 
             {/* Suggestions Dropdown */}
             {isOpen && (suggestions.length > 0 || isLoading) && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-popover/95 backdrop-blur-md text-popover-foreground rounded-xl border shadow-xl overflow-hidden z-[60] animate-in fade-in slide-in-from-top-2">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-popover/95 backdrop-blur-md text-popover-foreground rounded-xl border shadow-xl overflow-hidden z-[60] animate-in fade-in slide-in-from-top-2 max-h-[60vh] md:max-h-[50vh] overflow-y-auto">
                     {isLoading ? (
                         <div className="p-4 flex items-center justify-center text-muted-foreground">
                             <Loader2 className="h-5 w-5 animate-spin mr-2" />
@@ -153,15 +160,18 @@ export function SearchInput({ className, onClose, autoFocus }: SearchInputProps)
                                         </div>
                                     </button>
                                 ))}
-                                <div className="border-t p-1 mt-1">
-                                    <Button
-                                        variant="ghost"
-                                        className="w-full text-xs font-bold justify-center"
-                                        onClick={handleSubmit}
-                                    >
-                                        Ver todos los resultados
-                                    </Button>
-                                </div>
+                                {suggestions.length > 0 && (
+                                    <div className="border-t p-2 mt-1 bg-muted/30">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            className="w-full text-xs font-bold justify-center hover:bg-muted/60 h-9 text-primary"
+                                            onClick={handleViewAll}
+                                        >
+                                            Ver todos los resultados
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
                         ) : null
                     )}
