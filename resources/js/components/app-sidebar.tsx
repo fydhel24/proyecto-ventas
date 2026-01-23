@@ -71,7 +71,7 @@ const mainNavItems: NavItem[] = [
         icon: BarChart3,
         items: [
             {
-                title: 'Ventas Confirmadas',
+                title: 'Pedidos Confirmadas',
                 href: '/reports/orders',
                 icon: CheckCircle2,
             },

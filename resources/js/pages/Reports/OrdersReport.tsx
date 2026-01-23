@@ -120,7 +120,7 @@ export default function OrdersReport({ orders, summary, filters }: OrdersReportP
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-3xl font-bold tracking-tight">
-                                Reporte de <span className="text-primary italic">Ventas Confirmadas</span>
+                                Reporte de <span className="text-primary italic">Pedidos Confirmados</span>
                             </h1>
                             <p className="text-muted-foreground mt-1">
                                 Análisis unificado de todos los pedidos confirmados por fecha.

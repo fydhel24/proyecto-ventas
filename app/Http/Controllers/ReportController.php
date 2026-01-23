@@ -74,7 +74,31 @@ class ReportController extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
 
-        // Fetch products with their sales count within the date range
+        // Total products count
+        $totalProducts = Producto::count();
+
+        // Low stock products
+        $lowStockProducts = Producto::where('stock', '<', 5)->get();
+
+        // Count by Category
+        $byCategory = Producto::join('categorias', 'productos.categoria_id', '=', 'categorias.id')
+            ->select('categorias.nombre_cat as label', \DB::raw('count(*) as value'))
+            ->groupBy('categorias.nombre_cat')
+            ->get();
+
+        // Count by Brand
+        $byBrand = Producto::join('marcas', 'productos.marca_id', '=', 'marcas.id')
+            ->select('marcas.nombre_marca as label', \DB::raw('count(*) as value'))
+            ->groupBy('marcas.nombre_marca')
+            ->get();
+
+        // Inventory Valuation
+        $valuation = Producto::select(
+            \DB::raw('SUM(stock * precio_compra) as total_cost'),
+            \DB::raw('SUM(stock * precio_1) as total_value_p1')
+        )->first();
+
+        // Sales analysis within date range
         $products = Producto::withCount(['cuadernos as sales_count' => function ($q) use ($startDate, $endDate) {
             $q->when($startDate, function ($query) use ($startDate) {
                 $query->whereDate('cuaderno_producto.created_at', '>=', $startDate);
@@ -83,11 +107,23 @@ class ReportController extends Controller
             });
         }])
         ->orderBy('sales_count', 'desc')
-        ->paginate(20)
+        ->paginate(15)
         ->withQueryString();
 
         return Inertia::render('Reports/ProductsReport', [
             'products' => $products,
+            'stats' => [
+                'total_products' => $totalProducts,
+                'low_stock_count' => count($lowStockProducts),
+                'low_stock_list' => $lowStockProducts,
+                'by_category' => $byCategory,
+                'by_brand' => $byBrand,
+                'valuation' => [
+                    'cost' => (float) $valuation->total_cost,
+                    'potential_revenue' => (float) $valuation->total_value_p1,
+                    'potential_profit' => (float) ($valuation->total_value_p1 - $valuation->total_cost),
+                ]
+            ],
             'filters' => $request->only(['start_date', 'end_date']),
         ]);
     }
