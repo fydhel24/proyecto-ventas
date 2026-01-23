@@ -763,7 +763,7 @@ class CuadernoController extends Controller
 
         // --- FOOTER & QR ---
         // QR Code para seguimiento
-        $urlEscaneo = "http://127.0.0.1:8000/qr?id={$cuaderno->id}&ci={$cuaderno->ci}&celular={$cuaderno->celular}";
+        $urlEscaneo = "https://live.miracode.tech/qr?id={$cuaderno->id}&ci={$cuaderno->ci}&celular={$cuaderno->celular}";
         $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($urlEscaneo);
         
         $qrSize = 25;
