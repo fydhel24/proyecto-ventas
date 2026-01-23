@@ -90,15 +90,6 @@ export default function OrdersReport({ orders, summary, filters }: OrdersReportP
                 header: 'Dpto.',
             },
             {
-                accessorKey: 'tipo',
-                header: 'Origen',
-                cell: ({ getValue }) => (
-                    <Badge variant="outline" className="capitalize text-[10px]">
-                        {getValue<string>() === 'pedido_web' ? 'WhatsApp' : getValue<string>()}
-                    </Badge>
-                ),
-            },
-            {
                 id: 'productos',
                 header: 'Productos',
                 cell: ({ row }) => (
