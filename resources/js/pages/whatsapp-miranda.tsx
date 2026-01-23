@@ -409,16 +409,18 @@ export default function WhatsAppMiranda() {
                                     <HelpSection isConnected={isConnected} />
                                 </DialogContent>
                             </Dialog>
-                            <Button
-                                variant="outline"
-                                size="lg"
-                                className="bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive hover:text-white transition-all h-12 rounded-xl font-bold"
-                                onClick={handleLogout}
-                                disabled={loading}
-                            >
-                                <Power className="w-4 h-4 mr-2" />
-                                Cerrar Sesión
-                            </Button>
+                            {isConnected && (
+                                <Button
+                                    variant="outline"
+                                    size="lg"
+                                    className="bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive hover:text-white transition-all h-12 rounded-xl font-bold"
+                                    onClick={handleLogout}
+                                    disabled={loading}
+                                >
+                                    <Power className="w-4 h-4 mr-2" />
+                                    Cerrar Sesión
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -506,7 +508,7 @@ export default function WhatsAppMiranda() {
                                                     <p className="font-extrabold text-2xl text-primary leading-tight">ONLINE</p>
                                                 </div>
                                                 <div className="p-6 bg-muted rounded-2xl border border-border text-left">
-                                                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mb-1 leading-none">Respondedor</p>
+                                                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mb-1 leading-none">aasd</p>
                                                     <p className={`font-extrabold text-2xl leading-tight ${status.autoResponder ? 'text-primary' : 'text-muted-foreground/50'}`}>
                                                         {status.autoResponder ? 'ACTIVO' : 'PAUSADO'}
                                                     </p>
@@ -565,60 +567,60 @@ export default function WhatsAppMiranda() {
                                                 </CardContent>
                                             </Card>
 
-                                            <Card className="shadow-lg border-none rounded-3xl overflow-hidden">
+                                            <Card className="shadow-lg border-none rounded-3xl overflow-hidden bg-card">
                                                 <CardHeader className="pb-4">
-                                                    <CardTitle className="text-xl font-black flex items-center gap-3">
-                                                        <div className="p-2 rounded-lg bg-blue-50"><Shield className="w-5 h-5 text-blue-500" /></div>
+                                                    <CardTitle className="text-xl font-black flex items-center gap-3 text-foreground">
+                                                        <div className="p-2 rounded-lg bg-primary/10 text-primary"><Shield className="w-5 h-5" /></div>
                                                         Límites Críticos de Flujo
                                                     </CardTitle>
                                                 </CardHeader>
                                                 <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                                     <div className="space-y-2">
-                                                        <Label className="font-bold text-slate-600">Límite / Hora</Label>
-                                                        <Input type="number" value={settings.maxMensajesPorHora} onChange={(e) => setSettings({ ...settings, maxMensajesPorHora: parseInt(e.target.value) })} className="h-14 rounded-xl border-slate-200 text-xl font-bold bg-slate-50" />
+                                                        <Label className="font-bold text-muted-foreground">Límite / Hora</Label>
+                                                        <Input type="number" value={settings.maxMensajesPorHora} onChange={(e) => setSettings({ ...settings, maxMensajesPorHora: parseInt(e.target.value) })} className="h-14 rounded-xl border-border text-xl font-bold bg-muted/30" />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label className="font-bold text-slate-600">Límite / Día</Label>
-                                                        <Input type="number" value={settings.maxMensajesPorDia} onChange={(e) => setSettings({ ...settings, maxMensajesPorDia: parseInt(e.target.value) })} className="h-14 rounded-xl border-slate-200 text-xl font-bold bg-slate-50" />
+                                                        <Label className="font-bold text-muted-foreground">Límite / Día</Label>
+                                                        <Input type="number" value={settings.maxMensajesPorDia} onChange={(e) => setSettings({ ...settings, maxMensajesPorDia: parseInt(e.target.value) })} className="h-14 rounded-xl border-border text-xl font-bold bg-muted/30" />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label className="font-bold text-slate-600">Re-envío (Min)</Label>
-                                                        <Input type="number" step="0.1" value={settings.cooldownMinutos} onChange={(e) => setSettings({ ...settings, cooldownMinutos: parseFloat(e.target.value) })} className="h-14 rounded-xl border-slate-200 text-xl font-bold bg-slate-50" />
+                                                        <Label className="font-bold text-muted-foreground">Re-envío (Min)</Label>
+                                                        <Input type="number" step="0.1" value={settings.cooldownMinutos} onChange={(e) => setSettings({ ...settings, cooldownMinutos: parseFloat(e.target.value) })} className="h-14 rounded-xl border-border text-xl font-bold bg-muted/30" />
                                                     </div>
                                                 </CardContent>
                                             </Card>
                                         </div>
 
                                         <div className="space-y-8">
-                                            <Card className="shadow-lg border-none rounded-3xl overflow-hidden">
-                                                <CardHeader className="bg-slate-900 text-white py-6">
-                                                    <CardTitle className="text-sm font-black uppercase tracking-[0.2em] text-center">Simulación Biológica</CardTitle>
+                                            <Card className="shadow-lg border-none rounded-3xl overflow-hidden bg-card">
+                                                <CardHeader className="bg-primary py-6">
+                                                    <CardTitle className="text-sm font-black uppercase tracking-[0.2em] text-center text-primary-foreground">Simulación Biológica</CardTitle>
                                                 </CardHeader>
                                                 <CardContent className="space-y-8 pt-8">
                                                     <div className="space-y-6">
                                                         <div className="space-y-4">
-                                                            <Label className="text-xs font-black text-slate-400 uppercase tracking-widest">Retraso de Respuesta (ms)</Label>
+                                                            <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest">Retraso de Respuesta (ms)</Label>
                                                             <div className="grid grid-cols-2 gap-2">
                                                                 <div className="space-y-1">
-                                                                    <span className="text-[10px] font-black text-slate-300 ml-1">MIN</span>
-                                                                    <Input type="number" value={settings.minResponseDelay} onChange={(e) => setSettings({ ...settings, minResponseDelay: parseInt(e.target.value) })} className="h-12 rounded-xl text-center font-bold" />
+                                                                    <span className="text-[10px] font-black text-muted-foreground ml-1">MIN</span>
+                                                                    <Input type="number" value={settings.minResponseDelay} onChange={(e) => setSettings({ ...settings, minResponseDelay: parseInt(e.target.value) })} className="h-12 rounded-xl text-center font-bold bg-muted/20 border-border" />
                                                                 </div>
                                                                 <div className="space-y-1">
-                                                                    <span className="text-[10px] font-black text-slate-300 ml-1">MAX</span>
-                                                                    <Input type="number" value={settings.maxResponseDelay} onChange={(e) => setSettings({ ...settings, maxResponseDelay: parseInt(e.target.value) })} className="h-12 rounded-xl text-center font-bold" />
+                                                                    <span className="text-[10px] font-black text-muted-foreground ml-1">MAX</span>
+                                                                    <Input type="number" value={settings.maxResponseDelay} onChange={(e) => setSettings({ ...settings, maxResponseDelay: parseInt(e.target.value) })} className="h-12 rounded-xl text-center font-bold bg-muted/20 border-border" />
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div className="space-y-4">
-                                                            <Label className="text-xs font-black text-slate-400 uppercase tracking-widest">Simul. Escritura (ms)</Label>
+                                                            <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest">Simul. Escritura (ms)</Label>
                                                             <div className="grid grid-cols-2 gap-2">
                                                                 <div className="space-y-1">
-                                                                    <span className="text-[10px] font-black text-slate-300 ml-1">MIN</span>
-                                                                    <Input type="number" value={settings.minTypingDelay} onChange={(e) => setSettings({ ...settings, minTypingDelay: parseInt(e.target.value) })} className="h-12 rounded-xl text-center font-bold" />
+                                                                    <span className="text-[10px] font-black text-muted-foreground ml-1">MIN</span>
+                                                                    <Input type="number" value={settings.minTypingDelay} onChange={(e) => setSettings({ ...settings, minTypingDelay: parseInt(e.target.value) })} className="h-12 rounded-xl text-center font-bold bg-muted/20 border-border" />
                                                                 </div>
                                                                 <div className="space-y-1">
-                                                                    <span className="text-[10px] font-black text-slate-300 ml-1">MAX</span>
-                                                                    <Input type="number" value={settings.maxTypingDelay} onChange={(e) => setSettings({ ...settings, maxTypingDelay: parseInt(e.target.value) })} className="h-12 rounded-xl text-center font-bold" />
+                                                                    <span className="text-[10px] font-black text-muted-foreground ml-1">MAX</span>
+                                                                    <Input type="number" value={settings.maxTypingDelay} onChange={(e) => setSettings({ ...settings, maxTypingDelay: parseInt(e.target.value) })} className="h-12 rounded-xl text-center font-bold bg-muted/20 border-border" />
                                                                 </div>
                                                             </div>
                                                         </div>
