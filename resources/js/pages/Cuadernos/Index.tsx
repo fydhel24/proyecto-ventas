@@ -334,10 +334,26 @@ export default function CuadernosIndex({
                     const local = meta?.localState[item.id] || {};
                     return (
                         <div className="flex gap-2 justify-center">
-                            <Checkbox checked={local.la_paz ?? item.la_paz} onCheckedChange={(v) => meta?.updateAndSave(item.id, 'la_paz', Boolean(v))} />
-                            <Checkbox checked={local.enviado ?? item.enviado} onCheckedChange={(v) => meta?.updateAndSave(item.id, 'enviado', Boolean(v))} />
-                            <Checkbox checked={local.p_listo ?? item.p_listo} onCheckedChange={(v) => meta?.updateAndSave(item.id, 'p_listo', Boolean(v))} />
-                            <Checkbox checked={local.p_pendiente ?? item.p_pendiente} onCheckedChange={(v) => meta?.updateAndSave(item.id, 'p_pendiente', Boolean(v))} />
+                            <Checkbox
+                                checked={local.la_paz ?? item.la_paz}
+                                onCheckedChange={(v) => meta?.updateAndSave(item.id, 'la_paz', Boolean(v))}
+                                className="data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 border-blue-500/30"
+                            />
+                            <Checkbox
+                                checked={local.enviado ?? item.enviado}
+                                onCheckedChange={(v) => meta?.updateAndSave(item.id, 'enviado', Boolean(v))}
+                                className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 border-orange-500/30"
+                            />
+                            <Checkbox
+                                checked={local.p_listo ?? item.p_listo}
+                                onCheckedChange={(v) => meta?.updateAndSave(item.id, 'p_listo', Boolean(v))}
+                                className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600 border-green-600/30"
+                            />
+                            <Checkbox
+                                checked={local.p_pendiente ?? item.p_pendiente}
+                                onCheckedChange={(v) => meta?.updateAndSave(item.id, 'p_pendiente', Boolean(v))}
+                                className="data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500 border-red-500/30"
+                            />
                         </div>
                     );
                 },
@@ -426,13 +442,18 @@ export default function CuadernosIndex({
                                         <span className="font-medium truncate max-w-[100px]" title={p.nombre}>{p.nombre}</span>
                                         <div className="flex items-center gap-2 text-muted-foreground">
                                             <span className="bg-background px-1.5 rounded border text-[10px]">x{p.pivot.cantidad}</span>
-                                            <span className="font-mono text-[10px]">{p.pivot.precio_venta} Bs</span>
+                                            <span className="font-mono text-[10px] text-primary">{p.pivot.precio_venta} Bs</span>
                                         </div>
                                     </div>
                                 ))}
                             </div>
-                            <Button size="sm" variant="outline" className="w-full h-7 text-xs dashed border-dashed text-muted-foreground hover:text-primary" onClick={() => { setSelectedCuadernoId(item.id); setModalOpen(true); }}>
-                                <PlusIcon className="h-3 w-3 mr-1" /> Agregar
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="w-full h-8 text-xs font-bold border-dashed border-2 hover:bg-primary/[0.05] hover:border-primary/50 text-muted-foreground hover:text-primary transition-all rounded-xl"
+                                onClick={() => { setSelectedCuadernoId(item.id); setModalOpen(true); }}
+                            >
+                                <PlusIcon className="h-3.5 w-3.5 mr-2" /> Agregar Item
                             </Button>
                         </div>
                     );
@@ -447,16 +468,21 @@ export default function CuadernosIndex({
                         <div className="flex flex-wrap gap-1 min-w-[100px]">
                             {item.imagenes && item.imagenes.length > 0 ? (
                                 item.imagenes.map((img) => (
-                                    <div key={img.id} className="flex items-center gap-1">
-                                        <Button variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => { setCurrentImage(img.url); setImageModalOpen(true); }}>
-                                            {img.pivot?.tipo === 'producto' ? 'Producto' : img.pivot?.tipo === 'comprobante' ? 'Comprobante' : 'Ver'}
+                                    <div key={img.id} className="relative group/img">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 text-[10px] px-3 font-bold border-border/40 hover:border-primary/50 transition-all rounded-full bg-background/50"
+                                            onClick={() => { setCurrentImage(img.url); setImageModalOpen(true); }}
+                                        >
+                                            {img.pivot?.tipo === 'producto' ? 'Producto' : img.pivot?.tipo === 'comprobante' ? 'Pago' : 'Ver'}
                                         </Button>
                                     </div>
                                 ))
                             ) : (
-                                <div className="w-full text-center text-muted-foreground text-xs py-2 flex flex-col items-center gap-1">
-                                    <ImageIcon className="w-4 h-4 opacity-50" />
-                                    <span className="text-[10px]">Sin fotos</span>
+                                <div className="w-full text-center text-muted-foreground text-xs py-2 flex items-center justify-center gap-2 bg-muted/20 rounded-lg border border-dashed border-border/60">
+                                    <ImageIcon className="w-4 h-4 opacity-30" />
+                                    <span className="text-[9px] uppercase font-black tracking-tighter opacity-50">Sin Archivos</span>
                                 </div>
                             )}
                         </div>
@@ -468,8 +494,18 @@ export default function CuadernosIndex({
                 header: 'Estado',
                 cell: ({ row }) => {
                     const item = row.original;
+                    const variant = item.estado === 'Confirmado' ? 'default' : item.estado === 'Pendiente' ? 'destructive' : 'outline';
                     return (
-                        <Badge variant={item.estado === 'Entregado' ? 'default' : item.estado === 'Pendiente' ? 'destructive' : 'outline'}>{item.estado}</Badge>
+                        <Badge
+                            variant={variant}
+                            className={cn(
+                                "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border-2 shadow-sm",
+                                item.estado === 'Confirmado' && "bg-green-500/10 text-green-600 border-green-500/20 shadow-green-500/5",
+                                item.estado === 'Pendiente' && "bg-red-500/10 text-red-600 border-red-500/20 shadow-red-500/5"
+                            )}
+                        >
+                            {item.estado}
+                        </Badge>
                     );
                 },
             },
@@ -479,9 +515,25 @@ export default function CuadernosIndex({
                 cell: ({ row }) => {
                     const item = row.original;
                     return (
-                        <div className="flex justify-end gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-green-500 hover:text-green-600 hover:bg-green-100" onClick={() => handleConfirm(item.id)} title="Confirmar"><Check className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-100" onClick={() => handleDelete(item.id)} title="Eliminar"><Trash2 className="h-4 w-4" /></Button>
+                        <div className="flex justify-end gap-1.5">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 text-green-600 hover:text-green-700 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-all active:scale-90"
+                                onClick={() => handleConfirm(item.id)}
+                                title="Confirmar"
+                            >
+                                <CheckCircle className="h-5 w-5" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-all active:scale-90"
+                                onClick={() => handleDelete(item.id)}
+                                title="Eliminar"
+                            >
+                                <Trash2 className="h-5 w-5" />
+                            </Button>
                         </div>
                     );
                 },
@@ -519,57 +571,74 @@ export default function CuadernosIndex({
 
     return (
         <AppLayout>
-            <Head title="Cuadernos" />
-            <div className="container mx-auto py-6">
-                <div className="flex flex-col gap-6">
-                    <div className="flex flex-col gap-2">
-                        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Gestión de Cuadernos</h1>
-                        <p className="text-muted-foreground">Administra las ventas, clientes y estados de los pedidos.</p>
+            <Head title="Gestión de Cuadernos" />
+            <div className="container mx-auto py-8 px-4 sm:px-6">
+                <div className="flex flex-col gap-8">
+                    {/* Header Section */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="space-y-1">
+                            <h1 className="text-4xl font-black tracking-tight text-foreground flex items-center gap-3">
+                                <span className="p-2 bg-primary/10 rounded-xl">
+                                    <FileText className="w-8 h-8 text-primary" />
+                                </span>
+                                Gestión de <span className="text-primary italic">Cuadernos</span>
+                            </h1>
+                            <p className="text-muted-foreground text-sm font-medium">
+                                Administra ventas, clientes y logística en tiempo real.
+                            </p>
+                        </div>
                     </div>
 
-                    <Card className="border-none shadow-md">
-                        <CardHeader className="flex flex-col md:flex-row items-center justify-between gap-4 pb-4">
-                            <div className="flex flex-wrap items-center gap-2">
-                                <div className="flex gap-2">
+                    <Card className="border-border/40 shadow-xl shadow-primary/5 bg-background/50 backdrop-blur-sm overflow-hidden">
+                        <CardHeader className="border-b border-border/40 bg-muted/20 pb-6">
+                            <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+                                <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
                                     {filter === 'p_listo' && (
-                                        <>
-                                            <Button onClick={handleBulkConfirm} disabled={isProcessing} className="bg-green-600 hover:bg-green-700 h-9 font-medium text-white shadow-sm">
+                                        <div className="flex flex-wrap gap-2">
+                                            <Button onClick={handleBulkConfirm} disabled={isProcessing} className="bg-green-600 hover:bg-green-700 h-10 font-bold text-white shadow-lg shadow-green-600/20 px-6 transition-all hover:scale-[1.02] active:scale-95">
                                                 <CheckCircle className="w-4 h-4 mr-2" />
-                                                {selectedIds.length > 0 ? `Confirmar ${selectedIds.length}` : 'Confirmar '}
+                                                {selectedIds.length > 0 ? `Confirmar ${selectedIds.length}` : 'Confirmar Todo'}
                                             </Button>
-                                            <Button onClick={handlePdfRespaldo} variant="outline" className="h-9 border-blue-200 text-blue-700 hover:bg-blue-50">
+                                            <Button onClick={handlePdfRespaldo} variant="outline" className="h-10 border-blue-200 dark:border-blue-900/50 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 font-semibold transition-all">
                                                 <FileText className="w-4 h-4 mr-2" />
                                                 Respaldo ({selectedIds.length || '0'})
                                             </Button>
-                                            <Button onClick={handleClearSelection} variant="ghost" className="h-9 text-red-600 hover:text-red-700 hover:bg-red-50">
-                                                <Trash2 className="w-4 h-4 mr-2" />
-                                                Limpiar ({selectedIds.length})
-                                            </Button>
-                                            <Button onClick={handleGenerarFichas} variant="outline" className="h-9 border-purple-200 text-purple-700 hover:bg-purple-50">
+                                            <Button onClick={handleGenerarFichas} variant="outline" className="h-10 border-purple-200 dark:border-purple-900/50 text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 font-semibold transition-all">
                                                 <Package className="w-4 h-4 mr-2" />
                                                 Fichas ({selectedIds.length || '0'})
                                             </Button>
-                                            <Button onClick={handleGenerarNotas} variant="outline" className="h-9 border-orange-200 text-orange-700 hover:bg-orange-50">
+                                            <Button onClick={handleGenerarNotas} variant="outline" className="h-10 border-orange-200 dark:border-orange-900/50 text-orange-700 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 font-semibold transition-all">
                                                 <FileText className="w-4 h-4 mr-2" />
                                                 Notas ({selectedIds.length || '0'})
                                             </Button>
-                                        </>
+                                            {selectedIds.length > 0 && (
+                                                <Button onClick={handleClearSelection} variant="ghost" className="h-10 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 font-bold transition-all">
+                                                    <Trash2 className="w-4 h-4 mr-2" />
+                                                    Limpiar
+                                                </Button>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
-                                <div className="relative">
-                                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                    <Input placeholder="Buscar..." className="pl-8 h-9 w-64" value={search} onChange={(e) => setSearch(e.target.value)} />
+                                <div className="relative w-full lg:w-80 group">
+                                    <Search className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                    <Input
+                                        placeholder="Buscar cliente, CI, ciudad..."
+                                        className="pl-10 h-10 w-full bg-background border-border/50 focus-visible:ring-primary/30 focus-visible:border-primary transition-all shadow-sm"
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
                                 </div>
                             </div>
                         </CardHeader>
-                        <CardContent>
-                            <div className="rounded-md border overflow-hidden">
+                        <CardContent className="p-0">
+                            <div className="overflow-x-auto">
                                 <Table>
-                                    <TableHeader>
+                                    <TableHeader className="bg-muted/30">
                                         {table.getHeaderGroups().map(group => (
-                                            <TableRow key={group.id} className="bg-muted/50">
+                                            <TableRow key={group.id} className="border-b border-border/40 hover:bg-transparent">
                                                 {group.headers.map(header => (
-                                                    <TableHead key={header.id} className="text-xs uppercase font-bold text-muted-foreground">
+                                                    <TableHead key={header.id} className="text-[11px] uppercase font-black tracking-widest text-muted-foreground h-12">
                                                         {flexRender(header.column.columnDef.header, header.getContext())}
                                                     </TableHead>
                                                 ))}
@@ -579,27 +648,46 @@ export default function CuadernosIndex({
                                     <TableBody>
                                         {table.getRowModel().rows.length ? (
                                             table.getRowModel().rows.map(row => (
-                                                <TableRow key={row.id} className="hover:bg-muted/30 transition-colors">
+                                                <TableRow key={row.id} className="group hover:bg-primary/[0.02] dark:hover:bg-primary/[0.05] transition-colors border-b border-border/20">
                                                     {row.getVisibleCells().map(cell => (
-                                                        <TableCell key={cell.id} className="py-2.5">
+                                                        <TableCell key={cell.id} className="py-4 px-4 align-top">
                                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                         </TableCell>
                                                     ))}
                                                 </TableRow>
                                             ))
                                         ) : (
-                                            <TableRow><TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">Sin resultados.</TableCell></TableRow>
+                                            <TableRow>
+                                                <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground">
+                                                    <div className="flex flex-col items-center gap-2">
+                                                        <Search className="w-8 h-8 opacity-20" />
+                                                        <p className="font-medium">No se encontraron registros en el cuaderno.</p>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
                                         )}
                                     </TableBody>
                                 </Table>
                             </div>
-                            <div className="flex items-center justify-between mt-4">
-                                <div className="text-sm text-muted-foreground">
-                                    Página {cuadernos?.current_page || 0} de {cuadernos?.last_page || 0} ({cuadernos?.total || 0} registros)
+
+                            {/* Pagination section */}
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 border-t border-border/40 bg-muted/10">
+                                <div className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                                    <span className="text-primary">{cuadernos?.from || 0}-{cuadernos?.to || 0}</span> de {cuadernos?.total || 0} registros
                                 </div>
-                                <div className="flex gap-1">
+                                <div className="flex flex-wrap gap-1.5">
                                     {cuadernos?.links?.map((link, i) => (
-                                        <Button key={i} variant={link.active ? "default" : "outline"} size="sm" asChild={!!link.url} disabled={!link.url} className="h-8 min-w-[32px]">
+                                        <Button
+                                            key={i}
+                                            variant={link.active ? "default" : "outline"}
+                                            size="sm"
+                                            asChild={!!link.url}
+                                            disabled={!link.url}
+                                            className={cn(
+                                                "h-9 min-w-[36px] font-bold transition-all",
+                                                link.active ? "shadow-md shadow-primary/20" : "hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                                            )}
+                                        >
                                             {link.url ? (
                                                 <Link href={link.url} preserveState preserveScroll>
                                                     <span dangerouslySetInnerHTML={{ __html: link.label }} />
