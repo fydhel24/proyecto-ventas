@@ -17,13 +17,7 @@ class VentaController extends Controller
      */
     public function index()
     {
-        $ventas = Venta::with(['vendedor', 'detalles.inventario.producto'])
-            ->latest()
-            ->paginate(10);
-
-        return Inertia::render('Ventas/Index', [
-            'ventas' => $ventas
-        ]);
+        return redirect()->route('ventas.create');
     }
 
     /**
@@ -32,15 +26,19 @@ class VentaController extends Controller
     public function create()
     {
         $user = auth()->user();
-        
-        if (!$user->sucursal_id) {
+        $isAdmin = $user->hasRole('admin');
+
+        if (!$isAdmin && !$user->sucursal_id) {
             return redirect()->route('dashboard')->with('error', 'Su usuario no tiene una sucursal asignada.');
         }
 
-        $sucursal = Sucursale::findOrFail($user->sucursal_id);
+        $sucursalActual = $user->sucursal_id ? Sucursale::find($user->sucursal_id) : null;
+        $sucursales = $isAdmin ? Sucursale::where('estado', true)->get() : [];
         
         return Inertia::render('Ventas/POS', [
-            'sucursal' => $sucursal,
+            'sucursal' => $sucursalActual,
+            'sucursales' => $sucursales,
+            'isAdmin' => $isAdmin,
             'categorias' => \App\Models\Categoria::all(),
         ]);
     }
@@ -51,6 +49,7 @@ class VentaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'sucursal_id' => 'required|exists:sucursales,id',
             'cliente' => 'required|string',
             'ci' => 'nullable|string',
             'tipo_pago' => 'required|string',
@@ -68,6 +67,11 @@ class VentaController extends Controller
 
             $user = auth()->user();
 
+            $isAdmin = $user->hasRole('admin');
+            $sucursal_id = ($isAdmin && $request->has('sucursal_id')) 
+                ? $request->sucursal_id 
+                : $user->sucursal_id;
+
             $venta = Venta::create([
                 'cliente' => $request->cliente,
                 'ci' => $request->ci,
@@ -76,7 +80,7 @@ class VentaController extends Controller
                 'pagado' => $request->pagado,
                 'cambio' => $request->cambio,
                 'user_vendedor_id' => $user->id,
-                'sucursal_id' => $user->sucursal_id,
+                'sucursal_id' => $sucursal_id,
                 'estado' => 'completado',
             ]);
 
@@ -151,10 +155,14 @@ class VentaController extends Controller
     public function searchProductos(Request $request)
     {
         $user = auth()->user();
-        $sucursal_id = $user->sucursal_id;
+        $isAdmin = $user->hasRole('admin');
+        
+        $sucursal_id = ($isAdmin && $request->has('sucursal_id')) 
+            ? $request->input('sucursal_id') 
+            : $user->sucursal_id;
 
         if (!$sucursal_id) {
-            return response()->json(['error' => 'Usuario sin sucursal'], 403);
+            return response()->json(['error' => 'No se especificó la sucursal'], 403);
         }
 
         $query = $request->input('query');
