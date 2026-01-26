@@ -15,9 +15,11 @@ import usuarios from '@/routes/usuarios';
 import roles from '@/routes/roles';
 import ventas from '@/routes/ventas';
 import cuadernos from '@/routes/cuadernos';
+import sucursales from '@/routes/sucursales';
+import inventarios from '@/routes/inventarios';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BarChart3, BookOpenText, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Send, ShieldCheck, ShoppingCart, Users } from 'lucide-react';
+import { BarChart3, BookOpenText, Boxes, Building, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Send, ShieldCheck, ShoppingCart, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -31,6 +33,17 @@ const mainNavItems: NavItem[] = [
         href: productos.index().url,
         icon: Package,
     },
+    {
+        title: 'Sucursales',
+        href: sucursales.index().url,
+        icon: Building,
+    },
+    {
+        title: 'Inventarios',
+        href: inventarios.index().url,
+        icon: Boxes,
+    },
+
     {
         title: 'Ventas',
         href: ventas.index().url,
