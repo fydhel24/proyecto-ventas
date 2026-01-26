@@ -8,6 +8,13 @@ import { useForm } from '@inertiajs/react';
 import inventariosRoutes from '@/routes/inventarios';
 import { useEffect } from 'react';
 
+interface Inventario {
+    id: number;
+    producto: { id: number };
+    sucursal: { id: number };
+    stock: number;
+}
+
 interface Producto {
     id: number;
     nombre: string;
@@ -19,19 +26,26 @@ interface Sucursal {
 }
 
 interface Props {
+    inventarios: Inventario[];
     productos: Producto[];
     sucursales: Sucursal[];
     open: boolean;
     onClose: () => void;
 }
 
-export default function InventarioModal({ productos, sucursales, open, onClose }: Props) {
+export default function InventarioModal({ inventarios, productos, sucursales, open, onClose }: Props) {
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         sucursal_id: '',
         producto_id: '',
         cantidad: '',
         descripcion: '',
     });
+
+    const currentStock = inventarios.find(
+        (inv) => inv.sucursal.id === Number(data.sucursal_id) && inv.producto.id === Number(data.producto_id)
+    )?.stock || 0;
+
+    const newStock = currentStock + (Number(data.cantidad) || 0);
 
     useEffect(() => {
         if (open) {
@@ -98,8 +112,21 @@ export default function InventarioModal({ productos, sucursales, open, onClose }
                             {errors.producto_id && <p className="text-sm text-red-500">{errors.producto_id}</p>}
                         </div>
 
+                        {(data.sucursal_id && data.producto_id) && (
+                            <div className="grid grid-cols-2 gap-4 p-3 bg-muted/50 rounded-lg border border-border/40">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Stock Actual</p>
+                                    <p className="text-lg font-bold text-foreground">{currentStock} <span className="text-xs font-normal opacity-70">Unid.</span></p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black uppercase text-primary tracking-widest">Nuevo Stock</p>
+                                    <p className="text-lg font-bold text-primary">{newStock} <span className="text-xs font-normal opacity-70">Unid.</span></p>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="grid gap-2">
-                            <Label htmlFor="cantidad">Cantidad</Label>
+                            <Label htmlFor="cantidad">Cantidad a Ingresar</Label>
                             <Input
                                 id="cantidad"
                                 type="number"

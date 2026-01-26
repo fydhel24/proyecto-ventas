@@ -117,6 +117,7 @@ export default function Index({ inventarios, productos, sucursales }: Props) {
 
             <InventarioModal
                 open={isModalOpen}
+                inventarios={inventarios}
                 productos={productos}
                 sucursales={sucursales}
                 onClose={() => setIsModalOpen(false)}
