@@ -66,6 +66,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('sucursales', SucursalController::class);
     Route::resource('inventarios', InventarioController::class);
     Route::patch('solicitudes/{id}/confirm', [SolicitudController::class, 'confirm'])->name('solicitudes.confirm');
+    Route::get('solicitudes/{id}/voucher', [SolicitudController::class, 'downloadVoucher'])->name('solicitudes.voucher');
     Route::resource('solicitudes', SolicitudController::class);
 });
 

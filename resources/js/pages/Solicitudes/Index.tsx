@@ -81,10 +81,13 @@ export default function Index({ recibidas, enviadas, productos, sucursales, filt
                     const flash = (page.props as any).flash;
                     if (flash?.success) {
                         toast.success(flash.success);
+                        // Abrir PDF en nueva pestaña
+                        window.open(solicitudesRoutes.voucher(id).url, '_blank');
                     } else if (flash?.error) {
                         toast.error(flash.error);
                     } else {
                         toast.success('Solicitud confirmada correctamente.');
+                        window.open(solicitudesRoutes.voucher(id).url, '_blank');
                     }
                 },
                 onError: (errors) => {
@@ -194,6 +197,16 @@ export default function Index({ recibidas, enviadas, productos, sucursales, filt
                                             className="bg-green-600 hover:bg-green-700 text-white font-black text-[10px] uppercase tracking-widest h-8"
                                         >
                                             <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> Confirmar
+                                        </Button>
+                                    )}
+                                    {sol.estado === 'CONFIRMADO' && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => window.open(solicitudesRoutes.voucher(sol.id).url, '_blank')}
+                                            className="font-black text-[10px] uppercase tracking-widest h-8"
+                                        >
+                                            <Package className="w-3.5 h-3.5 mr-1.5" /> Ficha PDF
                                         </Button>
                                     )}
                                 </TableCell>
