@@ -195,41 +195,102 @@ class VentaController extends Controller
             require_once base_path('vendor/setasign/fpdf/fpdf.php');
             $venta = Venta::with(['vendedor', 'detalles.inventario.producto', 'sucursal'])->findOrFail($id);
 
-            $pdf = new \FPDF('P', 'mm', array(80, 150));
+            // Calcular altura dinámica base + número de items
+            $baseHeight = 100; // altura base mínima
+            $itemHeight = 4; // altura por cada producto
+            $totalHeight = $baseHeight + (count($venta->detalles) * $itemHeight);
+            
+            $pdf = new \FPDF('P', 'mm', array(80, max($totalHeight, 150)));
+            $pdf->SetMargins(2, 2, 2);
             $pdf->AddPage();
-            $pdf->SetFont('Arial', 'B', 10);
-            $pdf->Cell(0, 6, 'NOTA DE VENTA', 0, 1, 'C');
+            $pdf->SetFont('Arial', 'B', 12);
+            $pdf->Cell(0, 6, utf8_decode('NOTA DE VENTA'), 0, 1, 'C');
+            $pdf->SetFont('Arial', '', 7);
+            $pdf->Cell(0, 3, '====================================', 0, 1, 'C');
+            $pdf->Ln(1);
+
+            // Datos de la sucursal
+            $pdf->SetFont('Arial', 'B', 9);
+            $pdf->Cell(0, 4, utf8_decode($venta->sucursal->nombre_sucursal), 0, 1, 'C');
+            $pdf->SetFont('Arial', '', 8);
+            $pdf->Cell(0, 4, utf8_decode('Fecha: ' . $venta->created_at->format('d/m/Y H:i')), 0, 1);
+            $pdf->Cell(0, 4, utf8_decode('Ticket N°: ' . str_pad($venta->id, 6, '0', STR_PAD_LEFT)), 0, 1);
             $pdf->Ln(2);
 
+            // Datos del cliente
+            $pdf->SetFont('Arial', 'B', 8);
+            $pdf->Cell(0, 3, 'DATOS DEL CLIENTE', 0, 1);
+            $pdf->Cell(0, 1, '------------------------------------', 0, 1);
             $pdf->SetFont('Arial', '', 8);
-            $pdf->Cell(0, 4, 'Sucursal: ' . $venta->sucursal->nombre_sucursal, 0, 1);
-            $pdf->Cell(0, 4, 'Fecha: ' . $venta->created_at->format('d/m/Y H:i'), 0, 1);
-            $pdf->Cell(0, 4, 'Cliente: ' . $venta->cliente, 0, 1);
+            $pdf->Cell(20, 4, 'Cliente:', 0, 0);
+            $pdf->SetFont('Arial', 'B', 8);
+            $pdf->Cell(0, 4, utf8_decode($venta->cliente), 0, 1);
             if ($venta->ci) {
-                $pdf->Cell(0, 4, 'CI/NIT: ' . $venta->ci, 0, 1);
+                $pdf->SetFont('Arial', '', 8);
+                $pdf->Cell(20, 4, 'NIT/CI:', 0, 0);
+                $pdf->SetFont('Arial', 'B', 8);
+                $pdf->Cell(0, 4, $venta->ci, 0, 1);
             }
             $pdf->Ln(2);
 
+            // Detalle de productos
             $pdf->SetFont('Arial', 'B', 8);
-            $pdf->Cell(40, 4, 'Producto', 0, 0);
-            $pdf->Cell(10, 4, 'Cant', 0, 0, 'C');
+            $pdf->Cell(0, 3, 'DETALLE DE VENTA', 0, 1);
+            $pdf->Cell(0, 1, '====================================', 0, 1);
+            
+            $pdf->SetFont('Arial', 'B', 7);
+            $pdf->Cell(32, 4, 'Producto', 0, 0);
+            $pdf->Cell(8, 4, 'Cant', 0, 0, 'C');
             $pdf->Cell(15, 4, 'Precio', 0, 0, 'R');
             $pdf->Cell(15, 4, 'Total', 0, 1, 'R');
 
             $pdf->SetFont('Arial', '', 7);
             foreach ($venta->detalles as $detalle) {
-                $pdf->Cell(40, 3, substr($detalle->inventario->producto->nombre, 0, 20), 0, 0);
-                $pdf->Cell(10, 3, $detalle->cantidad, 0, 0, 'C');
-                $pdf->Cell(15, 3, number_format($detalle->precio_venta, 2), 0, 0, 'R');
-                $pdf->Cell(15, 3, number_format($detalle->subtotal, 2), 0, 1, 'R');
+                $producto = utf8_decode(substr($detalle->inventario->producto->nombre, 0, 22));
+                $pdf->Cell(32, 4, $producto, 0, 0);
+                $pdf->Cell(8, 4, $detalle->cantidad, 0, 0, 'C');
+                $pdf->Cell(15, 4, number_format($detalle->precio_venta, 2), 0, 0, 'R');
+                $pdf->Cell(15, 4, number_format($detalle->subtotal, 2), 0, 1, 'R');
             }
 
-            $pdf->Ln(2);
+            $pdf->Cell(0, 1, '------------------------------------', 0, 1);
+            
+            // Totales
+            $pdf->SetFont('Arial', 'B', 9);
+            $pdf->Cell(55, 5, 'TOTAL:', 0, 0, 'R');
+            $pdf->Cell(15, 5, 'Bs. ' . number_format($venta->monto_total, 2), 0, 1, 'R');
+            
+            $pdf->SetFont('Arial', '', 8);
+            $pdf->Cell(55, 4, 'Tipo de pago:', 0, 0, 'R');
             $pdf->SetFont('Arial', 'B', 8);
-            $pdf->Cell(65, 4, 'Total: Bs. ' . number_format($venta->monto_total, 2), 0, 1, 'R');
-            $pdf->Cell(65, 4, 'Pagado: Bs. ' . number_format($venta->pagado, 2), 0, 1, 'R');
-            $pdf->Cell(65, 4, 'Cambio: Bs. ' . number_format($venta->cambio, 2), 0, 1, 'R');
-            $pdf->Cell(65, 4, 'Tipo Pago: ' . $venta->tipo_pago, 0, 1, 'R');
+            $pdf->Cell(15, 4, utf8_decode($venta->tipo_pago), 0, 1, 'R');
+            
+            // Mostrar desglose si es pago mixto
+            if ($venta->efectivo > 0) {
+                $pdf->SetFont('Arial', '', 7);
+                $pdf->Cell(55, 3, 'Efectivo:', 0, 0, 'R');
+                $pdf->Cell(15, 3, 'Bs. ' . number_format($venta->efectivo, 2), 0, 1, 'R');
+            }
+            if ($venta->qr > 0) {
+                $pdf->SetFont('Arial', '', 7);
+                $pdf->Cell(55, 3, 'QR/Transf.:', 0, 0, 'R');
+                $pdf->Cell(15, 3, 'Bs. ' . number_format($venta->qr, 2), 0, 1, 'R');
+            }
+            
+            $pdf->SetFont('Arial', '', 8);
+            $pdf->Cell(55, 4, 'Pagado:', 0, 0, 'R');
+            $pdf->Cell(15, 4, 'Bs. ' . number_format($venta->pagado, 2), 0, 1, 'R');
+            
+            if ($venta->cambio > 0) {
+                $pdf->SetFont('Arial', 'B', 8);
+                $pdf->Cell(55, 4, 'Cambio:', 0, 0, 'R');
+                $pdf->Cell(15, 4, 'Bs. ' . number_format($venta->cambio, 2), 0, 1, 'R');
+            }
+
+            $pdf->Ln(3);
+            $pdf->SetFont('Arial', 'I', 7);
+            $pdf->Cell(0, 3, utf8_decode('¡Gracias por su compra!'), 0, 1, 'C');
+            $pdf->Cell(0, 3, 'Nexus - Sistema de Ventas', 0, 1, 'C');
 
             return response($pdf->Output('S'), 200, [
                 'Content-Type' => 'application/pdf',

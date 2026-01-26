@@ -121,10 +121,15 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Reportes',
-        href: '/reports',
+        href: '/reportes/ventas',
         icon: BarChart3,
         permission: 'ver ventas',
         items: [
+            {
+                title: 'Ventas',
+                href: '/reportes/ventas',
+                icon: BarChart3,
+            },
             {
                 title: 'Pedidos Confirmadas',
                 href: '/reports/orders',

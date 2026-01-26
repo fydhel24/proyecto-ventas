@@ -60,6 +60,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/ventas/{venta}/pdf', [App\Http\Controllers\VentaController::class, 'pdf'])->name('ventas.pdf');
 
     // Rutas de Reportes
+    Route::get('/reportes/ventas', [App\Http\Controllers\ReporteController::class, 'ventas'])->name('reportes.ventas');
+    Route::post('/reportes/ventas/export', [App\Http\Controllers\ReporteController::class, 'exportPdf'])->name('reportes.ventas.export');
+    
     Route::get('/reports', [App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/orders', [App\Http\Controllers\ReportController::class, 'ordersReport'])->name('reports.orders');
     Route::get('/reports/products', [App\Http\Controllers\ReportController::class, 'productsReport'])->name('reports.products');
