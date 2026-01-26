@@ -93,11 +93,14 @@ export default function SolicitudModal({ productos, sucursales, open, onClose }:
                                     <SelectValue placeholder="Seleccionar sucursal" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {sucursales.map((s) => (
-                                        <SelectItem key={s.id} value={s.id.toString()}>
-                                            {s.nombre_sucursal}
-                                        </SelectItem>
-                                    ))}
+                                    {sucursales
+                                        .filter((s) => s.id.toString() !== data.sucursal_origen_id)
+                                        .map((s) => (
+                                            <SelectItem key={s.id} value={s.id.toString()}>
+                                                {s.nombre_sucursal}
+                                            </SelectItem>
+                                        ))
+                                    }
                                 </SelectContent>
                             </Select>
                             {errors.sucursal_destino_id && <p className="text-sm text-red-500">{errors.sucursal_destino_id}</p>}
