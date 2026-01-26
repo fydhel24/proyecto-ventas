@@ -30,8 +30,11 @@ class CuadernoController extends Controller
         $search = $request->input('search');
         $filter = $request->input('filter');
 
-        // Manejar productos (vacío para evitar sobrecarga)
-        $productos = []; 
+        // Cargar productos para el modal de agregar items
+        $productos = Producto::select('id', 'nombre', 'stock', 'precio_1')
+            ->where('stock', '>', 0)
+            ->orderBy('nombre')
+            ->get();
 
         return Inertia::render('Cuadernos/Index', [
             'cuadernos' => (function () use ($search, $filter) {

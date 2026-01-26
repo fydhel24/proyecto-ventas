@@ -703,7 +703,7 @@ export default function CuadernosIndex({
                     </Card>
                 </div>
             </div>
-            <AddProductoModal open={modalOpen} onClose={() => setModalOpen(false)} onSave={handleAddProducto} />
+            <AddProductoModal open={modalOpen} onClose={() => setModalOpen(false)} onSave={handleAddProducto} productos={productos} />
             <Dialog open={imageModalOpen} onOpenChange={setImageModalOpen}>
                 <DialogContent className="sm:max-w-[600px]">
                     <DialogHeader><DialogTitle>Vista Previa de Imagen</DialogTitle></DialogHeader>
