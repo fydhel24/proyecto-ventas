@@ -24,4 +24,9 @@ class Sucursale extends Model
     {
         return $this->hasMany(Inventario::class);
     }
+
+    public function users()
+    {
+        return $this->hasMany(User::class, 'sucursal_id');
+    }
 }

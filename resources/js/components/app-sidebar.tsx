@@ -11,10 +11,13 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard, whatsappMiranda } from '@/routes';
 import productos from '@/routes/productos';
+import usuarios from '@/routes/usuarios';
+import roles from '@/routes/roles';
+import ventas from '@/routes/ventas';
 import cuadernos from '@/routes/cuadernos';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BarChart3, BookOpenText, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Send } from 'lucide-react';
+import { BarChart3, BookOpenText, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Send, ShieldCheck, ShoppingCart, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -28,7 +31,22 @@ const mainNavItems: NavItem[] = [
         href: productos.index().url,
         icon: Package,
     },
-    
+    {
+        title: 'Ventas',
+        href: ventas.index().url,
+        icon: ShoppingCart,
+    },
+    {
+        title: 'Usuarios',
+        href: usuarios.index().url,
+        icon: Users,
+    },
+    {
+        title: 'Roles',
+        href: roles.index().url,
+        icon: ShieldCheck,
+    },
+
     {
         title: 'WhatsApp Bot',
         href: whatsappMiranda().url,

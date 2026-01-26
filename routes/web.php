@@ -47,6 +47,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('whatsapp-miranda');
     })->name('whatsapp-miranda');
 
+    // Rutas de Usuarios y Roles
+    Route::resource('usuarios', App\Http\Controllers\UserController::class);
+    Route::resource('roles', App\Http\Controllers\RoleController::class);
+
+    // Rutas de Ventas
+    Route::get('/ventas/search-productos', [App\Http\Controllers\VentaController::class, 'searchProductos'])->name('ventas.search-productos');
+    Route::resource('ventas', App\Http\Controllers\VentaController::class);
+
     // Rutas de Reportes
     Route::get('/reports', [App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/orders', [App\Http\Controllers\ReportController::class, 'ordersReport'])->name('reports.orders');

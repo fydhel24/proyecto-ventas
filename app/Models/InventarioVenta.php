@@ -17,6 +17,8 @@ class InventarioVenta extends Model
         'inventario_id',
         'venta_id',
         'cantidad',
+        'precio_venta',
+        'subtotal',
     ];
 
     // Relaciones
