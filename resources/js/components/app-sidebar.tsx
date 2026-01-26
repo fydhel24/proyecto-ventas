@@ -47,11 +47,12 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Inventarios',
         href: inventarios.index().url,
+        icon: Boxes,
         permission: 'ver inventarios',
         items: [
             {
-                title: 'Stock Consolidado',
-                href: inventarios.index().url,
+                title: 'Administrar Stock',
+                href: '/inventarios',
                 icon: Boxes,
             },
             {
