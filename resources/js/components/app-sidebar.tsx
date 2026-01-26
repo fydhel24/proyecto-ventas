@@ -21,43 +21,51 @@ import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import { BarChart3, BookOpenText, Boxes, Building, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Send, ShieldCheck, ShoppingCart, Users } from 'lucide-react';
 import AppLogo from './app-logo';
+import { usePermissions } from '@/hooks/use-permissions';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: dashboard().url,
         icon: LayoutGrid,
+        permission: 'ver dashboard',
     },
     {
         title: 'Productos',
         href: productos.index().url,
         icon: Package,
+        permission: 'ver productos',
     },
     {
         title: 'Sucursales',
         href: sucursales.index().url,
         icon: Building,
+        permission: 'ver sucursales',
     },
     {
         title: 'Inventarios',
         href: inventarios.index().url,
         icon: Boxes,
+        permission: 'ver inventarios',
     },
 
     {
         title: 'Ventas',
         href: ventas.index().url,
         icon: ShoppingCart,
+        permission: 'ver ventas',
     },
     {
         title: 'Usuarios',
         href: usuarios.index().url,
         icon: Users,
+        permission: 'ver usuarios',
     },
     {
         title: 'Roles',
         href: roles.index().url,
         icon: ShieldCheck,
+        permission: 'ver roles',
     },
 
     {
@@ -69,6 +77,7 @@ const mainNavItems: NavItem[] = [
         title: 'Cuaderno',
         href: cuadernos.index().url,
         icon: BookOpenText,
+        permission: 'ver productos',
         items: [
             {
                 title: 'Todos',
@@ -101,6 +110,7 @@ const mainNavItems: NavItem[] = [
         title: 'Reportes',
         href: '/reports',
         icon: BarChart3,
+        permission: 'ver ventas',
         items: [
             {
                 title: 'Pedidos Confirmadas',
@@ -116,27 +126,23 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const footerNavItems: NavItem[] = [
-    /* {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    }, */
-];
+const footerNavItems: NavItem[] = [];
 
 export function AppSidebar() {
+    const { hasPermission } = usePermissions();
+
+    const filteredNavItems = mainNavItems.filter(item => {
+        if (!item.permission) return true;
+        return hasPermission(item.permission);
+    });
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link href={dashboard().url} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -145,7 +151,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={filteredNavItems} />
             </SidebarContent>
 
             <SidebarFooter>

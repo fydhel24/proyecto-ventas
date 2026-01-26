@@ -1,22 +1,30 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
-import { ShieldCheck, Plus, Trash2 } from 'lucide-react';
+import { ShieldCheck, Plus, Trash2, Key, Info } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { store, destroy } from '@/routes/roles';
+import { store, destroy, update } from '@/routes/roles';
 
-interface Role {
+interface Permission {
     id: number;
     name: string;
 }
 
+interface Role {
+    id: number;
+    name: string;
+    permissions: Permission[];
+}
+
 interface Props {
     roles: Role[];
+    all_permissions: Permission[];
 }
 
 const breadcrumbs = [
@@ -24,10 +32,17 @@ const breadcrumbs = [
     { title: 'Roles', href: '/roles' },
 ];
 
-export default function Index({ roles }: Props) {
+export default function Index({ roles, all_permissions }: Props) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isPermissionDialogOpen, setIsPermissionDialogOpen] = useState(false);
+    const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+
     const { data, setData, post, processing, reset, errors } = useForm({
         name: '',
+    });
+
+    const { data: permData, setData: setPermData, patch: patchPerms, processing: processingPerms } = useForm({
+        permissions: [] as string[],
     });
 
     const submit = (e: React.FormEvent) => {
@@ -51,28 +66,59 @@ export default function Index({ roles }: Props) {
         }
     };
 
+    const openPermissionDialog = (role: Role) => {
+        setSelectedRole(role);
+        setPermData('permissions', role.permissions.map(p => p.name));
+        setIsPermissionDialogOpen(true);
+    };
+
+    const handlePermissionSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedRole) return;
+
+        patchPerms(update(selectedRole.id.toString()).url, {
+            onSuccess: () => {
+                setIsPermissionDialogOpen(false);
+                toast.success('Permisos actualizados correctamente');
+            },
+        });
+    };
+
+    const togglePermission = (permissionName: string) => {
+        const current = [...permData.permissions];
+        const index = current.indexOf(permissionName);
+        if (index > -1) {
+            current.splice(index, 1);
+        } else {
+            current.push(permissionName);
+        }
+        setPermData('permissions', current);
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Roles" />
+            <Head title="Roles y Permisos" />
             <div className="flex flex-1 flex-col gap-6 p-6 overflow-y-auto">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Gestión de Roles</h1>
-                        <p className="text-muted-foreground mt-1">Define los permisos y accesos del sistema</p>
+                        <h1 className="text-3xl font-bold tracking-tight">Roles y Permisos</h1>
+                        <p className="text-muted-foreground mt-1 text-sm flex items-center gap-1">
+                            <Info className="h-4 w-4" /> Administra los niveles de acceso y permisos de cada rol.
+                        </p>
                     </div>
 
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button>
+                            <Button className="shadow-sm">
                                 <Plus className="mr-2 h-4 w-4" />
                                 Nuevo Rol
                             </Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="sm:max-w-[425px]">
                             <DialogHeader>
                                 <DialogTitle>Crear Nuevo Rol</DialogTitle>
                             </DialogHeader>
-                            <form onSubmit={submit} className="space-y-4">
+                            <form onSubmit={submit} className="space-y-4 pt-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Nombre del Rol</label>
                                     <Input
@@ -91,45 +137,143 @@ export default function Index({ roles }: Props) {
                     </Dialog>
                 </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                            <ShieldCheck className="h-5 w-5" />
-                            Roles del Sistema
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>ID</TableHead>
-                                    <TableHead>Nombre</TableHead>
-                                    <TableHead className="text-right">Acciones</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {roles.map((role) => (
-                                    <TableRow key={role.id}>
-                                        <TableCell>{role.id}</TableCell>
-                                        <TableCell className="font-medium capitalize">{role.name}</TableCell>
-                                        <TableCell className="text-right">
-                                            {role.name !== 'admin' && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="text-destructive h-8 w-8"
-                                                    onClick={() => handleDelete(role.id)}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            )}
-                                        </TableCell>
+                <div className="grid gap-6">
+                    <Card className="border-none shadow-sm overflow-hidden">
+                        <CardHeader className="bg-muted/30 pb-4">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <ShieldCheck className="h-5 w-5 text-primary" />
+                                Roles del Sistema
+                            </CardTitle>
+                            <CardDescription>
+                                Los roles definen grupos de permisos para los usuarios.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <Table>
+                                <TableHeader className="bg-muted/10">
+                                    <TableRow>
+                                        <TableHead className="w-[80px] pl-6">ID</TableHead>
+                                        <TableHead>Nombre</TableHead>
+                                        <TableHead>Permisos Asignados</TableHead>
+                                        <TableHead className="text-right pr-6">Acciones</TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
+                                </TableHeader>
+                                <TableBody>
+                                    {roles.map((role) => (
+                                        <TableRow key={role.id} className="group transition-colors hover:bg-muted/10">
+                                            <TableCell className="pl-6 text-muted-foreground">{role.id}</TableCell>
+                                            <TableCell className="font-semibold capitalize">
+                                                {role.name}
+                                                {role.name === 'admin' && (
+                                                    <span className="ml-2 text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full font-bold uppercase">Sistema</span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {role.permissions.slice(0, 5).map(p => (
+                                                        <span key={p.id} className="text-[10px] bg-secondary text-secondary-foreground px-1.5 py-0.5 rounded opacity-80">
+                                                            {p.name}
+                                                        </span>
+                                                    ))}
+                                                    {role.permissions.length > 5 && (
+                                                        <span className="text-[10px] font-medium text-muted-foreground flex items-center ml-1">
+                                                            +{role.permissions.length - 5} más
+                                                        </span>
+                                                    )}
+                                                    {role.permissions.length === 0 && (
+                                                        <span className="text-xs text-muted-foreground italic">Sin permisos asignados</span>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-right pr-6">
+                                                <div className="flex justify-end gap-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-8 px-3 text-xs gap-1.5"
+                                                        onClick={() => openPermissionDialog(role)}
+                                                    >
+                                                        <Key className="h-3.5 w-3.5" />
+                                                        Gestionar Permisos
+                                                    </Button>
+
+                                                    {role.name !== 'admin' && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-destructive opacity-50 group-hover:opacity-100 transition-opacity"
+                                                            onClick={() => handleDelete(role.id)}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Modal de Gestión de Permisos */}
+                <Dialog open={isPermissionDialogOpen} onOpenChange={setIsPermissionDialogOpen}>
+                    <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col p-0 overflow-hidden">
+                        <DialogHeader className="p-6 border-b">
+                            <DialogTitle className="flex items-center gap-2">
+                                <Key className="h-5 w-5 text-primary" />
+                                Gestionar Permisos: <span className="capitalize text-primary italic font-serif">{selectedRole?.name}</span>
+                            </DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handlePermissionSubmit} className="flex flex-col flex-1 overflow-hidden">
+                            <div className="p-6 overflow-y-auto flex-1">
+                                {selectedRole?.name === 'admin' && (
+                                    <div className="mb-6 p-3 bg-primary/10 border border-primary/20 rounded-lg text-sm text-primary flex items-start gap-3">
+                                        <Info className="h-5 w-5 shrink-0 mt-0.5" />
+                                        <p>El rol <strong>Administrador</strong> tiene acceso completo a todo el sistema por defecto. Los cambios aquí pueden ser restrictivos.</p>
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-6">
+                                    {all_permissions.map((permission) => (
+                                        <div key={permission.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
+                                            <Checkbox
+                                                id={`perm-${permission.id}`}
+                                                checked={permData.permissions.includes(permission.name)}
+                                                onCheckedChange={() => togglePermission(permission.name)}
+                                                className="border-primary/50 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                            />
+                                            <label
+                                                htmlFor={`perm-${permission.id}`}
+                                                className="text-sm font-medium leading-none cursor-pointer select-none"
+                                            >
+                                                {permission.name}
+                                            </label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <DialogFooter className="p-6 border-top bg-muted/20">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setIsPermissionDialogOpen(false)}
+                                    className="h-10"
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    className="h-10 px-8"
+                                    disabled={processingPerms}
+                                >
+                                    {processingPerms ? 'Guardando...' : 'Sincronizar Permisos'}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
             </div>
         </AppLayout>
     );

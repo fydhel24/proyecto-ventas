@@ -14,7 +14,8 @@ class RoleController extends Controller
     public function index()
     {
         return Inertia::render('Roles/Index', [
-            'roles' => Role::all()
+            'roles' => Role::with('permissions')->get(),
+            'all_permissions' => \Spatie\Permission\Models\Permission::all()
         ]);
     }
 
@@ -30,6 +31,22 @@ class RoleController extends Controller
         Role::create(['name' => $request->name]);
 
         return back()->with('success', 'Rol creado correctamente');
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        $role = Role::findOrFail($id);
+        
+        $request->validate([
+            'permissions' => 'required|array'
+        ]);
+
+        $role->syncPermissions($request->permissions);
+
+        return back()->with('success', 'Permisos actualizados');
     }
 
     /**
