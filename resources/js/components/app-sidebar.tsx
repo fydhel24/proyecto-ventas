@@ -14,6 +14,7 @@ import productos from '@/routes/productos';
 import cuadernos from '@/routes/cuadernos';
 import sucursales from '@/routes/sucursales';
 import inventarios from '@/routes/inventarios';
+import solicitudes from '@/routes/solicitudes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 
@@ -40,6 +41,18 @@ const mainNavItems: NavItem[] = [
         title: 'Inventarios',
         href: inventarios.index().url,
         icon: Boxes,
+        items: [
+            {
+                title: 'Stock Consolidado',
+                href: inventarios.index().url,
+                icon: List,
+            },
+            {
+                title: 'Solicitudes',
+                href: solicitudes.index().url,
+                icon: Send,
+            },
+        ],
     },
 
     {
