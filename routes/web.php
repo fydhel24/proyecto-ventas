@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\CuadernoController;
 use App\Http\Controllers\MarcaController;
 use App\Http\Controllers\InventarioController;
+use App\Http\Controllers\SolicitudController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\SucursalController;
 use Illuminate\Support\Facades\Route;
@@ -64,6 +65,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('sucursales', SucursalController::class);
     Route::resource('inventarios', InventarioController::class);
+    Route::resource('solicitudes', SolicitudController::class);
 });
 
 require __DIR__.'/settings.php';

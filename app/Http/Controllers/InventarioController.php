@@ -13,12 +13,28 @@ use Inertia\Inertia;
 
 class InventarioController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->input('search');
+
+        $productos = Producto::with(['inventarios.sucursal'])
+            ->withSum('inventarios as stock_total', 'stock')
+            ->when($search, function ($query, $search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('nombre', 'like', "%{$search}%")
+                      ->orWhereHas('inventarios.sucursal', function ($sq) use ($search) {
+                          $sq->where('nombre_sucursal', 'like', "%{$search}%");
+                      });
+                });
+            })
+            ->paginate(10)
+            ->withQueryString();
+
         return Inertia::render('Inventarios/Index', [
-            'inventarios' => Inventario::with(['producto', 'sucursal'])->get(),
-            'productos' => Producto::select('id', 'nombre', 'stock')->get(),
+            'productos_inventario' => $productos,
+            'productos_all' => Producto::select('id', 'nombre')->get(),
             'sucursales' => Sucursale::select('id', 'nombre_sucursal')->get(),
+            'filters' => $request->only(['search']),
         ]);
     }
 
