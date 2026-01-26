@@ -17,20 +17,22 @@ class InventarioController extends Controller
     {
         $search = $request->input('search');
 
-        $inventarios = Inventario::with(['producto', 'sucursal'])
+        $productos = Producto::with(['inventarios.sucursal'])
+            ->withSum('inventarios as stock_total', 'stock')
             ->when($search, function ($query, $search) {
-                $query->whereHas('producto', function ($q) use ($search) {
-                    $q->where('nombre', 'like', "%{$search}%");
-                })->orWhereHas('sucursal', function ($q) use ($search) {
-                    $q->where('nombre_sucursal', 'like', "%{$search}%");
+                $query->where(function($q) use ($search) {
+                    $q->where('nombre', 'like', "%{$search}%")
+                      ->orWhereHas('inventarios.sucursal', function ($sq) use ($search) {
+                          $sq->where('nombre_sucursal', 'like', "%{$search}%");
+                      });
                 });
             })
             ->paginate(10)
             ->withQueryString();
 
         return Inertia::render('Inventarios/Index', [
-            'inventarios' => $inventarios,
-            'productos' => Producto::select('id', 'nombre', 'stock')->get(),
+            'productos_inventario' => $productos,
+            'productos_all' => Producto::select('id', 'nombre')->get(),
             'sucursales' => Sucursale::select('id', 'nombre_sucursal')->get(),
             'filters' => $request->only(['search']),
         ]);

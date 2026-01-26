@@ -52,4 +52,9 @@ class Producto extends Model
                     ->withPivot('cantidad', 'precio_venta')
                     ->withTimestamps();
     }
+
+    public function inventarios()
+    {
+        return $this->hasMany(Inventario::class);
+    }
 }
