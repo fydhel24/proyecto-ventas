@@ -41,7 +41,7 @@ class SolicitudController extends Controller
             'recibidas' => $recibidas,
             'enviadas' => $enviadas,
             'productos' => Producto::select('id', 'nombre')->get(),
-            'sucursales' => Sucursale::select('id', 'nombre_sucursal')->get(),
+            'sucursales' => Sucursale::where('id', '!=', $sucursal_id)->select('id', 'nombre_sucursal')->get(),
             'filters' => $request->only(['search']),
         ]);
     }
@@ -49,15 +49,25 @@ class SolicitudController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'sucursal_origen_id' => 'required|exists:sucursales,id',
-            'sucursal_destino_id' => 'required|exists:sucursales,id|different:sucursal_origen_id',
-            'producto_id' => 'required|exists:productos,id',
-            'cantidad' => 'required|integer|min:1',
+            'sucursal_destino_id' => 'required|exists:sucursales,id',
+            'productos' => 'required|array|min:1',
+            'productos.*.producto_id' => 'required|exists:productos,id',
+            'productos.*.cantidad' => 'required|integer|min:1',
             'descripcion' => 'nullable|string',
         ]);
 
-        DB::transaction(function () use ($validated) {
-            $origen = Sucursale::find($validated['sucursal_origen_id']);
+        $sucursal_origen_id = auth()->user()->sucursal_id;
+        
+        if (!$sucursal_origen_id) {
+            return redirect()->back()->with('error', 'No tienes una sucursal asignada para realizar solicitudes.');
+        }
+
+        if ($sucursal_origen_id == $validated['sucursal_destino_id']) {
+            return redirect()->back()->with('error', 'No puedes solicitar productos a tu misma sucursal.');
+        }
+
+        DB::transaction(function () use ($validated, $sucursal_origen_id) {
+            $origen = Sucursale::find($sucursal_origen_id);
             $destino = Sucursale::find($validated['sucursal_destino_id']);
 
             $descripcion = "SOLICITUD: {$origen->nombre_sucursal} solicita a {$destino->nombre_sucursal}. " . ($validated['descripcion'] ?? '');
@@ -69,22 +79,24 @@ class SolicitudController extends Controller
                 'descripcion' => $descripcion,
             ]);
 
-            // Enlazamos al inventario de la sucursal de DESTINO (quien recibe la petición)
-            $inventarioDestino = Inventario::firstOrCreate(
-                [
-                    'sucursal_id' => $validated['sucursal_destino_id'],
-                    'producto_id' => $validated['producto_id'],
-                ],
-                ['stock' => 0]
-            );
+            foreach ($validated['productos'] as $item) {
+                // Enlazamos al inventario de la sucursal de DESTINO (Proveedor)
+                $inventarioDestino = Inventario::firstOrCreate(
+                    [
+                        'sucursal_id' => $validated['sucursal_destino_id'],
+                        'producto_id' => $item['producto_id'],
+                    ],
+                    ['stock' => 0]
+                );
 
-            MovimientoInventario::create([
-                'inventario_id' => $inventarioDestino->id,
-                'movimiento_id' => $movimiento->id,
-                'cantidad_actual' => $inventarioDestino->stock,
-                'cantidad_movimiento' => $validated['cantidad'],
-                'cantidad_nueva' => $inventarioDestino->stock, 
-            ]);
+                MovimientoInventario::create([
+                    'inventario_id' => $inventarioDestino->id,
+                    'movimiento_id' => $movimiento->id,
+                    'cantidad_actual' => $inventarioDestino->stock,
+                    'cantidad_movimiento' => $item['cantidad'],
+                    'cantidad_nueva' => $inventarioDestino->stock, 
+                ]);
+            }
         });
 
         return redirect()->back()->with('success', 'Solicitud enviada correctamente.');
@@ -102,22 +114,24 @@ class SolicitudController extends Controller
             return redirect()->back()->with('error', 'Esta solicitud ya ha sido procesada.');
         }
 
-        $detalle = $movimiento->movimientoInventarios->first();
-        if (!$detalle) {
-            return redirect()->back()->with('error', 'No se encontró el detalle de la solicitud.');
+        $detalles = $movimiento->movimientoInventarios;
+        if ($detalles->isEmpty()) {
+            return redirect()->back()->with('error', 'No se encontraron detalles de la solicitud.');
         }
 
-        $invProveedor = $detalle->inventario; // Quien recibe la petición y provee el stock
-        $cantidad = $detalle->cantidad_movimiento;
-
-        // Seguridad: Verificar que el usuario que confirma pertenece a la sucursal proveedora
+        // Seguridad: Verificar que el usuario pertenece a la sucursal proveedora (usamos el primer detalle)
+        $invProveedor = $detalles->first()->inventario;
         if (auth()->user()->sucursal_id !== $invProveedor->sucursal_id) {
             return redirect()->back()->with('error', 'No tienes permisos para confirmar solicitudes de otra sucursal.');
         }
 
-        // 1. Verificar Stock Suficiente
-        if ($invProveedor->stock < $cantidad) {
-            return redirect()->back()->with('error', "Stock insuficiente en {$invProveedor->sucursal->nombre_sucursal}. Disponible: {$invProveedor->stock}");
+        // 1. Verificar Stock Suficiente para TODOS los productos
+        foreach ($detalles as $detalle) {
+            $invProv = $detalle->inventario;
+            if ($invProv->stock < $detalle->cantidad_movimiento) {
+                $nombreProd = $invProv->producto->nombre ?? 'Producto ID: ' . $invProv->producto_id;
+                return redirect()->back()->with('error', "Stock insuficiente para {$nombreProd} en {$invProv->sucursal->nombre_sucursal}. Disponible: {$invProv->stock}");
+            }
         }
 
         // 2. Identificar sucursal solicitante
@@ -126,31 +140,39 @@ class SolicitudController extends Controller
             return redirect()->back()->with('error', 'El usuario solicitante no tiene una sucursal asignada.');
         }
 
-        DB::transaction(function () use ($movimiento, $invProveedor, $cantidad, $sucursalSolicitanteId, $detalle) {
-            // Descontar de la sucursal que provee
-            $invProveedor->decrement('stock', $cantidad);
+        $movimiento = DB::transaction(function () use ($movimiento, $detalles, $sucursalSolicitanteId) {
+            foreach ($detalles as $detalle) {
+                $invProveedor = $detalle->inventario;
+                $cantidad = $detalle->cantidad_movimiento;
 
-            // Aumentar en la sucursal que solicitó
-            $invSolicitante = Inventario::firstOrCreate(
-                [
-                    'sucursal_id' => $sucursalSolicitanteId,
-                    'producto_id' => $invProveedor->producto_id,
-                ],
-                ['stock' => 0]
-            );
-            $invSolicitante->increment('stock', $cantidad);
+                // Descontar de la sucursal que provee
+                $invProveedor->decrement('stock', $cantidad);
+
+                // Aumentar en la sucursal que solicitó
+                $invSolicitante = Inventario::firstOrCreate(
+                    [
+                        'sucursal_id' => $sucursalSolicitanteId,
+                        'producto_id' => $invProveedor->producto_id,
+                    ],
+                    ['stock' => 0]
+                );
+                $invSolicitante->increment('stock', $cantidad);
+
+                // Actualizar datos de auditoría en el detalle
+                $detalle->update([
+                    'cantidad_actual' => $invProveedor->stock + $cantidad, // Antes de descontar
+                    'cantidad_nueva' => $invProveedor->stock, // Después de descontar
+                ]);
+            }
 
             // Actualizar estado del movimiento
             $movimiento->update(['estado' => 'CONFIRMADO']);
-
-            // Actualizar datos de auditoría en el detalle
-            $detalle->update([
-                'cantidad_actual' => $invProveedor->stock + $cantidad, // Antes de descontar
-                'cantidad_nueva' => $invProveedor->stock, // Después de descontar
-            ]);
+            
+            return $movimiento;
         });
 
-        return redirect()->back()->with('success', 'Solicitud confirmada: El stock ha sido transferido correctamente.');
+        // Abrir voucher automáticamente
+        return redirect()->back()->with('success', 'Solicitud confirmada: El stock ha sido transferido correctamente.')->with('pdf_url', route('solicitudes.voucher', $movimiento->id));
     }
 
     public function downloadVoucher($id)
@@ -269,10 +291,10 @@ class SolicitudController extends Controller
         $pdf->Cell(45, 10, 'UNIDAD', 1, 1, 'C', true);
 
         $pdf->SetFont('Arial', '', 10);
-        if ($detalle) {
-            $pdf->Cell(15, 12, $detalle->cantidad_movimiento, 1, 0, 'C');
-            $pdf->Cell(135, 12, utf8_decode($detalle->inventario->producto->nombre), 1, 0, 'L');
-            $pdf->Cell(45, 12, 'UNIDADES', 1, 1, 'C');
+        foreach ($solicitud->movimientoInventarios as $detalle) {
+            $pdf->Cell(15, 8, $detalle->cantidad_movimiento, 1, 0, 'C');
+            $pdf->Cell(135, 8, utf8_decode($detalle->inventario->producto->nombre), 1, 0, 'L');
+            $pdf->Cell(45, 8, 'UNIDADES', 1, 1, 'C');
         }
 
         $pdf->Ln(10);
@@ -321,45 +343,53 @@ class SolicitudController extends Controller
             return redirect()->back()->with('error', 'Solo se pueden revertir solicitudes confirmadas.');
         }
 
-        $detalle = $movimiento->movimientoInventarios->first();
-        if (!$detalle) {
-            return redirect()->back()->with('error', 'No se encontró el detalle de la solicitud.');
+        $detalles = $movimiento->movimientoInventarios;
+        if ($detalles->isEmpty()) {
+            return redirect()->back()->with('error', 'No se encontraron detalles de la solicitud.');
         }
 
-        $invProveedor = $detalle->inventario; // Quien proveyó el stock (y lo recuperará)
-        $cantidad = $detalle->cantidad_movimiento;
-
-        // Seguridad: Verificar permisos (solo el de la sucursal proveedora debería poder revertir lo que confirmó)
-        if (auth()->user()->sucursal_id !== $invProveedor->sucursal_id) {
+        // Seguridad: Verificar permisos (sucursal proveedora)
+        $invProveedorFirst = $detalles->first()->inventario;
+        if (auth()->user()->sucursal_id !== $invProveedorFirst->sucursal_id) {
             return redirect()->back()->with('error', 'No tienes permisos para revertir solicitudes de otra sucursal.');
         }
 
-        // Identificar sucursal solicitante (quien recibió el stock y ahora debe devolverlo)
         $sucursalSolicitanteId = $movimiento->userOrigen->sucursal_id;
-        $invSolicitante = Inventario::where('sucursal_id', $sucursalSolicitanteId)
-            ->where('producto_id', $invProveedor->producto_id)
-            ->first();
 
-        // Verificar que el solicitante tenga stock suficiente para devolver
-        if (!$invSolicitante || $invSolicitante->stock < $cantidad) {
-            return redirect()->back()->with('error', 'La sucursal solicitante ya no tiene stock suficiente para revertir la operación.');
+        // Verificar que el solicitante tenga stock suficiente para devolver TODOS los productos
+        foreach ($detalles as $detalle) {
+            $invSolicitante = Inventario::where('sucursal_id', $sucursalSolicitanteId)
+                ->where('producto_id', $detalle->inventario->producto_id)
+                ->first();
+            
+            if (!$invSolicitante || $invSolicitante->stock < $detalle->cantidad_movimiento) {
+                return redirect()->back()->with('error', 'La sucursal solicitante ya no tiene stock suficiente del producto ' . ($detalle->inventario->producto->nombre ?? '') . ' para revertir la operación.');
+            }
         }
 
-        DB::transaction(function () use ($movimiento, $invProveedor, $invSolicitante, $cantidad, $detalle) {
-            // Devolver stock al proveedor
-            $invProveedor->increment('stock', $cantidad);
+        DB::transaction(function () use ($movimiento, $detalles, $sucursalSolicitanteId) {
+            foreach ($detalles as $detalle) {
+                $invProveedor = $detalle->inventario;
+                $cantidad = $detalle->cantidad_movimiento;
 
-            // Descontar stock del solicitante
-            $invSolicitante->decrement('stock', $cantidad);
+                // Devolver stock al proveedor
+                $invProveedor->increment('stock', $cantidad);
+
+                // Descontar stock del solicitante
+                $invSolicitante = Inventario::where('sucursal_id', $sucursalSolicitanteId)
+                    ->where('producto_id', $invProveedor->producto_id)
+                    ->first();
+                $invSolicitante->decrement('stock', $cantidad);
+
+                // Actualizar auditoría
+                $detalle->update([
+                    'cantidad_actual' => $invProveedor->stock, 
+                    'cantidad_nueva' => $invProveedor->stock,
+                ]);
+            }
 
             // Volver estado a PENDIENTE
             $movimiento->update(['estado' => 'PENDIENTE']);
-
-            // Actualizar auditoría (opcional, revertimos a valores previos)
-            $detalle->update([
-                'cantidad_actual' => $invProveedor->stock + $cantidad, 
-                'cantidad_nueva' => $invProveedor->stock,
-            ]);
         });
 
         return redirect()->back()->with('success', 'Solicitud revertida correctamente. El stock ha sido devuelto.');

@@ -193,14 +193,18 @@ export default function Index({ recibidas, enviadas, productos, sucursales, filt
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-primary/5 rounded-lg border border-primary/10">
-                                            <Package className="w-4 h-4 text-primary" />
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="font-bold text-sm leading-none mb-1">{item?.inventario?.producto?.nombre}</span>
-                                            <span className="text-xs text-muted-foreground">Cantidad: <span className="font-black text-foreground">{item?.cantidad_movimiento}</span></span>
-                                        </div>
+                                    <div className="flex flex-col gap-2">
+                                        {sol.movimiento_inventarios.map((item, idx) => (
+                                            <div key={idx} className="flex items-center gap-3">
+                                                <div className="p-1.5 bg-primary/5 rounded-md border border-primary/10">
+                                                    <Package className="w-3 h-3 text-primary" />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-xs leading-none mb-0.5">{item?.inventario?.producto?.nombre}</span>
+                                                    <span className="text-[10px] text-muted-foreground">Cant: <span className="font-black text-foreground">{item?.cantidad_movimiento}</span></span>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-center">
