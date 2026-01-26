@@ -16,8 +16,6 @@ return new class extends Migration
             $table->string('nombre_sucursal');
             $table->string('direccion');
             $table->boolean('estado')->default(true);
-            $table->string('celular')->nullable();
-            $table->string('logo')->nullable();
             $table->timestamps();
              $table->softDeletes();
         });
