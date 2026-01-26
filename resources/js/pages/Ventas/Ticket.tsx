@@ -85,6 +85,8 @@ export default function Ticket({ venta }: Props) {
                     <p><strong>Cliente:</strong> {venta.cliente}</p>
                     {venta.ci && <p><strong>NIT/CI:</strong> {venta.ci}</p>}
                     <p><strong>Pago:</strong> {venta.tipo_pago}</p>
+                    {venta.efectivo > 0 && <p><strong>Efectivo:</strong> Bs. {venta.efectivo.toFixed(2)}</p>}
+                    {venta.qr > 0 && <p><strong>QR/Transf.:</strong> Bs. {venta.qr.toFixed(2)}</p>}
                 </div>
 
                 <table className="w-full text-[10px] mb-4">
@@ -124,7 +126,7 @@ export default function Ticket({ venta }: Props) {
                 </div>
 
                 <div className="text-center mt-6 text-[10px]">
-                    <p>¡GRACIAS POR SU COMPRA!</p>
+                    <p>¡Gracias por su compra!</p>
                     <p>Nexus • Gestión Eficiente</p>
                 </div>
 

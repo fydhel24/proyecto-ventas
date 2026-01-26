@@ -57,6 +57,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Rutas de Ventas
     Route::get('/ventas/search-productos', [App\Http\Controllers\VentaController::class, 'searchProductos'])->name('ventas.search-productos');
     Route::resource('ventas', App\Http\Controllers\VentaController::class);
+    Route::get('/ventas/{venta}/pdf', [App\Http\Controllers\VentaController::class, 'pdf'])->name('ventas.pdf');
 
     // Rutas de Reportes
     Route::get('/reports', [App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');

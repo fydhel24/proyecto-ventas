@@ -34,7 +34,7 @@ class VentaController extends Controller
 
         $sucursalActual = $user->sucursal_id ? Sucursale::find($user->sucursal_id) : null;
         $sucursales = $isAdmin ? Sucursale::where('estado', true)->get() : [];
-        
+
         return Inertia::render('Ventas/POS', [
             'sucursal' => $sucursalActual,
             'sucursales' => $sucursales,
@@ -60,6 +60,8 @@ class VentaController extends Controller
             'monto_total' => 'required|numeric',
             'pagado' => 'required|numeric',
             'cambio' => 'required|numeric',
+            'efectivo' => 'nullable|numeric',
+            'qr' => 'nullable|numeric',
         ]);
 
         try {
@@ -68,8 +70,8 @@ class VentaController extends Controller
             $user = auth()->user();
 
             $isAdmin = $user->hasRole('admin');
-            $sucursal_id = ($isAdmin && $request->has('sucursal_id')) 
-                ? $request->sucursal_id 
+            $sucursal_id = ($isAdmin && $request->has('sucursal_id'))
+                ? $request->sucursal_id
                 : $user->sucursal_id;
 
             $venta = Venta::create([
@@ -79,6 +81,8 @@ class VentaController extends Controller
                 'monto_total' => $request->monto_total,
                 'pagado' => $request->pagado,
                 'cambio' => $request->cambio,
+                'efectivo' => $request->efectivo ?? 0,
+                'qr' => $request->qr ?? 0,
                 'user_vendedor_id' => $user->id,
                 'sucursal_id' => $sucursal_id,
                 'estado' => 'completado',
@@ -86,7 +90,7 @@ class VentaController extends Controller
 
             foreach ($request->carrito as $item) {
                 $inventario = Inventario::lockForUpdate()->find($item['inventario_id']);
-                
+
                 if ($inventario->stock < $item['cantidad']) {
                     throw new \Exception("Stock insuficiente para el producto: " . $inventario->producto->nombre);
                 }
@@ -104,14 +108,15 @@ class VentaController extends Controller
 
             DB::commit();
 
-            return redirect()->route('ventas.index')->with([
-                'success' => 'Venta realizada con éxito',
-                'show_ticket' => $venta->id
+            return response()->json([
+                'success' => true,
+                'venta_id' => $venta->id,
+                'message' => 'Venta realizada con éxito'
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => $e->getMessage()]);
+            return response()->json(['error' => $e->getMessage()], 422);
         }
     }
 
@@ -156,9 +161,9 @@ class VentaController extends Controller
     {
         $user = auth()->user();
         $isAdmin = $user->hasRole('admin');
-        
-        $sucursal_id = ($isAdmin && $request->has('sucursal_id')) 
-            ? $request->input('sucursal_id') 
+
+        $sucursal_id = ($isAdmin && $request->has('sucursal_id'))
+            ? $request->input('sucursal_id')
             : $user->sucursal_id;
 
         if (!$sucursal_id) {
@@ -182,5 +187,56 @@ class VentaController extends Controller
             ->paginate($request->input('per_page', 12));
 
         return response()->json($inventarios);
+    }
+
+    public function pdf($id)
+    {
+        try {
+            require_once base_path('vendor/setasign/fpdf/fpdf.php');
+            $venta = Venta::with(['vendedor', 'detalles.inventario.producto', 'sucursal'])->findOrFail($id);
+
+            $pdf = new \FPDF('P', 'mm', array(80, 150));
+            $pdf->AddPage();
+            $pdf->SetFont('Arial', 'B', 10);
+            $pdf->Cell(0, 6, 'NOTA DE VENTA', 0, 1, 'C');
+            $pdf->Ln(2);
+
+            $pdf->SetFont('Arial', '', 8);
+            $pdf->Cell(0, 4, 'Sucursal: ' . $venta->sucursal->nombre_sucursal, 0, 1);
+            $pdf->Cell(0, 4, 'Fecha: ' . $venta->created_at->format('d/m/Y H:i'), 0, 1);
+            $pdf->Cell(0, 4, 'Cliente: ' . $venta->cliente, 0, 1);
+            if ($venta->ci) {
+                $pdf->Cell(0, 4, 'CI/NIT: ' . $venta->ci, 0, 1);
+            }
+            $pdf->Ln(2);
+
+            $pdf->SetFont('Arial', 'B', 8);
+            $pdf->Cell(40, 4, 'Producto', 0, 0);
+            $pdf->Cell(10, 4, 'Cant', 0, 0, 'C');
+            $pdf->Cell(15, 4, 'Precio', 0, 0, 'R');
+            $pdf->Cell(15, 4, 'Total', 0, 1, 'R');
+
+            $pdf->SetFont('Arial', '', 7);
+            foreach ($venta->detalles as $detalle) {
+                $pdf->Cell(40, 3, substr($detalle->inventario->producto->nombre, 0, 20), 0, 0);
+                $pdf->Cell(10, 3, $detalle->cantidad, 0, 0, 'C');
+                $pdf->Cell(15, 3, number_format($detalle->precio_venta, 2), 0, 0, 'R');
+                $pdf->Cell(15, 3, number_format($detalle->subtotal, 2), 0, 1, 'R');
+            }
+
+            $pdf->Ln(2);
+            $pdf->SetFont('Arial', 'B', 8);
+            $pdf->Cell(65, 4, 'Total: Bs. ' . number_format($venta->monto_total, 2), 0, 1, 'R');
+            $pdf->Cell(65, 4, 'Pagado: Bs. ' . number_format($venta->pagado, 2), 0, 1, 'R');
+            $pdf->Cell(65, 4, 'Cambio: Bs. ' . number_format($venta->cambio, 2), 0, 1, 'R');
+            $pdf->Cell(65, 4, 'Tipo Pago: ' . $venta->tipo_pago, 0, 1, 'R');
+
+            return response($pdf->Output('S'), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="ticket_' . $venta->id . '.pdf"'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error generando PDF: ' . $e->getMessage()], 500);
+        }
     }
 }
