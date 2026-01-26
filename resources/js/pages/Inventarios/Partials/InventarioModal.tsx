@@ -4,9 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { useForm } from '@inertiajs/react';
 import inventariosRoutes from '@/routes/inventarios';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Check, ChevronDown } from 'lucide-react';
 
 interface Inventario {
     id: number;
@@ -34,6 +37,7 @@ interface Props {
 }
 
 export default function InventarioModal({ inventarios, productos, sucursales, open, onClose }: Props) {
+    const [productoOpen, setProductoOpen] = useState(false);
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         sucursal_id: '',
         producto_id: '',
@@ -94,21 +98,52 @@ export default function InventarioModal({ inventarios, productos, sucursales, op
 
                         <div className="grid gap-2">
                             <Label htmlFor="producto">Producto</Label>
-                            <Select
-                                value={data.producto_id}
-                                onValueChange={(value) => setData('producto_id', value)}
-                            >
-                                <SelectTrigger id="producto">
-                                    <SelectValue placeholder="Seleccionar producto" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {productos.map((p) => (
-                                        <SelectItem key={p.id} value={p.id.toString()}>
-                                            {p.nombre}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <Popover open={productoOpen} onOpenChange={setProductoOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        aria-expanded={productoOpen}
+                                        className="w-full justify-between font-normal"
+                                    >
+                                        {data.producto_id
+                                            ? productos.find((p) => p.id === Number(data.producto_id))?.nombre
+                                            : "Seleccionar producto..."}
+                                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Buscar producto..." className="h-9" />
+                                        <CommandList>
+                                            <CommandEmpty>No se encontró el producto.</CommandEmpty>
+                                            <CommandGroup>
+                                                {productos.map((p) => (
+                                                    <CommandItem
+                                                        key={p.id}
+                                                        value={p.nombre}
+                                                        onSelect={(currentValue) => {
+                                                            const selected = productos.find(
+                                                                (prod) => prod.nombre === currentValue
+                                                            );
+                                                            if (selected) {
+                                                                setData('producto_id', String(selected.id));
+                                                            }
+                                                            setProductoOpen(false);
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={`mr-2 h-4 w-4 ${data.producto_id === String(p.id) ? "opacity-100" : "opacity-0"
+                                                                }`}
+                                                        />
+                                                        {p.nombre}
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
                             {errors.producto_id && <p className="text-sm text-red-500">{errors.producto_id}</p>}
                         </div>
 
