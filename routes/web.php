@@ -70,6 +70,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('solicitudes/{id}/revert', [SolicitudController::class, 'revert'])->name('solicitudes.revert');
     Route::get('solicitudes/{id}/voucher', [SolicitudController::class, 'downloadVoucher'])->name('solicitudes.voucher');
     Route::resource('solicitudes', SolicitudController::class);
+    Route::get('envios/{id}/voucher', [EnvioController::class, 'downloadVoucher'])->name('envios.voucher');
     Route::resource('envios', EnvioController::class);
 });
 

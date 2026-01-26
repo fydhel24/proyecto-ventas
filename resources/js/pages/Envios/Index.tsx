@@ -99,6 +99,7 @@ export default function Index({ envios, productos, sucursales, filters }: Props)
                                         <TableHead className="font-black text-[10px] uppercase tracking-widest">Destino</TableHead>
                                         <TableHead className="font-black text-[10px] uppercase tracking-widest">Resumen Prod.</TableHead>
                                         <TableHead className="font-black text-[10px] uppercase tracking-widest text-center">Estado</TableHead>
+                                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-right">Acción</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -151,6 +152,16 @@ export default function Index({ envios, productos, sucursales, filters }: Props)
                                                         <Badge variant="default" className="bg-green-500/10 text-green-600 hover:bg-green-500/20 px-3 py-1 font-black text-[9px] uppercase tracking-widest">
                                                             {envio.estado}
                                                         </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="h-8 text-[10px] font-black uppercase tracking-widest"
+                                                            onClick={() => window.open(enviosRoutes.voucher(envio.id).url, '_blank')}
+                                                        >
+                                                            <Package className="w-3.5 h-3.5 mr-1.5" /> Ficha PDF
+                                                        </Button>
                                                     </TableCell>
                                                 </TableRow>
                                             );

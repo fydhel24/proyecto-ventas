@@ -87,10 +87,19 @@ export default function EnvioModal({ productos, sucursales, open, onClose }: Pro
         }
 
         post(enviosRoutes.store().url, {
-            onSuccess: () => {
-                toast.success('Envío realizado correctamente.');
-                onClose();
-                reset();
+            onSuccess: (page) => {
+                const flash = (page.props as any).flash;
+                if (flash?.error) {
+                    toast.error(flash.error);
+                } else {
+                    toast.success('Envío realizado correctamente.');
+                    // Intentar abrir el PDF si viene en el flash o construir la URL
+                    if (flash?.pdf_url) {
+                        window.open(flash.pdf_url, '_blank');
+                    }
+                    onClose();
+                    reset();
+                }
             },
             onError: (errors) => {
                 const firstError = Object.values(errors)[0];

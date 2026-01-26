@@ -58,6 +58,7 @@ class HandleInertiaRequests extends Middleware
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
                 'pedido_resultado' => $request->session()->get('pedido_resultado'),
+                'pdf_url' => $request->session()->get('pdf_url'),
             ],
         ];
     }
