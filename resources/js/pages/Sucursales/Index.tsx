@@ -109,7 +109,10 @@ export default function Index({ sucursales }: Props) {
             <SucursalModal
                 open={isModalOpen}
                 sucursal={editingSucursal}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setEditingSucursal(null);
+                }}
             />
         </AppLayout>
     );

@@ -28,27 +28,35 @@ export default function SucursalModal({ sucursal, open, onClose }: Props) {
     });
 
     useEffect(() => {
-        if (sucursal) {
-            setData({
-                nombre_sucursal: sucursal.nombre_sucursal,
-                direccion: sucursal.direccion || '',
-                estado: sucursal.estado ?? true,
-            });
-        } else {
-            reset();
+        if (open) {
+            if (sucursal) {
+                setData({
+                    nombre_sucursal: sucursal.nombre_sucursal,
+                    direccion: sucursal.direccion || '',
+                    estado: sucursal.estado ?? true,
+                });
+            } else {
+                reset();
+            }
+            clearErrors();
         }
-        clearErrors();
     }, [sucursal, open]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (sucursal && sucursal.id) {
             put(sucursalesRoutes.update(sucursal.id).url, {
-                onSuccess: () => onClose(),
+                onSuccess: () => {
+                    onClose();
+                    reset();
+                },
             });
         } else {
             post(sucursalesRoutes.store().url, {
-                onSuccess: () => onClose(),
+                onSuccess: () => {
+                    onClose();
+                    reset();
+                },
             });
         }
     };
