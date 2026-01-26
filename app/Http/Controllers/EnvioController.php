@@ -280,7 +280,7 @@ class EnvioController extends Controller
         $pdf->Cell(95, 5, 'RECIBI CONFORME (DESTINO)', 0, 1, 'C');
 
         // Pie de página final
-        $pdf->SetY(-15);
+        $pdf->SetY(-30);
         $pdf->SetFont('Arial', 'I', 8);
         $pdf->Cell(0, 5, utf8_decode('Documento Generado por Sistema - MIRACODE'), 0, 0, 'C');
 

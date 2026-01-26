@@ -141,7 +141,7 @@ export default function EnvioModal({ productos, sucursales, open, onClose }: Pro
                             <div className="flex justify-between items-center">
                                 <Label className="text-sm font-black uppercase text-muted-foreground">Productos a Enviar</Label>
                                 <Button type="button" variant="outline" size="sm" onClick={handleAddItem} className="h-7 text-xs">
-                                    <Plus className="w-3 h-3 mr-1" /> Agregar Fila
+                                    <Plus className="w-3 h-3 mr-1" /> Agregar Producto
                                 </Button>
                             </div>
 
