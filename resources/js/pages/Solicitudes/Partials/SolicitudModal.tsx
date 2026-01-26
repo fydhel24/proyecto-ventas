@@ -10,6 +10,7 @@ import { useForm } from '@inertiajs/react';
 import solicitudesRoutes from '@/routes/solicitudes';
 import { useEffect, useState } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Producto {
     id: number;
@@ -49,9 +50,14 @@ export default function SolicitudModal({ productos, sucursales, open, onClose }:
         e.preventDefault();
         post(solicitudesRoutes.store().url, {
             onSuccess: () => {
+                toast.success('Solicitud enviada correctamente.');
                 onClose();
                 reset();
             },
+            onError: (errors) => {
+                const firstError = Object.values(errors)[0];
+                toast.error(firstError || 'Error al enviar la solicitud.');
+            }
         });
     };
 
