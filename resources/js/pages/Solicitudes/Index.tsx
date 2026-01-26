@@ -98,6 +98,28 @@ export default function Index({ recibidas, enviadas, productos, sucursales, filt
         }
     };
 
+    const handleRevert = (id: number) => {
+        if (confirm('¿Estás seguro de REVERTIR esta solicitud? El stock será devuelto a la sucursal de origen.')) {
+            router.patch(solicitudesRoutes.revert(id).url, {}, {
+                preserveScroll: true,
+                onSuccess: (page) => {
+                    const flash = (page.props as any).flash;
+                    if (flash?.success) {
+                        toast.success(flash.success);
+                    } else if (flash?.error) {
+                        toast.error(flash.error);
+                    } else {
+                        toast.success('Solicitud revertida correctamente.');
+                    }
+                },
+                onError: (errors) => {
+                    const errorMsg = Object.values(errors)[0] || 'Error al revertir la solicitud.';
+                    toast.error(errorMsg);
+                }
+            });
+        }
+    };
+
     const handlePageClick = (url: string | null) => {
         if (url) router.get(url, { search }, { preserveState: true });
     };
@@ -200,14 +222,27 @@ export default function Index({ recibidas, enviadas, productos, sucursales, filt
                                         </Button>
                                     )}
                                     {sol.estado === 'CONFIRMADO' && (
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => window.open(solicitudesRoutes.voucher(sol.id).url, '_blank')}
-                                            className="font-black text-[10px] uppercase tracking-widest h-8"
-                                        >
-                                            <Package className="w-3.5 h-3.5 mr-1.5" /> Ficha PDF
-                                        </Button>
+                                        <div className="flex gap-2 justify-end">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => window.open(solicitudesRoutes.voucher(sol.id).url, '_blank')}
+                                                className="font-black text-[10px] uppercase tracking-widest h-8"
+                                            >
+                                                <Package className="w-3.5 h-3.5 mr-1.5" /> Ficha PDF
+                                            </Button>
+                                            {/* Solo mostrar revertir en recibidas (la sucursal que confirmó es la que puede revertir) */}
+                                            {type === 'recibidas' && (
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    onClick={() => handleRevert(sol.id)}
+                                                    className="font-black text-[10px] uppercase tracking-widest h-8 bg-red-100 text-red-600 hover:bg-red-200 border-red-200"
+                                                >
+                                                    <AlertCircle className="w-3.5 h-3.5 mr-1.5" /> Revertir
+                                                </Button>
+                                            )}
+                                        </div>
                                     )}
                                 </TableCell>
                             </TableRow>

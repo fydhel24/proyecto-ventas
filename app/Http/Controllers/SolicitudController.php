@@ -308,4 +308,60 @@ class SolicitudController extends Controller
 
         return $pdf;
     }
+
+    public function revert($id)
+    {
+        $movimiento = Movimiento::with(['userOrigen', 'movimientoInventarios.inventario.sucursal'])->findOrFail($id);
+
+        if ($movimiento->tipo !== 'SOLICITUD') {
+            return redirect()->back()->with('error', 'El movimiento no es una solicitud.');
+        }
+
+        if ($movimiento->estado !== 'CONFIRMADO') {
+            return redirect()->back()->with('error', 'Solo se pueden revertir solicitudes confirmadas.');
+        }
+
+        $detalle = $movimiento->movimientoInventarios->first();
+        if (!$detalle) {
+            return redirect()->back()->with('error', 'No se encontró el detalle de la solicitud.');
+        }
+
+        $invProveedor = $detalle->inventario; // Quien proveyó el stock (y lo recuperará)
+        $cantidad = $detalle->cantidad_movimiento;
+
+        // Seguridad: Verificar permisos (solo el de la sucursal proveedora debería poder revertir lo que confirmó)
+        if (auth()->user()->sucursal_id !== $invProveedor->sucursal_id) {
+            return redirect()->back()->with('error', 'No tienes permisos para revertir solicitudes de otra sucursal.');
+        }
+
+        // Identificar sucursal solicitante (quien recibió el stock y ahora debe devolverlo)
+        $sucursalSolicitanteId = $movimiento->userOrigen->sucursal_id;
+        $invSolicitante = Inventario::where('sucursal_id', $sucursalSolicitanteId)
+            ->where('producto_id', $invProveedor->producto_id)
+            ->first();
+
+        // Verificar que el solicitante tenga stock suficiente para devolver
+        if (!$invSolicitante || $invSolicitante->stock < $cantidad) {
+            return redirect()->back()->with('error', 'La sucursal solicitante ya no tiene stock suficiente para revertir la operación.');
+        }
+
+        DB::transaction(function () use ($movimiento, $invProveedor, $invSolicitante, $cantidad, $detalle) {
+            // Devolver stock al proveedor
+            $invProveedor->increment('stock', $cantidad);
+
+            // Descontar stock del solicitante
+            $invSolicitante->decrement('stock', $cantidad);
+
+            // Volver estado a PENDIENTE
+            $movimiento->update(['estado' => 'PENDIENTE']);
+
+            // Actualizar auditoría (opcional, revertimos a valores previos)
+            $detalle->update([
+                'cantidad_actual' => $invProveedor->stock + $cantidad, 
+                'cantidad_nueva' => $invProveedor->stock,
+            ]);
+        });
+
+        return redirect()->back()->with('success', 'Solicitud revertida correctamente. El stock ha sido devuelto.');
+    }
 }
