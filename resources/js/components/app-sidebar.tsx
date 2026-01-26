@@ -12,9 +12,11 @@ import {
 import { dashboard, whatsappMiranda } from '@/routes';
 import productos from '@/routes/productos';
 import cuadernos from '@/routes/cuadernos';
+import sucursales from '@/routes/sucursales';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BarChart3, BookOpenText, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Send } from 'lucide-react';
+
+import { BarChart3, BookOpenText, CheckCircle2, Building, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Send } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -28,7 +30,12 @@ const mainNavItems: NavItem[] = [
         href: productos.index().url,
         icon: Package,
     },
-    
+    {
+        title: 'Sucursales',
+        href: sucursales.index().url,
+        icon: Building,
+    },
+
     {
         title: 'WhatsApp Bot',
         href: whatsappMiranda().url,

@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\CuadernoController;
 use App\Http\Controllers\MarcaController;
 use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\SucursalController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -51,6 +52,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports', [App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/orders', [App\Http\Controllers\ReportController::class, 'ordersReport'])->name('reports.orders');
     Route::get('/reports/products', [App\Http\Controllers\ReportController::class, 'productsReport'])->name('reports.products');
+
+    Route::resource('sucursales', SucursalController::class);
 });
 
 require __DIR__.'/settings.php';
