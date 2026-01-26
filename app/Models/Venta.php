@@ -22,12 +22,18 @@ class Venta extends Model
         'monto_total',
         'estado',
         'user_vendedor_id',
+        'sucursal_id',
     ];
 
     // Relaciones
     public function vendedor()
     {
         return $this->belongsTo(User::class, 'user_vendedor_id');
+    }
+
+    public function sucursal()
+    {
+        return $this->belongsTo(Sucursale::class);
     }
 
     public function detalles()

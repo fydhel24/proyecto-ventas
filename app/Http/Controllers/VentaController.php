@@ -31,10 +31,17 @@ class VentaController extends Controller
      */
     public function create()
     {
-        $sucursales = Sucursale::where('estado', true)->get();
+        $user = auth()->user();
         
-        return Inertia::render('Ventas/Create', [
-            'sucursales' => $sucursales,
+        if (!$user->sucursal_id) {
+            return redirect()->route('dashboard')->with('error', 'Su usuario no tiene una sucursal asignada.');
+        }
+
+        $sucursal = Sucursale::findOrFail($user->sucursal_id);
+        
+        return Inertia::render('Ventas/POS', [
+            'sucursal' => $sucursal,
+            'categorias' => \App\Models\Categoria::all(),
         ]);
     }
 
@@ -44,7 +51,6 @@ class VentaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'sucursal_id' => 'required|exists:sucursales,id',
             'cliente' => 'required|string',
             'ci' => 'nullable|string',
             'tipo_pago' => 'required|string',
@@ -60,6 +66,8 @@ class VentaController extends Controller
         try {
             DB::beginTransaction();
 
+            $user = auth()->user();
+
             $venta = Venta::create([
                 'cliente' => $request->cliente,
                 'ci' => $request->ci,
@@ -67,7 +75,8 @@ class VentaController extends Controller
                 'monto_total' => $request->monto_total,
                 'pagado' => $request->pagado,
                 'cambio' => $request->cambio,
-                'user_vendedor_id' => auth()->id(),
+                'user_vendedor_id' => $user->id,
+                'sucursal_id' => $user->sucursal_id,
                 'estado' => 'completado',
             ]);
 
@@ -91,7 +100,10 @@ class VentaController extends Controller
 
             DB::commit();
 
-            return redirect()->route('ventas.index')->with('success', 'Venta realizada con éxito');
+            return redirect()->route('ventas.index')->with([
+                'success' => 'Venta realizada con éxito',
+                'show_ticket' => $venta->id
+            ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -104,7 +116,12 @@ class VentaController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $venta = Venta::with(['vendedor', 'detalles.inventario.producto', 'sucursal'])
+            ->findOrFail($id);
+
+        return Inertia::render('Ventas/Ticket', [
+            'venta' => $venta
+        ]);
     }
 
     /**
@@ -133,22 +150,28 @@ class VentaController extends Controller
 
     public function searchProductos(Request $request)
     {
-        $request->validate([
-            'sucursal_id' => 'required|exists:sucursales,id',
-            'query' => 'nullable|string',
-        ]);
+        $user = auth()->user();
+        $sucursal_id = $user->sucursal_id;
+
+        if (!$sucursal_id) {
+            return response()->json(['error' => 'Usuario sin sucursal'], 403);
+        }
 
         $query = $request->input('query');
-        $sucursal_id = $request->input('sucursal_id');
+        $categoria_id = $request->input('categoria_id');
 
-        $inventarios = Inventario::with(['producto.marca', 'producto.categoria'])
+        $inventarios = Inventario::with(['producto.marca', 'producto.categoria', 'producto.fotos'])
             ->where('sucursal_id', $sucursal_id)
-            ->whereHas('producto', function($q) use ($query) {
+            ->whereHas('producto', function($q) use ($query, $categoria_id) {
                 if ($query) {
                     $q->where('nombre', 'like', "%{$query}%");
                 }
+                if ($categoria_id) {
+                    $q->where('categoria_id', $categoria_id);
+                }
+                $q->where('estado', 1);
             })
-            ->get();
+            ->paginate($request->input('per_page', 12));
 
         return response()->json($inventarios);
     }

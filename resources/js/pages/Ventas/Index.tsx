@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
-import { create } from '@/routes/ventas';
+import { create, show } from '@/routes/ventas';
 import { Plus, ShoppingCart, Eye } from 'lucide-react';
 import React from 'react';
 
@@ -89,8 +89,10 @@ export default function Index({ ventas }: Props) {
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <Button variant="ghost" size="icon">
-                                                    <Eye className="h-4 w-4" />
+                                                <Button variant="ghost" size="icon" asChild>
+                                                    <Link href={show(venta.id).url} target="_blank">
+                                                        <Eye className="h-4 w-4" />
+                                                    </Link>
                                                 </Button>
                                             </TableCell>
                                         </TableRow>
