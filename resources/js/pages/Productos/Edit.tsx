@@ -250,7 +250,7 @@ export default function Edit({
                       variant="outline"
                       role="combobox"
                       aria-expanded={marcaOpen}
-                      className="h-11 w-full justify-between"
+                      className="h-11 flex-1 justify-between"
                     >
                       {data.marca_id
                         ? marcas.find((m) => m.id === Number(data.marca_id))?.nombre_marca
@@ -311,7 +311,7 @@ export default function Edit({
                       variant="outline"
                       role="combobox"
                       aria-expanded={categoriaOpen}
-                      className="h-11 w-full justify-between"
+                      className="h-11 flex-1 justify-between"
                     >
                       {data.categoria_id
                         ? categorias.find((c) => c.id === Number(data.categoria_id))?.nombre_cat
