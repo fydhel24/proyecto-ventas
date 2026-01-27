@@ -25,8 +25,9 @@ class ReporteController extends Controller
         $tiposPago = $request->input('tipos_pago', []);
         $sucursalId = $request->input('sucursal_id', $isAdmin ? null : $user->sucursal_id);
 
-        // Query base con joins optimizados
+        // Query base con joins optimizados - SOLO COMPLETADOS
         $ventasQuery = Venta::with(['detalles.inventario.producto', 'vendedor', 'sucursal'])
+            ->where('estado', 'completado')
             ->whereBetween('created_at', [
                 Carbon::parse($fechaInicio)->startOfDay(),
                 Carbon::parse($fechaFin)->endOfDay()
@@ -82,10 +83,11 @@ class ReporteController extends Controller
 
     private function calcularEstadisticas($fechaInicio, $fechaFin, $sucursalId, $tiposPago, $query)
     {
-        $ventasQuery = Venta::whereBetween('created_at', [
-            Carbon::parse($fechaInicio)->startOfDay(),
-            Carbon::parse($fechaFin)->endOfDay()
-        ]);
+        $ventasQuery = Venta::where('estado', 'completado')
+            ->whereBetween('created_at', [
+                Carbon::parse($fechaInicio),
+                Carbon::parse($fechaFin)
+            ]);
 
         if ($sucursalId) {
             $ventasQuery->where('sucursal_id', $sucursalId);
@@ -129,6 +131,7 @@ class ReporteController extends Controller
 
             // Query para obtener ventas (límite de 500 para PDF)
             $ventasQuery = Venta::with(['detalles.inventario.producto', 'vendedor', 'sucursal'])
+                ->where('estado', 'completado')
                 ->whereBetween('created_at', [
                     Carbon::parse($fechaInicio)->startOfDay(),
                     Carbon::parse($fechaFin)->endOfDay()
