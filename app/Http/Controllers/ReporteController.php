@@ -217,7 +217,7 @@ class ReporteController extends Controller
             // Footer
             $pdf->Ln(5);
             $pdf->SetFont('Arial', 'I', 8);
-            $pdf->Cell(0, 5, utf8_decode('Generado el ' . now()->format('d/m/Y H:i') . ' - Nexus Sistema de Ventas'), 0, 1, 'C');
+            $pdf->Cell(0, 5, utf8_decode('Generado el ' . now()->format('d/m/Y H:i') . ' - MiraCode Sistema de Ventas'), 0, 1, 'C');
 
             return response($pdf->Output('S'), 200, [
                 'Content-Type' => 'application/pdf',

@@ -410,7 +410,7 @@ class VentaController extends Controller
             
             $pdf->Ln(2);
             $pdf->SetFont('Arial', '', 6);
-            $pdf->Cell(0, 3, 'Nexus System', 0, 1, 'C');
+            $pdf->Cell(0, 3, 'MiraCode', 0, 1, 'C');
 
             return response($pdf->Output('S'), 200, [
                 'Content-Type' => 'application/pdf',

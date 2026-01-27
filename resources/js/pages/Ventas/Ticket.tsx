@@ -69,7 +69,7 @@ export default function Ticket({ venta }: Props) {
 
             <div className="ticket-content">
                 <div className="text-center mb-4">
-                    <h1 className="text-xl font-bold uppercase">Nexus Proyecto</h1>
+                    <h1 className="text-xl font-bold uppercase">MiraCode Proyecto</h1>
                     <p className="text-sm font-bold">{venta.sucursal.nombre_sucursal}</p>
                     {venta.sucursal.direccion && <p className="text-[10px]">{venta.sucursal.direccion}</p>}
                     {venta.sucursal.telefono && <p className="text-[10px]">Telf: {venta.sucursal.telefono}</p>}
@@ -127,7 +127,7 @@ export default function Ticket({ venta }: Props) {
 
                 <div className="text-center mt-6 text-[10px]">
                     <p>¡Gracias por su compra!</p>
-                    <p>Nexus • Gestión Eficiente</p>
+                    <p>MiraCode • Gestión Eficiente</p>
                 </div>
 
                 <div className="no-print mt-10 text-center">
