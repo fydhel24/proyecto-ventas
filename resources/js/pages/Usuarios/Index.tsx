@@ -5,17 +5,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm } from '@inertiajs/react';
-import { Users, Plus, Trash2, Edit } from 'lucide-react';
-import React, { useState } from 'react';
+import { Head, useForm, router } from '@inertiajs/react'; // Import router for manual visits
+import { Users, Plus, Trash2, Edit, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { store, update, destroy } from '@/routes/usuarios';
+import { debounce } from 'lodash';
 
 interface User {
     id: number;
     name: string;
     email: string;
+    status: boolean;
     sucursal?: { id: number; nombre_sucursal: string };
     roles: { name: string }[];
 }
@@ -30,8 +33,23 @@ interface Role {
     name: string;
 }
 
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
 interface Props {
-    users: User[];
+    users: {
+        data: User[];
+        links: PaginationLink[];
+        current_page: number;
+        last_page: number;
+        total: number;
+    };
+    filters: {
+        search?: string;
+    };
     sucursales: Sucursal[];
     roles: Role[];
 }
@@ -41,9 +59,10 @@ const breadcrumbs = [
     { title: 'Usuarios', href: '/usuarios' },
 ];
 
-export default function Index({ users, sucursales, roles }: Props) {
+export default function Index({ users, filters, sucursales, roles }: Props) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [searchTerm, setSearchTerm] = useState(filters.search || '');
 
     const { data, setData, post, patch, processing, reset, errors } = useForm({
         name: '',
@@ -51,7 +70,24 @@ export default function Index({ users, sucursales, roles }: Props) {
         password: '',
         sucursal_id: '',
         role: '',
+        status: true,
     });
+
+    // Debounced search
+    const handleSearch = React.useCallback(
+        debounce((term: string) => {
+            router.get(
+                '/usuarios',
+                { search: term },
+                { preserveState: true, replace: true }
+            );
+        }, 300),
+        []
+    );
+
+    useEffect(() => {
+        handleSearch(searchTerm);
+    }, [searchTerm, handleSearch]);
 
     const openCreate = () => {
         setEditingUser(null);
@@ -67,6 +103,7 @@ export default function Index({ users, sucursales, roles }: Props) {
             password: '',
             sucursal_id: user.sucursal?.id.toString() || '',
             role: user.roles[0]?.name || '',
+            status: user.status,
         });
         setIsDialogOpen(true);
     };
@@ -100,20 +137,43 @@ export default function Index({ users, sucursales, roles }: Props) {
         }
     };
 
+    const toggleStatus = (user: User) => {
+        router.put(update({ usuario: user.id }).url, {
+            ...user,
+            sucursal_id: user.sucursal?.id,
+            role: user.roles[0]?.name,
+            status: !user.status
+        }, {
+            preserveScroll: true,
+            onSuccess: () => toast.success(`Usuario ${!user.status ? 'activado' : 'desactivado'}`),
+        });
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Usuarios" />
             <div className="flex flex-1 flex-col gap-6 p-6 overflow-y-auto">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Gestión de Usuarios</h1>
                         <p className="text-muted-foreground mt-1">Administra los accesos y sucursales del personal</p>
                     </div>
 
-                    <Button onClick={openCreate}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Nuevo Usuario
-                    </Button>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <div className="relative flex-1 sm:w-64">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Buscar usuarios..."
+                                className="pl-8"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                        <Button onClick={openCreate}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Nuevo
+                        </Button>
+                    </div>
                 </div>
 
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -184,6 +244,16 @@ export default function Index({ users, sucursales, roles }: Props) {
                                     {errors.role && <p className="text-xs text-red-500">{errors.role}</p>}
                                 </div>
                             </div>
+                            <div className="flex items-center space-x-2">
+                                <Switch
+                                    id="status-mode"
+                                    checked={data.status}
+                                    onCheckedChange={(checked) => setData('status', checked)}
+                                />
+                                <label htmlFor="status-mode" className="text-sm font-medium">
+                                    Usuario Activo
+                                </label>
+                            </div>
                             <Button type="submit" className="w-full mt-4" disabled={processing}>
                                 {processing ? 'Procesando...' : (editingUser ? 'Actualizar' : 'Crear Usuario')}
                             </Button>
@@ -196,6 +266,9 @@ export default function Index({ users, sucursales, roles }: Props) {
                         <CardTitle className="text-lg flex items-center gap-2">
                             <Users className="h-5 w-5" />
                             Listado de Personal
+                            <Badge variant="secondary" className="ml-2">
+                                {users.total} Usuarios
+                            </Badge>
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -206,37 +279,95 @@ export default function Index({ users, sucursales, roles }: Props) {
                                     <TableHead>Email</TableHead>
                                     <TableHead>Sucursal</TableHead>
                                     <TableHead>Rol</TableHead>
+                                    <TableHead>Estado</TableHead>
                                     <TableHead className="text-right">Acciones</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {users.map((user) => (
-                                    <TableRow key={user.id}>
-                                        <TableCell className="font-medium">{user.name}</TableCell>
-                                        <TableCell>{user.email}</TableCell>
-                                        <TableCell>{user.sucursal?.nombre_sucursal || 'Sin sucursal'}</TableCell>
-                                        <TableCell>
-                                            <Badge variant="outline" className="capitalize">
-                                                {user.roles[0]?.name || 'Sin rol'}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right flex justify-end gap-2">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => openEdit(user)}>
-                                                <Edit className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 text-destructive"
-                                                onClick={() => handleDelete(user.id)}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                {users.data.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                                            No se encontraron usuarios
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                ) : (
+                                    users.data.map((user) => (
+                                        <TableRow key={user.id}>
+                                            <TableCell className="font-medium">{user.name}</TableCell>
+                                            <TableCell>{user.email}</TableCell>
+                                            <TableCell>{user.sucursal?.nombre_sucursal || 'Sin sucursal'}</TableCell>
+                                            <TableCell>
+                                                <Badge variant="outline" className="capitalize">
+                                                    {user.roles[0]?.name || 'Sin rol'}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <Switch
+                                                        checked={user.status}
+                                                        onCheckedChange={() => toggleStatus(user)}
+                                                    />
+                                                    <span className={`text-xs ${user.status ? 'text-green-500' : 'text-muted-foreground'}`}>
+                                                        {user.status ? 'Activo' : 'Inactivo'}
+                                                    </span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-right flex justify-end gap-2">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => openEdit(user)}>
+                                                    <Edit className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 text-destructive"
+                                                    onClick={() => handleDelete(user.id)}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
                             </TableBody>
                         </Table>
+
+                        {/* Pagination */}
+                        <div className="flex items-center justify-between space-x-2 py-4">
+                            <div className="text-sm text-muted-foreground">
+                                Página {users.current_page} de {users.last_page}
+                            </div>
+                            <div className="space-x-2 flex">
+                                {users.links.map((link, i) => {
+                                    if (link.label.includes('Previous')) {
+                                        return (
+                                            <Button
+                                                key={i}
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => link.url && router.get(link.url, { search: searchTerm })}
+                                                disabled={!link.url}
+                                            >
+                                                <ChevronLeft className="h-4 w-4" />
+                                            </Button>
+                                        );
+                                    }
+                                    if (link.label.includes('Next')) {
+                                        return (
+                                            <Button
+                                                key={i}
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => link.url && router.get(link.url, { search: searchTerm })}
+                                                disabled={!link.url}
+                                            >
+                                                <ChevronRight className="h-4 w-4" />
+                                            </Button>
+                                        );
+                                    }
+                                    return null; // For simplicty only prev/next, or implement full numbers if needed
+                                })}
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
             </div>

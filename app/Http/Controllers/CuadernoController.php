@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ImageService;
 use App\Models\Cuaderno;
 use App\Models\ImagenCuaderno;
 use App\Models\Imagene;
@@ -11,6 +12,7 @@ use App\Models\Inventario;
 use FPDF;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -18,6 +20,14 @@ use Inertia\Inertia;
 
 class CuadernoController extends Controller
 {
+    protected ImageService $imageService;
+
+    // ✅ AGREGA ESTE CONSTRUCTOR
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
+
     public function createPedido()
     {
         // Obtener Almacen para cargar productos disponibles
@@ -206,35 +216,36 @@ class CuadernoController extends Controller
         return back()->with('success', 'Producto agregado correctamente. Stock descontado del Almacén');
     }
 
-    public function pedidos(Request $request)
-    {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'ci' => 'nullable|string|max:20',
-            'celular' => 'required|string|max:20',
-            'departamento' => 'required|string|max:100',
-            'provincia' => 'required|string|max:100',
-            'tipo' => 'nullable|string|max:50',
-            'estado' => 'nullable|string|max:50',
-            'productos' => 'nullable|array',
-            'productos.*.producto_id' => 'required_with:productos|exists:productos,id',
-            'productos.*.cantidad' => 'required_with:productos|integer|min:1',
-            'productos.*.precio_venta' => 'required_with:productos|numeric|min:0',
-            'imagenes' => 'nullable|array',
-            'imagenes.*' => 'image|mimes:jpeg,png,jpg,gif',
-            'tipos_imagenes' => 'nullable|array',
-            'tipos_imagenes.*' => 'required_with:imagenes|string|in:producto,comprobante',
-            'cantidades_imagenes' => 'nullable|array',
-            'cantidades_imagenes.*' => 'required_with:imagenes|integer|min:1',
-        ]);
+public function pedidos(Request $request)
+{
+    $request->validate([
+        'nombre' => 'required|string|max:255',
+        'ci' => 'nullable|string|max:20',
+        'celular' => 'required|string|max:20',
+        'departamento' => 'required|string|max:100',
+        'provincia' => 'required|string|max:100',
+        'tipo' => 'nullable|string|max:50',
+        'estado' => 'nullable|string|max:50',
+        'productos' => 'nullable|array',
+        'productos.*.producto_id' => 'required_with:productos|exists:productos,id',
+        'productos.*.cantidad' => 'required_with:productos|integer|min:1',
+        'productos.*.precio_venta' => 'required_with:productos|numeric|min:0',
+        'imagenes' => 'nullable|array',
+        'imagenes.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
+        'tipos_imagenes' => 'nullable|array',
+        'tipos_imagenes.*' => 'required_with:imagenes|string|in:producto,comprobante',
+        'cantidades_imagenes' => 'nullable|array',
+        'cantidades_imagenes.*' => 'required_with:imagenes|integer|min:1',
+    ]);
+
+    try {
+        DB::beginTransaction();
 
         $celular = preg_replace('/[^0-9]/', '', $request->celular);
-        $hoy = now()->toDateString();
-
         $departamento = strtolower(trim($request->departamento));
         $provincia = strtolower(trim($request->provincia));
-
         $esLaPaz = $departamento === 'la paz' && $provincia === 'recojo en tienda';
+
         $cuaderno = Cuaderno::create([
             'nombre' => $request->nombre,
             'ci' => $request->ci,
@@ -252,7 +263,6 @@ class CuadernoController extends Controller
             if ($almacen) {
                 $productosData = [];
                 foreach ($request->productos as $item) {
-                    // Obtener inventario del Almacen y descontar stock
                     $inventario = Inventario::where('producto_id', $item['producto_id'])
                         ->where('sucursal_id', $almacen->id)
                         ->first();
@@ -270,37 +280,64 @@ class CuadernoController extends Controller
             }
         }
 
-        // Subir imágenes
+        // Convertir y guardar imágenes en WebP
+        $imagenesGuardadas = 0;
+
         if ($request->hasFile('imagenes') && $request->has('tipos_imagenes')) {
-            $imagenes = $request->file('imagenes');
+            $imagenesFiles = $request->file('imagenes');
             $tipos = $request->input('tipos_imagenes', []);
             $cantidades = $request->input('cantidades_imagenes', []);
-            $total = min(count($imagenes), count($tipos));
+
+            $total = min(count($imagenesFiles), count($tipos));
+
             for ($i = 0; $i < $total; $i++) {
-                $imagen = $imagenes[$i];
+                $imagen = $imagenesFiles[$i];
                 $tipo = $tipos[$i];
                 $cantidad = $cantidades[$i] ?? 1;
+
                 if ($imagen && $imagen->isValid()) {
-                    $ruta = $imagen->store('imagenes', 'public');
-                    $imagenModel = Imagene::create(['url' => $ruta]);
-                    ImagenCuaderno::create([
-                        'cuaderno_id' => $cuaderno->id,
-                        'imagen_id' => $imagenModel->id,
-                        'tipo' => $tipo,
-                        'cantidad' => $cantidad,
-                    ]);
+                    try {
+                        // CONVERTIR A WEBP (devuelve solo la ruta string)
+                        $rutaWebP = $this->imageService->convertToWebP(
+                            $imagen,
+                            'pedidos/imagenes', // Carpeta específica
+                            ['quality' => 85] // Solo calidad, sin redimensionar
+                        );
+
+                        // Guardar en base de datos (solo url, como tu modelo actual)
+                        $imagenModel = Imagene::create([
+                            'url' => $rutaWebP, // String directamente
+                        ]);
+
+                        // Relacionar con cuaderno
+                        ImagenCuaderno::create([
+                            'cuaderno_id' => $cuaderno->id,
+                            'imagen_id' => $imagenModel->id,
+                            'tipo' => $tipo,
+                            'cantidad' => $cantidad,
+                        ]);
+
+                        $imagenesGuardadas++;
+
+                    } catch (\Exception $e) {
+                        \Log::error("Error al convertir imagen {$i} a WebP: " . $e->getMessage());
+                        throw $e;
+                    }
                 }
             }
         }
+
+        DB::commit();
+
+        // Generar PDF
         $pdfPath = $this->guardarPdfDePedido($cuaderno->id);
         $pdfUrl = Storage::disk('public')->url($pdfPath);
         $pdfBase64 = base64_encode(Storage::disk('public')->get($pdfPath));
 
-        // Verificar conexión de WhatsApp
+        // WhatsApp
         $whatsappToken = $this->getWhatsAppTokenIfConnected();
-
-        // Enviar por WhatsApp si está conectado
         $whatsappEnviado = false;
+
         if ($whatsappToken) {
             $whatsappEnviado = $this->enviarPdfPorNestApiConToken($cuaderno->id, $cuaderno->celular, $whatsappToken);
         }
@@ -311,15 +348,25 @@ class CuadernoController extends Controller
             'pdf_url' => $pdfUrl,
             'pdf_path' => $pdfPath,
             'whatsapp_enviado' => $whatsappEnviado,
+            'imagenes_webp' => $imagenesGuardadas,
         ];
 
-        // Si WhatsApp NO está conectado, enviamos el base64 para descarga automática
         if (!$whatsappToken) {
             $responseParams['pdf_base64'] = $pdfBase64;
         }
 
         return redirect()->back()->with('pedido_resultado', $responseParams);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        \Log::error('Error al registrar pedido: ' . $e->getMessage());
+
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Error al registrar el pedido: ' . $e->getMessage());
     }
+}
 
     public function qrDetails(Request $request)
     {

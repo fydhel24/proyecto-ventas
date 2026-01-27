@@ -24,7 +24,6 @@ class ShopController extends Controller
             $productos = Producto::where('nombre', 'like', "%{$query}%")
                 ->orWhere('caracteristicas', 'like', "%{$query}%")
                 ->with('fotos')
-                ->where('stock', '>', 0)
                 ->select('id', 'nombre', 'precio_1')
                 ->limit((int)$limit)
                 ->get();
@@ -52,8 +51,7 @@ class ShopController extends Controller
 
     public function index(Request $request)
     {
-        $query = Producto::with(['marca', 'categoria', 'fotos'])
-            ->where('stock', '>', 0);
+        $query = Producto::with(['marca', 'categoria', 'fotos']);
 
         // Filtro por búsqueda
         if ($search = $request->input('search')) {
@@ -81,9 +79,6 @@ class ShopController extends Controller
         }
 
         // Filtro solo productos en stock
-        if ($request->input('in_stock') === '1') {
-            $query->where('stock', '>', 0);
-        }
 
         // Ordenación
         $sort = $request->input('sort', 'latest');
@@ -119,7 +114,6 @@ class ShopController extends Controller
         $sugerencias = Producto::with(['marca', 'fotos'])
             ->where('categoria_id', $producto->categoria_id)
             ->where('id', '!=', $producto->id)
-            ->where('stock', '>', 0)
             ->limit(4)
             ->get();
 
