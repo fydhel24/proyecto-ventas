@@ -131,13 +131,11 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias }: Props
         setIsLoading(true);
         try {
             const response = await axios.get(searchProductos({
-                query: {
-                    query: search,
-                    categoria_id: selectedCategory === 'all' ? null : selectedCategory,
-                    sucursal_id: currentSucursalId,
-                    page: page,
-                    per_page: 12
-                }
+                query: search,
+                categoria_id: selectedCategory === 'all' ? null : selectedCategory,
+                sucursal_id: currentSucursalId,
+                page: page,
+                per_page: 12
             }).url);
             setPagination(response.data);
             setItems(response.data.data);

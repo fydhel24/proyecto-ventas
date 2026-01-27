@@ -367,6 +367,9 @@ export default function Edit({
               </Label>
               <Input
                 id="precio_compra"
+                type="number"
+                step="0.01"
+                min="0"
                 placeholder="0.00"
                 value={data.precio_compra}
                 onChange={(e) => setData('precio_compra', e.target.value)}
@@ -382,6 +385,9 @@ export default function Edit({
               </Label>
               <Input
                 id="precio_1"
+                type="number"
+                step="0.01"
+                min="0"
                 placeholder="0.00"
                 value={data.precio_1}
                 onChange={(e) => setData('precio_1', e.target.value)}
@@ -389,7 +395,7 @@ export default function Edit({
               />
             </div>
 
-            {/* Stock field removed */},
+            {/* Stock field removed */}
 
             {/* Botón precios adicionales */}
             <div className="md:col-span-2 flex items-center">
@@ -421,6 +427,9 @@ export default function Edit({
                   </Label>
                   <Input
                     id="precio_2"
+                    type="number"
+                    step="0.01"
+                    min="0"
                     placeholder="0.00"
                     value={data.precio_2}
                     onChange={(e) => setData('precio_2', e.target.value)}
@@ -434,6 +443,9 @@ export default function Edit({
                   </Label>
                   <Input
                     id="precio_3"
+                    type="number"
+                    step="0.01"
+                    min="0"
                     placeholder="0.00"
                     value={data.precio_3}
                     onChange={(e) => setData('precio_3', e.target.value)}

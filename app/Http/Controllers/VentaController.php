@@ -167,7 +167,13 @@ class VentaController extends Controller
             : $user->sucursal_id;
 
         if (!$sucursal_id) {
-            return response()->json(['error' => 'No se especificó la sucursal'], 403);
+            // Fallback: Use the first available branch if user has no branch assigned
+            $firstSucursal = \App\Models\Sucursale::first();
+            $sucursal_id = $firstSucursal ? $firstSucursal->id : null;
+        }
+
+        if (!$sucursal_id) {
+            return response()->json(['error' => 'No se encontró ninguna sucursal disponible systema.'], 403);
         }
 
         $query = $request->input('query');
