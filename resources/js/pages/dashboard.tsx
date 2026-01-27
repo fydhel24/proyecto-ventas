@@ -7,8 +7,10 @@ import { ColorThemeSelector } from '@/components/color-theme-selector';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
+import { SharedData } from '@/types';
 import * as React from 'react';
+import AppLogo from '@/components/app-logo';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Label, LabelList, Line, LineChart, Pie, PieChart, ResponsiveContainer, Sector, XAxis, YAxis } from 'recharts';
 import { type PieSectorDataItem } from "recharts/types/polar/Pie";
 import { Package, ShoppingCart, AlertCircle, MessageSquare, TrendingUp } from 'lucide-react';
@@ -103,6 +105,46 @@ export default function Dashboard({ stats }: DashboardProps) {
             return date >= startDate;
         });
     }, [timeRange, stats.ordersOverTime]);
+
+    const { auth } = usePage<SharedData>().props;
+    const roles = auth.user.roles || [];
+    const isAdmin = roles.includes('admin');
+
+    if (!isAdmin) {
+        return (
+            <AppLayout breadcrumbs={breadcrumbs}>
+                <Head title="Bienvenido" />
+                <div className="flex flex-1 flex-col gap-6 p-6 overflow-y-auto h-full">
+                    {/* Header con selector de temas */}
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight">Bienvenido, {auth.user.name}</h1>
+                            <p className="text-muted-foreground mt-1">Panel de control</p>
+                        </div>
+                        <ColorThemeSelector />
+                    </div>
+
+                    <div className="flex flex-1 items-center justify-center min-h-[60vh]">
+                        <div className="text-center space-y-6 max-w-2xl px-4">
+                            <div className="relative flex flex-col items-center">
+                                <div className="mb-6 transform hover:scale-110 transition-transform duration-300">
+                                    <AppLogo />
+                                </div>
+                                <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-[var(--sidebar-primary)] to-[var(--sidebar-accent)] opacity-20 blur transition duration-1000 group-hover:opacity-100 animate-pulse"></div>
+                                <h2 className="relative text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[var(--sidebar-foreground)] to-[var(--sidebar-primary)]"
+                                    style={{ textShadow: '0 0 30px rgba(var(--sidebar-primary-rgb), 0.1)' }}>
+                                    "Empieza un día a comenzar tus ventas"
+                                </h2>
+                            </div>
+                            <p className="text-xl text-muted-foreground">
+                                Tu sistema de gestión de ventas está listo para ayudarte a alcanzar tus metas de hoy.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </AppLayout>
+        );
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -326,7 +368,9 @@ export default function Dashboard({ stats }: DashboardProps) {
                                     >
                                         {stats.statusDistribution.map((entry, index) => {
                                             const configKey = entry.status.toLowerCase().replace(/\s+/g, '_');
-                                            const color = statusChartConfig[configKey as keyof typeof statusChartConfig]?.color || entry.fill;
+                                            // Fix: Use optional chaining correctly for config and check for color property
+                                            const config = statusChartConfig[configKey as keyof typeof statusChartConfig];
+                                            const color = (config && 'color' in config) ? config.color : entry.fill;
                                             return <Cell key={`cell-${index}`} fill={color} />;
                                         })}
                                         <Label

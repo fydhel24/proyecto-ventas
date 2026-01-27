@@ -82,3 +82,7 @@ Puedes administrar qué permisos tiene cada rol desde el módulo de **Roles** en
 
 > [!TIP]
 > El rol `admin` tiene permiso total por defecto en el hook `usePermissions`. Si deseas cambiar esto, modifica el archivo `resources/js/hooks/use-permissions.ts`.
+
+
+para hacer un reset con --seeder
+php artisan migrate:fresh --seed

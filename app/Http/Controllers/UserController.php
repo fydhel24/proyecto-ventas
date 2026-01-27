@@ -15,10 +15,22 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->input('search');
+        
+        $users = User::with(['sucursal', 'roles'])
+            ->when($search, function ($query, $search) {
+                $query->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
         return Inertia::render('Usuarios/Index', [
-            'users' => User::with(['sucursal', 'roles'])->latest()->get(),
+            'users' => $users,
+            'filters' => $request->only(['search']),
             'sucursales' => Sucursale::where('estado', true)->get(),
             'roles' => Role::all(),
         ]);
@@ -35,6 +47,7 @@ class UserController extends Controller
             'password' => ['required', Rules\Password::defaults()],
             'sucursal_id' => 'required|exists:sucursales,id',
             'role' => 'required|exists:roles,name',
+            'status' => 'boolean',
         ]);
 
         $user = User::create([
@@ -42,6 +55,7 @@ class UserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'sucursal_id' => $request->sucursal_id,
+            'status' => $request->input('status', true),
         ]);
 
         $user->assignRole($request->role);
@@ -62,12 +76,14 @@ class UserController extends Controller
             'password' => ['nullable', Rules\Password::defaults()],
             'sucursal_id' => 'required|exists:sucursales,id',
             'role' => 'required|exists:roles,name',
+            'status' => 'boolean',
         ]);
 
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
             'sucursal_id' => $request->sucursal_id,
+            'status' => $request->input('status', true),
         ]);
 
         if ($request->password) {
