@@ -19,7 +19,6 @@ interface Caja {
     qr_inicial: number;
     monto_inicial: number;
     monto_final?: number;
-    total_ventas?: number;
     total_efectivo?: number;
     total_qr?: number;
     diferencia?: number;
@@ -149,7 +148,7 @@ export default function Show({ caja, totalVentas, totalEfectivo, totalQr }: Prop
                             </div>
                             <div className="flex justify-between items-center p-4 bg-muted/50 rounded-lg border-t-2 border-primary">
                                 <span className="text-base font-bold">TOTAL VENTAS</span>
-                                <span className="text-2xl font-black">Bs. {caja.estado === 'cerrada' ? caja.total_ventas : totalVentas.toFixed(2)}</span>
+                                <span className="text-2xl font-black">Bs. {caja.estado === 'cerrada' ? caja.monto_final : totalVentas.toFixed(2)}</span>
                             </div>
                         </CardContent>
                     </Card>

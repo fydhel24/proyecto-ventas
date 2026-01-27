@@ -38,6 +38,9 @@ const breadcrumbs = [
 export default function Index({ sucursales, isAdmin }: Props) {
     const [isOpenAllModalOpen, setIsOpenAllModalOpen] = useState(false);
     const [isCloseAllModalOpen, setIsCloseAllModalOpen] = useState(false);
+    const [selectedSucursal, setSelectedSucursal] = useState<Sucursal | null>(null);
+    const [isOpenModalOpen, setIsOpenModalOpen] = useState(false);
+    const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
 
     const { data: openAllData, setData: setOpenAllData, post: postOpenAll, processing: processingOpenAll, errors: errorsOpenAll, reset: resetOpenAll } = useForm({
         efectivo_inicial: '',
@@ -45,6 +48,16 @@ export default function Index({ sucursales, isAdmin }: Props) {
     });
 
     const { data: closeAllData, setData: setCloseAllData, post: postCloseAll, processing: processingCloseAll, errors: errorsCloseAll, reset: resetCloseAll } = useForm({
+        monto_final: '',
+    });
+
+    const { data: openData, setData: setOpenData, post: postOpen, processing: processingOpen, errors: errorsOpen, reset: resetOpen } = useForm({
+        sucursal_id: 0,
+        efectivo_inicial: '',
+        qr_inicial: '',
+    });
+
+    const { data: closeData, setData: setCloseData, put: putClose, processing: processingClose, errors: errorsClose, reset: resetClose } = useForm({
         monto_final: '',
     });
 
@@ -70,6 +83,45 @@ export default function Index({ sucursales, isAdmin }: Props) {
             },
             onError: () => toast.error('Error al cerrar las cajas')
         });
+    };
+
+    const handleOpenBox = (e: React.FormEvent) => {
+        e.preventDefault();
+        postOpen(cajas.store().url, {
+            onSuccess: () => {
+                setIsOpenModalOpen(false);
+                resetOpen();
+                setSelectedSucursal(null);
+                toast.success('Caja abierta correctamente');
+            },
+            onError: () => toast.error('Error al abrir la caja')
+        });
+    };
+
+    const handleCloseBox = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedSucursal?.caja_abierta) return;
+
+        putClose(cajas.update(selectedSucursal.caja_abierta.id).url, {
+            onSuccess: () => {
+                setIsCloseModalOpen(false);
+                resetClose();
+                setSelectedSucursal(null);
+                toast.success('Caja cerrada correctamente');
+            },
+            onError: () => toast.error('Error al cerrar la caja')
+        });
+    };
+
+    const openBoxModal = (sucursal: Sucursal) => {
+        setSelectedSucursal(sucursal);
+        setOpenData('sucursal_id', sucursal.id);
+        setIsOpenModalOpen(true);
+    };
+
+    const closeBoxModal = (sucursal: Sucursal) => {
+        setSelectedSucursal(sucursal);
+        setIsCloseModalOpen(true);
     };
 
     const hasOpenBoxes = sucursales.some(s => s.caja_abierta !== null);
@@ -148,12 +200,40 @@ export default function Index({ sucursales, isAdmin }: Props) {
                                     </div>
                                 )}
                             </CardContent>
-                            <CardFooter className="pt-3 border-t">
-                                <Button className="w-full group-hover:bg-primary group-hover:text-primary-foreground" variant="outline" asChild>
-                                    <Link href={history(sucursal.id).url}>
-                                        Gestionar Caja <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                    </Link>
-                                </Button>
+                            <CardFooter className="pt-3 border-t flex gap-2">
+                                {sucursal.caja_abierta ? (
+                                    <>
+                                        <Button
+                                            className="flex-1"
+                                            variant="destructive"
+                                            size="sm"
+                                            onClick={() => closeBoxModal(sucursal)}
+                                        >
+                                            <Lock className="mr-2 w-4 h-4" /> Cerrar Caja
+                                        </Button>
+                                        <Button className="flex-1" variant="outline" size="sm" asChild>
+                                            <Link href={history(sucursal.id).url}>
+                                                Ver Detalles <ArrowRight className="ml-2 w-4 h-4" />
+                                            </Link>
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Button
+                                            className="flex-1"
+                                            variant="default"
+                                            size="sm"
+                                            onClick={() => openBoxModal(sucursal)}
+                                        >
+                                            <Unlock className="mr-2 w-4 h-4" /> Abrir Caja
+                                        </Button>
+                                        <Button className="flex-1" variant="outline" size="sm" asChild>
+                                            <Link href={history(sucursal.id).url}>
+                                                Ver Historial <ArrowRight className="ml-2 w-4 h-4" />
+                                            </Link>
+                                        </Button>
+                                    </>
+                                )}
                             </CardFooter>
                         </Card>
                     ))}
@@ -249,6 +329,94 @@ export default function Index({ sucursales, isAdmin }: Props) {
                             <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setIsCloseAllModalOpen(false)}>Cancelar</Button>
                                 <Button type="submit" variant="destructive" disabled={processingCloseAll}>Cerrar Todas</Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Individual Open Box Modal */}
+                <Dialog open={isOpenModalOpen} onOpenChange={setIsOpenModalOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Abrir Caja</DialogTitle>
+                            <DialogDescription>
+                                {selectedSucursal?.nombre_sucursal}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleOpenBox} className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="efectivo_inicial">Efectivo Inicial</Label>
+                                    <Input
+                                        id="efectivo_inicial"
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        placeholder="0.00"
+                                        value={openData.efectivo_inicial}
+                                        onChange={(e) => setOpenData('efectivo_inicial', e.target.value)}
+                                    />
+                                    {errorsOpen.efectivo_inicial && <span className="text-sm text-destructive">{errorsOpen.efectivo_inicial}</span>}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="qr_inicial">QR Inicial</Label>
+                                    <Input
+                                        id="qr_inicial"
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        placeholder="0.00"
+                                        value={openData.qr_inicial}
+                                        onChange={(e) => setOpenData('qr_inicial', e.target.value)}
+                                    />
+                                    {errorsOpen.qr_inicial && <span className="text-sm text-destructive">{errorsOpen.qr_inicial}</span>}
+                                </div>
+                            </div>
+                            <div className="p-4 bg-muted/50 rounded-lg border">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm font-semibold">Monto Inicial Total:</span>
+                                    <span className="text-xl font-bold">
+                                        Bs. {((parseFloat(openData.efectivo_inicial) || 0) + (parseFloat(openData.qr_inicial) || 0)).toFixed(2)}
+                                    </span>
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <Button type="button" variant="outline" onClick={() => setIsOpenModalOpen(false)}>Cancelar</Button>
+                                <Button type="submit" disabled={processingOpen}>Abrir Caja</Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Individual Close Box Modal */}
+                <Dialog open={isCloseModalOpen} onOpenChange={setIsCloseModalOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Cerrar Caja</DialogTitle>
+                            <DialogDescription>
+                                {selectedSucursal?.nombre_sucursal}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleCloseBox} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="monto_final">Monto Final en Efectivo</Label>
+                                <Input
+                                    id="monto_final"
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    placeholder="0.00"
+                                    value={closeData.monto_final}
+                                    onChange={(e) => setCloseData('monto_final', e.target.value)}
+                                    required
+                                    autoFocus
+                                    className="text-lg font-bold"
+                                />
+                                {errorsClose.monto_final && <span className="text-sm text-destructive">{errorsClose.monto_final}</span>}
+                            </div>
+                            <DialogFooter>
+                                <Button type="button" variant="outline" onClick={() => setIsCloseModalOpen(false)}>Cancelar</Button>
+                                <Button type="submit" variant="destructive" disabled={processingClose}>Cerrar Caja</Button>
                             </DialogFooter>
                         </form>
                     </DialogContent>
