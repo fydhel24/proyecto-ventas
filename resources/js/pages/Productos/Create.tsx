@@ -61,6 +61,7 @@ export default function Create({
     precio_1: '',
     precio_2: '',
     precio_3: '',
+    // stock removed
     fotos: [] as File[],
   });
 
@@ -368,6 +369,23 @@ export default function Create({
               />
             </div>
 
+            {/* Stock Inicial */}
+            {/* <div className="space-y-2">
+              <Label htmlFor="stock" className="flex items-center gap-1.5 text-sm font-medium">
+                <Hash className="h-4 w-4" />
+                Stock Inicial
+              </Label>
+              <Input
+                id="stock"
+                type="number"
+                min="0"
+                placeholder="0"
+                value={data.stock}
+                onChange={(e) => setData('stock', e.target.value)}
+                className="h-11"
+              />
+            </div> */}
+
             {/* Precio por unidad */}
             <div className="space-y-2">
               <Label htmlFor="precio_1" className="flex items-center gap-1.5 text-sm font-medium">
@@ -377,10 +395,13 @@ export default function Create({
               <Input
                 id="precio_1"
                 placeholder="0.00"
+                value={data.precio_1}
                 onChange={(e) => setData('precio_1', e.target.value)}
                 className="h-11"
               />
             </div>
+
+            {/* Stock Inicial removed */},
 
             {/* Botón precios adicionales */}
             <div className="md:col-span-2 flex items-center">
@@ -413,6 +434,7 @@ export default function Create({
                   <Input
                     id="precio_2"
                     placeholder="0.00"
+                    value={data.precio_2}
                     onChange={(e) => setData('precio_2', e.target.value)}
                     className="h-11"
                   />
@@ -425,6 +447,7 @@ export default function Create({
                   <Input
                     id="precio_3"
                     placeholder="0.00"
+                    value={data.precio_3}
                     onChange={(e) => setData('precio_3', e.target.value)}
                     className="h-11"
                   />
@@ -439,11 +462,10 @@ export default function Create({
                 Imágenes del producto
               </Label>
               <div
-                className={`cursor-pointer rounded-lg border-2 border-dashed p-5 text-center transition-colors ${
-                  data.fotos.length > 0
-                    ? 'border-primary/30 bg-primary/5'
-                    : 'border-gray-300 hover:border-primary/50'
-                }`}
+                className={`cursor-pointer rounded-lg border-2 border-dashed p-5 text-center transition-colors ${data.fotos.length > 0
+                  ? 'border-primary/30 bg-primary/5'
+                  : 'border-gray-300 hover:border-primary/50'
+                  }`}
                 onDrop={(e) => {
                   e.preventDefault();
                   const files = Array.from(e.dataTransfer.files).filter((file) =>

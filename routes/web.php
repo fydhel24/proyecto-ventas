@@ -213,7 +213,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ===== HERRAMIENTAS =====
     Route::get('/whatsapp-miranda', function () {
         return Inertia::render('whatsapp-miranda');
-    })->name('whatsapp-miranda');
+    })->name('whatsapp-miranda')->middleware('can:ver whatsapp');
 });
 
 require __DIR__.'/settings.php';

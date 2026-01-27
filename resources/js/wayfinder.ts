@@ -28,6 +28,10 @@ export function queryParams(options?: RouteQueryOptions): string {
     return query ? `?${query}` : '';
 }
 
-export function applyUrlDefaults(url: string, defaults?: RouteQueryOptions): string {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function applyUrlDefaults(url: string | any, defaults?: RouteQueryOptions): string | any {
+    if (typeof url !== 'string') {
+        return url;
+    }
     return url + queryParams(defaults);
 }

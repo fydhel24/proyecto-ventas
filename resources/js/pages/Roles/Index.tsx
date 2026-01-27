@@ -83,6 +83,9 @@ const PERMISSION_GROUPS: Record<string, string[]> = {
         'asignar permisos',
         'editar roles',
     ],
+    'Herramientas': [
+        'ver whatsapp',
+    ],
 };
 
 export default function Index({ roles, all_permissions }: Props) {
@@ -98,6 +101,7 @@ export default function Index({ roles, all_permissions }: Props) {
 
     const { data, setData, post, processing, reset, errors } = useForm({
         name: '',
+        permissions: [] as string[],
     });
 
     const { data: permData, setData: setPermData, patch: patchPerms, processing: processingPerms } = useForm({
@@ -135,7 +139,7 @@ export default function Index({ roles, all_permissions }: Props) {
         e.preventDefault();
         if (!selectedRole) return;
 
-        patchPerms(update(selectedRole.id.toString()).url, {
+        patchPerms(update({ role: selectedRole.id }).url, {
             onSuccess: () => {
                 setIsPermissionDialogOpen(false);
                 toast.success('Permisos actualizados correctamente');
@@ -187,24 +191,99 @@ export default function Index({ roles, all_permissions }: Props) {
                                 Nuevo Rol
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                            <DialogHeader>
+                        <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col p-0 overflow-hidden">
+                            <DialogHeader className="p-6 border-b">
                                 <DialogTitle>Crear Nuevo Rol</DialogTitle>
                             </DialogHeader>
-                            <form onSubmit={submit} className="space-y-4 pt-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Nombre del Rol</label>
-                                    <Input
-                                        value={data.name}
-                                        onChange={(e) => setData('name', e.target.value)}
-                                        placeholder="ej: supervisor"
-                                        autoFocus
-                                    />
-                                    {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
+                            <form onSubmit={submit} className="flex flex-col flex-1 overflow-hidden">
+                                <div className="p-6 overflow-y-auto flex-1 space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Nombre del Rol</label>
+                                        <Input
+                                            value={data.name}
+                                            onChange={(e) => setData('name', e.target.value)}
+                                            placeholder="ej: supervisor"
+                                            autoFocus
+                                        />
+                                        {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-medium text-muted-foreground border-b pb-2">Asignar Permisos</h3>
+                                        {Object.entries(PERMISSION_GROUPS).map(([groupName, groupPermissions]) => {
+                                            const isExpanded = expandedGroups[groupName] !== false;
+                                            // Calculate based on form data 'permissions' which doesn't exist yet in the default form object, 
+                                            // we need to update the useForm hook above first.
+                                            // Actually I'll use the 'permData' for the separate dialog, 
+                                            // but for this CREATE form, I should add 'permissions' to the main 'data' object.
+                                            const currentPermissions = (data as any).permissions || [];
+                                            const assigned = groupPermissions.filter(p => currentPermissions.includes(p)).length;
+                                            const total = groupPermissions.length;
+
+                                            return (
+                                                <div key={groupName} className="border rounded-lg overflow-hidden">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => toggleGroup(groupName)}
+                                                        className="w-full flex items-center justify-between p-4 bg-muted/50 hover:bg-muted/70 transition-colors"
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <ChevronDown
+                                                                className={`h-5 w-5 text-muted-foreground transition-transform ${!isExpanded ? '-rotate-90' : ''}`}
+                                                            />
+                                                            <span className="font-semibold text-sm">{groupName}</span>
+                                                            <span className="text-xs text-muted-foreground ml-2">
+                                                                {assigned}/{total}
+                                                            </span>
+                                                        </div>
+                                                    </button>
+
+                                                    {isExpanded && (
+                                                        <div className="p-4 bg-background space-y-3 border-t">
+                                                            {groupPermissions.map((permissionName) => {
+                                                                const permission = all_permissions.find(p => p.name === permissionName);
+                                                                if (!permission) return null;
+
+                                                                const isChecked = ((data as any).permissions || []).includes(permission.name);
+
+                                                                return (
+                                                                    <div key={permission.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/30 transition-colors">
+                                                                        <Checkbox
+                                                                            id={`create-perm-${permission.id}`}
+                                                                            checked={isChecked}
+                                                                            onCheckedChange={(checked) => {
+                                                                                const current = [...((data as any).permissions || [])];
+                                                                                if (checked) {
+                                                                                    current.push(permission.name);
+                                                                                } else {
+                                                                                    const idx = current.indexOf(permission.name);
+                                                                                    if (idx > -1) current.splice(idx, 1);
+                                                                                }
+                                                                                setData('permissions' as any, current);
+                                                                            }}
+                                                                            className="border-primary/50 data-[state=checked]:bg-primary"
+                                                                        />
+                                                                        <label
+                                                                            htmlFor={`create-perm-${permission.id}`}
+                                                                            className="text-sm font-medium leading-none cursor-pointer select-none flex-1"
+                                                                        >
+                                                                            {permission.name}
+                                                                        </label>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
-                                <Button type="submit" className="w-full" disabled={processing}>
-                                    {processing ? 'Guardando...' : 'Guardar Rol'}
-                                </Button>
+                                <DialogFooter className="p-6 border-t bg-muted/20">
+                                    <Button type="submit" className="w-full sm:w-auto" disabled={processing}>
+                                        {processing ? 'Creando Rol...' : 'Crear Rol y Asignar Permisos'}
+                                    </Button>
+                                </DialogFooter>
                             </form>
                         </DialogContent>
                     </Dialog>

@@ -43,7 +43,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'ver envios',
                 'crear envios',
             ],
-            'Ventas' => [
+            'Ventas y Pedidos' => [
                 'ver ventas',
                 'crear ventas',
                 'editar ventas',
@@ -65,6 +65,9 @@ class RolesAndPermissionsSeeder extends Seeder
                 'crear roles',
                 'asignar permisos',
                 'editar roles',
+            ],
+            'Herramientas' => [
+                'ver whatsapp',
             ],
         ];
 

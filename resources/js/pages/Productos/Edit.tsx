@@ -64,6 +64,7 @@ export default function Edit({
     precio_1: String(producto.precio_1) || '',
     precio_2: producto.precio_2 ? String(producto.precio_2) : '',
     precio_3: producto.precio_3 ? String(producto.precio_3) : '',
+    // stock removed
     fotos: [] as File[],
     _method: 'PUT', // 👈 Simula una petición PUT
   });
@@ -388,6 +389,8 @@ export default function Edit({
               />
             </div>
 
+            {/* Stock field removed */},
+
             {/* Botón precios adicionales */}
             <div className="md:col-span-2 flex items-center">
               <Button
@@ -447,11 +450,10 @@ export default function Edit({
                 Imágenes del producto
               </Label>
               <div
-                className={`cursor-pointer rounded-lg border-2 border-dashed p-5 text-center transition-colors ${
-                  data.fotos.length > 0
-                    ? 'border-primary/30 bg-primary/5'
-                    : 'border-gray-300 hover:border-primary/50'
-                }`}
+                className={`cursor-pointer rounded-lg border-2 border-dashed p-5 text-center transition-colors ${data.fotos.length > 0
+                  ? 'border-primary/30 bg-primary/5'
+                  : 'border-gray-300 hover:border-primary/50'
+                  }`}
                 onDrop={(e) => {
                   e.preventDefault();
                   const files = Array.from(e.dataTransfer.files).filter((file) =>

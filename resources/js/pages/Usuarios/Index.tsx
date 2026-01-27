@@ -74,7 +74,7 @@ export default function Index({ users, sucursales, roles }: Props) {
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         if (editingUser) {
-            patch(update(editingUser.id.toString()).url, {
+            patch(update({ usuario: editingUser.id }).url, {
                 onSuccess: () => {
                     setIsDialogOpen(false);
                     toast.success('Usuario actualizado');

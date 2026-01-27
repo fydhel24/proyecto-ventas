@@ -21,7 +21,7 @@ class ProductoRequest extends FormRequest
             'caracteristicas' => 'nullable|string',
             'marca_id' => 'required|exists:marcas,id',
             'categoria_id' => 'required|exists:categorias,id',
-            'stock' => 'required|integer|min:0',
+            // 'stock' removed as it's not in the model
             'estado' => 'required|boolean',
             'fecha' => 'required|date',
             'precio_compra' => 'required|numeric|min:0',
