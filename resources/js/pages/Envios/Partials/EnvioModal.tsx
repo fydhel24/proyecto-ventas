@@ -7,10 +7,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { useForm } from '@inertiajs/react';
-import solicitudesRoutes from '@/routes/solicitudes';
+import enviosRoutes from '@/routes/envios';
 import { useEffect, useState } from 'react';
 import { Check, ChevronDown, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 
 interface Producto {
     id: number;
@@ -29,26 +30,26 @@ interface Props {
     onClose: () => void;
 }
 
-interface SolicitudItem {
+interface EnvioItem {
     producto_id: string;
     cantidad: string;
     nombre_producto?: string;
 }
 
-export default function SolicitudModal({ productos, sucursales, open, onClose }: Props) {
+export default function EnvioModal({ productos, sucursales, open, onClose }: Props) {
     const [openComboboxIndex, setOpenComboboxIndex] = useState<number | null>(null);
 
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
-        sucursal_origen_id: '',
         sucursal_destino_id: '',
         descripcion: '',
-        productos: [] as SolicitudItem[],
+        productos: [] as EnvioItem[],
     });
 
     useEffect(() => {
         if (open) {
             reset();
             clearErrors();
+            // Iniciar con una fila vacía
             setData('productos', [{ producto_id: '', cantidad: '' }]);
         }
     }, [open]);
@@ -63,7 +64,7 @@ export default function SolicitudModal({ productos, sucursales, open, onClose }:
         setData('productos', newProductos);
     };
 
-    const updateItem = (index: number, field: keyof SolicitudItem, value: string) => {
+    const updateItem = (index: number, field: keyof EnvioItem, value: string) => {
         const newProductos = [...data.productos];
         newProductos[index] = { ...newProductos[index], [field]: value };
 
@@ -78,21 +79,31 @@ export default function SolicitudModal({ productos, sucursales, open, onClose }:
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Validar que no haya filas vacías
         const isValid = data.productos.every(p => p.producto_id && Number(p.cantidad) > 0);
         if (!isValid) {
             toast.error('Por favor completa todos los productos y cantidades.');
             return;
         }
 
-        post(solicitudesRoutes.store().url, {
-            onSuccess: () => {
-                toast.success('Solicitud enviada correctamente.');
-                onClose();
-                reset();
+        post(enviosRoutes.store().url, {
+            onSuccess: (page) => {
+                const flash = (page.props as any).flash;
+                if (flash?.error) {
+                    toast.error(flash.error);
+                } else {
+                    toast.success('Envío realizado correctamente.');
+                    // Intentar abrir el PDF si viene en el flash o construir la URL
+                    if (flash?.pdf_url) {
+                        window.open(flash.pdf_url, '_blank');
+                    }
+                    onClose();
+                    reset();
+                }
             },
             onError: (errors) => {
                 const firstError = Object.values(errors)[0];
-                toast.error(firstError || 'Error al enviar la solicitud.');
+                toast.error(firstError || 'Error al procesar el envío.');
             }
         });
     };
@@ -102,27 +113,25 @@ export default function SolicitudModal({ productos, sucursales, open, onClose }:
             <DialogContent className="sm:max-w-[700px]">
                 <form onSubmit={handleSubmit}>
                     <DialogHeader>
-                        <DialogTitle>Nueva Solicitud de Stock (Multi-producto)</DialogTitle>
+                        <DialogTitle>Nuevo Envío de Stock (Multi-producto)</DialogTitle>
                     </DialogHeader>
 
                     <div className="grid gap-6 py-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="sucursal_destino">Sucursal a la que se Pide (Destino)</Label>
+                            <Label htmlFor="sucursal_destino">Destino del Envío</Label>
                             <Select
                                 value={data.sucursal_destino_id}
                                 onValueChange={(value) => setData('sucursal_destino_id', value)}
                             >
-                                <SelectTrigger id="sucursal_destino">
-                                    <SelectValue placeholder="Seleccionar..." />
+                                <SelectTrigger id="sucursal_destino" className="h-11">
+                                    <SelectValue placeholder="Seleccionar sucursal de destino" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {sucursales
-                                        .map((s) => (
-                                            <SelectItem key={s.id} value={s.id.toString()}>
-                                                {s.nombre_sucursal}
-                                            </SelectItem>
-                                        ))
-                                    }
+                                    {sucursales.map((s) => (
+                                        <SelectItem key={s.id} value={s.id.toString()}>
+                                            {s.nombre_sucursal}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                             {errors.sucursal_destino_id && <p className="text-sm text-red-500">{errors.sucursal_destino_id}</p>}
@@ -130,7 +139,7 @@ export default function SolicitudModal({ productos, sucursales, open, onClose }:
 
                         <div className="border rounded-xl p-4 bg-muted/30 space-y-4">
                             <div className="flex justify-between items-center">
-                                <Label className="text-sm font-black uppercase text-muted-foreground">Productos Solicitados</Label>
+                                <Label className="text-sm font-black uppercase text-muted-foreground">Productos a Enviar</Label>
                                 <Button type="button" variant="outline" size="sm" onClick={handleAddItem} className="h-7 text-xs">
                                     <Plus className="w-3 h-3 mr-1" /> Agregar Producto
                                 </Button>
@@ -158,7 +167,7 @@ export default function SolicitudModal({ productos, sucursales, open, onClose }:
                                                 </PopoverTrigger>
                                                 <PopoverContent className="w-[300px] p-0" align="start">
                                                     <Command>
-                                                        <CommandInput placeholder="Buscar..." />
+                                                        <CommandInput placeholder="Buscar producto..." />
                                                         <CommandList>
                                                             <CommandEmpty>No encontrado.</CommandEmpty>
                                                             <CommandGroup>
@@ -210,12 +219,12 @@ export default function SolicitudModal({ productos, sucursales, open, onClose }:
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="descripcion">Motivo / Descripción</Label>
+                            <Label htmlFor="descripcion">Observaciones / Nota de Envío</Label>
                             <Textarea
                                 id="descripcion"
                                 value={data.descripcion}
                                 onChange={(e) => setData('descripcion', e.target.value)}
-                                placeholder="Ej. Reposición de stock urgente"
+                                placeholder="Ej. Envío urgente solicitado por teléfono"
                             />
                             {errors.descripcion && <p className="text-sm text-red-500">{errors.descripcion}</p>}
                         </div>
@@ -226,7 +235,7 @@ export default function SolicitudModal({ productos, sucursales, open, onClose }:
                             Cancelar
                         </Button>
                         <Button type="submit" disabled={processing} className="bg-blue-600 hover:bg-blue-700">
-                            Enviar Solicitud
+                            Confirmar Envío
                         </Button>
                     </DialogFooter>
                 </form>

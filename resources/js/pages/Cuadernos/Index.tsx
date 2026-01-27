@@ -437,8 +437,8 @@ export default function CuadernosIndex({
                     return (
                         <div className="flex flex-col gap-2 min-w-[200px]">
                             <div className="flex flex-col gap-1.5">
-                                {item.productos.map((p) => (
-                                    <div key={p.id} className="flex items-center justify-between text-xs p-1.5 rounded-md bg-muted/50 border border-transparent hover:border-border transition-colors">
+                                {item.productos.map((p, i) => (
+                                    <div key={`${p.id}-${i}`} className="flex items-center justify-between text-xs p-1.5 rounded-md bg-muted/50 border border-transparent hover:border-border transition-colors">
                                         <span className="font-medium truncate max-w-[100px]" title={p.nombre}>{p.nombre}</span>
                                         <div className="flex items-center gap-2 text-muted-foreground">
                                             <span className="bg-background px-1.5 rounded border text-[10px]">x{p.pivot.cantidad}</span>
@@ -703,7 +703,7 @@ export default function CuadernosIndex({
                     </Card>
                 </div>
             </div>
-            <AddProductoModal open={modalOpen} onClose={() => setModalOpen(false)} onSave={handleAddProducto} />
+            <AddProductoModal open={modalOpen} onClose={() => setModalOpen(false)} onSave={handleAddProducto} productos={productos} />
             <Dialog open={imageModalOpen} onOpenChange={setImageModalOpen}>
                 <DialogContent className="sm:max-w-[600px]">
                     <DialogHeader><DialogTitle>Vista Previa de Imagen</DialogTitle></DialogHeader>

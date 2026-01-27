@@ -5,6 +5,7 @@ use App\Http\Controllers\CuadernoController;
 use App\Http\Controllers\MarcaController;
 use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\SolicitudController;
+use App\Http\Controllers\EnvioController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\SucursalController;
 use Illuminate\Support\Facades\Route;
@@ -69,7 +70,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('sucursales', SucursalController::class);
     Route::resource('inventarios', InventarioController::class);
+    Route::patch('solicitudes/{id}/confirm', [SolicitudController::class, 'confirm'])->name('solicitudes.confirm');
+    Route::patch('solicitudes/{id}/revert', [SolicitudController::class, 'revert'])->name('solicitudes.revert');
+    Route::get('solicitudes/{id}/voucher', [SolicitudController::class, 'downloadVoucher'])->name('solicitudes.voucher');
     Route::resource('solicitudes', SolicitudController::class);
+    Route::get('envios/{id}/voucher', [EnvioController::class, 'downloadVoucher'])->name('envios.voucher');
+    Route::resource('envios', EnvioController::class);
 });
 
 require __DIR__.'/settings.php';

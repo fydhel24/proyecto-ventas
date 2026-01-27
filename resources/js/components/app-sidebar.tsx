@@ -18,9 +18,10 @@ import cuadernos from '@/routes/cuadernos';
 import sucursales from '@/routes/sucursales';
 import inventarios from '@/routes/inventarios';
 import solicitudes from '@/routes/solicitudes';
+import envios from '@/routes/envios';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BarChart3, BookOpenText, Boxes, Building, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Send, ShieldCheck, ShoppingCart, Users } from 'lucide-react';
+import { BarChart3, BookOpenText, Boxes, Building, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Send, ShieldCheck, ShoppingCart, Truck, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 import { usePermissions } from '@/hooks/use-permissions';
 
@@ -47,19 +48,24 @@ const mainNavItems: NavItem[] = [
         title: 'Inventarios',
         href: inventarios.index().url,
         icon: Boxes,
+        permission: 'ver inventarios',
         items: [
             {
-                title: 'Stock Consolidado',
-                href: inventarios.index().url,
-                icon: List,
+                title: 'Administrar Stock',
+                href: '/inventarios',
+                icon: Boxes,
             },
             {
                 title: 'Solicitudes',
                 href: solicitudes.index().url,
                 icon: Send,
             },
+            {
+                title: 'Envíos',
+                href: envios.index().url,
+                icon: Truck,
+            },
         ],
-        permission: 'ver inventarios',
     },
 
     {

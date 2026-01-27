@@ -29,4 +29,9 @@ class Movimiento extends Model
     {
         return $this->belongsTo(User::class, 'user_destino_id');
     }
+
+    public function movimientoInventarios()
+    {
+        return $this->hasMany(MovimientoInventario::class);
+    }
 }

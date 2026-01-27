@@ -22,7 +22,15 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
             <SidebarMenu>
                 {items.map((item) => {
                     const hasSubItems = item.items && item.items.length > 0;
-                    const isActive = page.url.startsWith(resolveUrl(item.href));
+
+                    // Check if the item itself is active
+                    let isActive = page.url.startsWith(resolveUrl(item.href));
+
+                    // Also check if any sub-item is active (to keep parent open/highlighted)
+                    if (hasSubItems && item.items) {
+                        const isChildActive = item.items.some(subItem => page.url.startsWith(resolveUrl(subItem.href)));
+                        if (isChildActive) isActive = true;
+                    }
 
                     if (!hasSubItems) {
                         return (

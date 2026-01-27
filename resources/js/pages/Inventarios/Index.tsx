@@ -80,6 +80,8 @@ export default function Index({ productos_inventario, productos_all, sucursales,
 
     // Búsqueda con debounce
     useEffect(() => {
+        if (search === (filters?.search || '')) return;
+
         const handler = setTimeout(() => {
             router.get(inventariosRoutes.index().url, { search }, { preserveState: true, replace: true });
         }, 300);
@@ -185,7 +187,7 @@ export default function Index({ productos_inventario, productos_all, sucursales,
                                 <span className="p-2 bg-primary/10 rounded-2xl shadow-inner">
                                     <Boxes className="w-9 h-9 text-primary" />
                                 </span>
-                                Stock <span className="text-primary italic">Consolidado</span>
+                                Administrar Stock <span className="text-primary italic">Sucursales</span>
                             </h1>
                             <p className="text-muted-foreground text-sm font-medium pl-1 border-l-2 border-primary/20 ml-2">
                                 Gestión inteligente de productos por sucursal y almacén.
