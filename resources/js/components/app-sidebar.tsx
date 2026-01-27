@@ -19,9 +19,10 @@ import sucursales from '@/routes/sucursales';
 import inventarios from '@/routes/inventarios';
 import solicitudes from '@/routes/solicitudes';
 import envios from '@/routes/envios';
+import cajas from '@/routes/cajas';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BarChart3, BookOpenText, Boxes, Building, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Send, ShieldCheck, ShoppingCart, Truck, Users } from 'lucide-react';
+import { BarChart3, BookOpenText, Boxes, Building, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Send, ShieldCheck, ShoppingCart, Truck, Users, Wallet } from 'lucide-react';
 import AppLogo from './app-logo';
 import { usePermissions } from '@/hooks/use-permissions';
 
@@ -156,6 +157,12 @@ const mainNavItems: NavItem[] = [
         href: whatsappMiranda().url,
         icon: MessageCircle,
         permission: 'ver whatsapp',
+    },
+    {
+        title: 'Cajas',
+        href: cajas.index().url,
+        icon: Wallet,
+        permission: 'ver ventas', // Using 'ver ventas' for now as a reasonable default, can be changed later
     },
 ];
 

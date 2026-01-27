@@ -173,6 +173,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/{venta}/pdf', [App\Http\Controllers\VentaController::class, 'pdf'])->name('pdf');
     });
 
+    // ===== CAJAS =====
+    Route::post('cajas/open-all', [App\Http\Controllers\CajaController::class, 'openAll'])->name('cajas.openAll');
+    Route::post('cajas/close-all', [App\Http\Controllers\CajaController::class, 'closeAll'])->name('cajas.closeAll');
+    Route::get('cajas/sucursal/{sucursal}', [App\Http\Controllers\CajaController::class, 'history'])->name('cajas.history');
+    Route::resource('cajas', App\Http\Controllers\CajaController::class);
+
     // ===== REPORTES =====
     Route::prefix('reportes')->name('reportes.')->middleware('can:ver reportes')->group(function () {
         Route::get('/ventas', [App\Http\Controllers\ReporteController::class, 'ventas'])->name('ventas');

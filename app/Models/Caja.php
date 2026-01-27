@@ -22,12 +22,10 @@ class Caja extends Model
         'total_efectivo',
         'total_qr',
         'monto_final',
-        'total_ventas',
         'diferencia',
         'estado',
     ];
 
-    // 🔗 Relaciones
     public function usuarioApertura()
     {
         return $this->belongsTo(User::class, 'user_apertura_id');
