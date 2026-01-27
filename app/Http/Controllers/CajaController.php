@@ -57,11 +57,25 @@ class CajaController extends Controller
              return redirect()->route('cajas.index')->with('error', 'No tiene permiso para ver esta sucursal.');
         }
 
+        $search = $request->input('search');
+
         $query = Caja::where('sucursal_id', $sucursal->id)
             ->with(['usuarioApertura', 'usuarioCierre'])
+            ->when($search, function ($q, $search) {
+                $q->where(function ($query) use ($search) {
+                    $query->where('id', 'like', "%{$search}%")
+                        ->orWhere('estado', 'like', "%{$search}%")
+                        ->orWhereHas('usuarioApertura', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('usuarioCierre', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        });
+                });
+            })
             ->latest();
 
-        $cajas = $query->paginate(15);
+        $cajas = $query->paginate(15)->withQueryString();
         
         $cajaAbierta = Caja::where('sucursal_id', $sucursal->id)
                 ->whereNull('fecha_cierre')
@@ -74,6 +88,9 @@ class CajaController extends Controller
             'cajas' => $cajas,
             'cajaAbierta' => $cajaAbierta,
             'isAdmin' => $isAdmin,
+            'filters' => [
+                'search' => $search,
+            ],
         ]);
     }
 

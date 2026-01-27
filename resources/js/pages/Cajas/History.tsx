@@ -12,6 +12,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { usePermissions } from '@/hooks/use-permissions';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationNext,
+    PaginationPrevious,
+    PaginationEllipsis
+} from '@/components/ui/pagination';
+import { Search } from 'lucide-react';
+import { router } from '@inertiajs/react'; // Add router import
 
 interface Caja {
     id: number;
@@ -33,12 +43,55 @@ interface Props {
     };
     cajaAbierta?: Caja;
     isAdmin: boolean;
+    filters: { search?: string };
 }
 
-export default function History({ sucursal, cajas: cajasList, cajaAbierta, isAdmin }: Props) {
+interface PaginatedData<T> {
+    data: T[];
+    links: Array<{
+        url: string | null;
+        label: string;
+        active: boolean;
+    }>;
+    total: number;
+    from: number;
+    to: number;
+}
+
+export default function History({ sucursal, cajas: cajasList, cajaAbierta, isAdmin, filters }: Props) {
     const [isOpenModalOpen, setIsOpenModalOpen] = useState(false);
     const { user } = usePage().props.auth as any;
     const { hasPermission } = usePermissions();
+    const [search, setSearch] = useState(filters?.search || '');
+
+    const handlePageClick = (url: string | null) => {
+        if (url) router.get(url, { search }, { preserveState: true });
+    };
+
+    const renderPagination = (paginated: any) => (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-6 border-t bg-muted/20">
+            <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-background/50 px-4 py-2 rounded-full border">
+                {paginated.from || 0}-{paginated.to || 0} de {paginated.total} registros
+            </div>
+            <Pagination className="w-auto mx-0">
+                <PaginationContent className="gap-1">
+                    {paginated.links.map((link: any, i: number) => (
+                        <PaginationItem key={i}>
+                            <Button
+                                variant={link.active ? "default" : "outline"}
+                                size="sm"
+                                disabled={!link.url}
+                                onClick={() => handlePageClick(link.url)}
+                                className="h-8 min-w-[32px]"
+                            >
+                                <span dangerouslySetInnerHTML={{ __html: link.label.replace('&laquo;', '').replace('&raquo;', '') }} />
+                            </Button>
+                        </PaginationItem>
+                    ))}
+                </PaginationContent>
+            </Pagination>
+        </div>
+    );
 
     const { data: openData, setData: setOpenData, post: postOpen, processing: processingOpen, errors: errorsOpen, reset: resetOpen } = useForm({
         sucursal_id: sucursal.id,
@@ -164,10 +217,29 @@ export default function History({ sucursal, cajas: cajasList, cajaAbierta, isAdm
                 {/* History Section */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                            <Wallet className="h-5 w-5" />
-                            Historial
-                        </CardTitle>
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <Wallet className="h-5 w-5" />
+                                Historial
+                            </CardTitle>
+                            <div className="relative w-full sm:w-64">
+                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    type="search"
+                                    placeholder="Buscar..."
+                                    className="pl-8 bg-background"
+                                    value={search}
+                                    onChange={(e) => {
+                                        setSearch(e.target.value);
+                                        router.get(
+                                            window.location.href,
+                                            { search: e.target.value },
+                                            { preserveState: true, replace: true }
+                                        );
+                                    }}
+                                />
+                            </div>
+                        </div>
                     </CardHeader>
                     <CardContent>
                         <Table>
@@ -224,6 +296,7 @@ export default function History({ sucursal, cajas: cajasList, cajaAbierta, isAdm
                             </TableBody>
                         </Table>
                     </CardContent>
+                    {renderPagination(cajasList)}
                 </Card>
 
                 {/* Open Box Modal */}
