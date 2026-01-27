@@ -162,7 +162,7 @@ const mainNavItems: NavItem[] = [
         title: 'Cajas',
         href: cajas.index().url,
         icon: Wallet,
-        permission: 'ver ventas', // Using 'ver ventas' for now as a reasonable default, can be changed later
+        permission: 'ver cajas',
     },
 ];
 

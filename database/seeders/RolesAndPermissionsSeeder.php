@@ -69,6 +69,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'Herramientas' => [
                 'ver whatsapp',
             ],
+            'Cajas' => [
+                'ver cajas',
+                'abrir cajas',
+                'cerrar cajas',
+                'ver reportes cajas',
+            ],
         ];
 
         // Crear todos los permisos
@@ -94,6 +100,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'crear ventas',
             'ver cuadernos',
             'crear cuadernos',
+            'ver cajas',
+            'abrir cajas',
+            'cerrar cajas',
         ]);
 
         // Almacenero: maneja inventarios y solicitudes
@@ -128,6 +137,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'editar cuadernos',
             'ver reportes',
             'exportar reportes',
+            'ver cajas',
+            'abrir cajas',
+            'cerrar cajas',
+            'ver reportes cajas',
         ]);
 
         // create a default admin user if none exists

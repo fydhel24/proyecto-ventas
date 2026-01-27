@@ -7,6 +7,7 @@ import { update, history } from '@/routes/cajas';
 import { ArrowLeft, User, Calendar, DollarSign, Wallet, AlertTriangle, CheckCircle } from 'lucide-react';
 import React from 'react';
 import { toast } from 'sonner';
+import { usePermissions } from '@/hooks/use-permissions';
 
 interface Caja {
     id: number;
@@ -41,6 +42,7 @@ const breadcrumbs = [
 export default function Show({ caja, totalVentas, totalEfectivo, totalQr }: Props) {
     // Calcular esperado
     const efectivoEsperado = Number(caja.efectivo_inicial) + Number(totalEfectivo);
+    const { hasPermission } = usePermissions();
 
     // Setup form for put request (even if empty) to handle loading state
     const { put: putClose, processing: processingClose } = useForm({});
@@ -81,7 +83,7 @@ export default function Show({ caja, totalVentas, totalEfectivo, totalQr }: Prop
                         </h1>
                         <p className="text-muted-foreground">{caja.sucursal.nombre_sucursal}</p>
                     </div>
-                    {caja.estado === 'abierta' && (
+                    {caja.estado === 'abierta' && hasPermission('cerrar cajas') && (
                         <Button variant="destructive" className="ml-auto" onClick={handleCloseBox} disabled={processingClose}>
                             Cerrar Caja
                         </Button>

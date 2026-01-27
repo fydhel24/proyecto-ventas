@@ -174,11 +174,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // ===== CAJAS =====
-    Route::post('cajas/open-all', [App\Http\Controllers\CajaController::class, 'openAll'])->name('cajas.openAll');
-    Route::post('cajas/close-all', [App\Http\Controllers\CajaController::class, 'closeAll'])->name('cajas.closeAll');
-    Route::get('cajas/sucursal/{sucursal}', [App\Http\Controllers\CajaController::class, 'history'])->name('cajas.history');
-    Route::get('cajas/{caja}/reporte-pdf', [App\Http\Controllers\CajaController::class, 'reportePdf'])->name('cajas.reportePdf');
-    Route::resource('cajas', App\Http\Controllers\CajaController::class);
+    Route::middleware('can:ver cajas')->group(function () {
+        Route::post('cajas/open-all', [App\Http\Controllers\CajaController::class, 'openAll'])->name('cajas.openAll');
+        Route::post('cajas/close-all', [App\Http\Controllers\CajaController::class, 'closeAll'])->name('cajas.closeAll');
+        Route::get('cajas/sucursal/{sucursal}', [App\Http\Controllers\CajaController::class, 'history'])->name('cajas.history');
+        Route::get('cajas/{caja}/reporte-pdf', [App\Http\Controllers\CajaController::class, 'reportePdf'])->name('cajas.reportePdf');
+        Route::resource('cajas', App\Http\Controllers\CajaController::class);
+    });
 
     // ===== REPORTES =====
     Route::prefix('reportes')->name('reportes.')->middleware('can:ver reportes')->group(function () {

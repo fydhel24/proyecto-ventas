@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { usePermissions } from '@/hooks/use-permissions';
 
 interface Caja {
     id: number;
@@ -36,6 +37,7 @@ const breadcrumbs = [
 ];
 
 export default function Index({ sucursales, isAdmin }: Props) {
+    const { hasPermission } = usePermissions();
     const [isOpenAllModalOpen, setIsOpenAllModalOpen] = useState(false);
     const [isCloseAllModalOpen, setIsCloseAllModalOpen] = useState(false);
     const [selectedSucursal, setSelectedSucursal] = useState<Sucursal | null>(null);
@@ -146,20 +148,24 @@ export default function Index({ sucursales, isAdmin }: Props) {
                     </div>
                     {isAdmin && (
                         <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                onClick={() => setIsOpenAllModalOpen(true)}
-                                disabled={!hasClosedBoxes}
-                            >
-                                <UnlockKeyhole className="mr-2 h-4 w-4" /> Abrir Todas
-                            </Button>
-                            <Button
-                                variant="destructive"
-                                onClick={handleCloseAll}
-                                disabled={!hasOpenBoxes || processingCloseAll}
-                            >
-                                <LockKeyhole className="mr-2 h-4 w-4" /> Cerrar Todas
-                            </Button>
+                            {hasPermission('abrir cajas') && (
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setIsOpenAllModalOpen(true)}
+                                    disabled={!hasClosedBoxes}
+                                >
+                                    <UnlockKeyhole className="mr-2 h-4 w-4" /> Abrir Todas
+                                </Button>
+                            )}
+                            {hasPermission('cerrar cajas') && (
+                                <Button
+                                    variant="destructive"
+                                    onClick={handleCloseAll}
+                                    disabled={!hasOpenBoxes || processingCloseAll}
+                                >
+                                    <LockKeyhole className="mr-2 h-4 w-4" /> Cerrar Todas
+                                </Button>
+                            )}
                         </div>
                     )}
                 </div>
@@ -211,15 +217,17 @@ export default function Index({ sucursales, isAdmin }: Props) {
                             <CardFooter className="pt-3 border-t flex gap-2">
                                 {sucursal.caja_abierta ? (
                                     <>
-                                        <Button
-                                            className="flex-1"
-                                            variant="destructive"
-                                            size="sm"
-                                            onClick={() => handleCloseBox(sucursal)}
-                                            disabled={processingClose}
-                                        >
-                                            <Lock className="mr-2 w-4 h-4" /> Cerrar Caja
-                                        </Button>
+                                        {hasPermission('cerrar cajas') && (
+                                            <Button
+                                                className="flex-1"
+                                                variant="destructive"
+                                                size="sm"
+                                                onClick={() => handleCloseBox(sucursal)}
+                                                disabled={processingClose}
+                                            >
+                                                <Lock className="mr-2 w-4 h-4" /> Cerrar Caja
+                                            </Button>
+                                        )}
                                         <Button className="flex-1" variant="outline" size="sm" asChild>
                                             <Link href={history(sucursal.id).url}>
                                                 Ver Detalles <ArrowRight className="ml-2 w-4 h-4" />
@@ -228,14 +236,16 @@ export default function Index({ sucursales, isAdmin }: Props) {
                                     </>
                                 ) : (
                                     <>
-                                        <Button
-                                            className="flex-1"
-                                            variant="default"
-                                            size="sm"
-                                            onClick={() => openBoxModal(sucursal)}
-                                        >
-                                            <Unlock className="mr-2 w-4 h-4" /> Abrir Caja
-                                        </Button>
+                                        {hasPermission('abrir cajas') && (
+                                            <Button
+                                                className="flex-1"
+                                                variant="default"
+                                                size="sm"
+                                                onClick={() => openBoxModal(sucursal)}
+                                            >
+                                                <Unlock className="mr-2 w-4 h-4" /> Abrir Caja
+                                            </Button>
+                                        )}
                                         <Button className="flex-1" variant="outline" size="sm" asChild>
                                             <Link href={history(sucursal.id).url}>
                                                 Ver Historial <ArrowRight className="ml-2 w-4 h-4" />

@@ -451,7 +451,7 @@ class CajaController extends Controller
 
         foreach ($ventas as $venta) {
             $pdf->Cell(30, 6, $venta->created_at->format('H:i:s'), 1, 0, 'C', $fill);
-            $pdf->Cell(80, 6, utf8_decode(substr($venta->nombre, 0, 45)), 1, 0, 'L', $fill);
+            $pdf->Cell(80, 6, utf8_decode(substr($venta->cliente, 0, 45)), 1, 0, 'L', $fill);
             $pdf->Cell(25, 6, number_format($venta->efectivo, 2), 1, 0, 'R', $fill);
             $pdf->Cell(25, 6, number_format($venta->qr, 2), 1, 0, 'R', $fill);
             $pdf->Cell(25, 6, number_format($venta->monto_total, 2), 1, 1, 'R', $fill);

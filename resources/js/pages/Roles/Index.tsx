@@ -86,6 +86,12 @@ const PERMISSION_GROUPS: Record<string, string[]> = {
     'Herramientas': [
         'ver whatsapp',
     ],
+    'Cajas': [
+        'ver cajas',
+        'abrir cajas',
+        'cerrar cajas',
+        'ver reportes cajas',
+    ],
 };
 
 export default function Index({ roles, all_permissions }: Props) {
@@ -97,6 +103,7 @@ export default function Index({ roles, all_permissions }: Props) {
         'Productos': true,
         'Inventarios': true,
         'Ventas y Pedidos': true,
+        'Cajas': true,
     });
 
     const { data, setData, post, processing, reset, errors } = useForm({

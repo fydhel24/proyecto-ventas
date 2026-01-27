@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { usePermissions } from '@/hooks/use-permissions';
 
 interface Caja {
     id: number;
@@ -37,6 +38,7 @@ interface Props {
 export default function History({ sucursal, cajas: cajasList, cajaAbierta, isAdmin }: Props) {
     const [isOpenModalOpen, setIsOpenModalOpen] = useState(false);
     const { user } = usePage().props.auth as any;
+    const { hasPermission } = usePermissions();
 
     const { data: openData, setData: setOpenData, post: postOpen, processing: processingOpen, errors: errorsOpen, reset: resetOpen } = useForm({
         sucursal_id: sucursal.id,
@@ -122,9 +124,11 @@ export default function History({ sucursal, cajas: cajasList, cajaAbierta, isAdm
                                     <CardTitle className="mt-2 text-xl">Caja Actual</CardTitle>
                                     <CardDescription>Aperturada por {cajaAbierta.usuario_apertura?.name}</CardDescription>
                                 </div>
-                                <Button variant="destructive" onClick={handleCloseBox} disabled={processingClose}>
-                                    <Lock className="mr-2 h-4 w-4" /> Cerrar Caja
-                                </Button>
+                                {hasPermission('cerrar cajas') && (
+                                    <Button variant="destructive" onClick={handleCloseBox} disabled={processingClose}>
+                                        <Lock className="mr-2 h-4 w-4" /> Cerrar Caja
+                                    </Button>
+                                )}
                             </div>
                         </CardHeader>
                         <CardContent>
@@ -148,9 +152,11 @@ export default function History({ sucursal, cajas: cajasList, cajaAbierta, isAdm
                                     Abre una caja para comenzar a registrar ventas en esta sucursal.
                                 </p>
                             </div>
-                            <Button onClick={() => setIsOpenModalOpen(true)}>
-                                <Unlock className="mr-2 h-4 w-4" /> Abrir Nueva Caja
-                            </Button>
+                            {hasPermission('abrir cajas') && (
+                                <Button onClick={() => setIsOpenModalOpen(true)}>
+                                    <Unlock className="mr-2 h-4 w-4" /> Abrir Nueva Caja
+                                </Button>
+                            )}
                         </CardContent>
                     </Card>
                 )}
@@ -199,7 +205,7 @@ export default function History({ sucursal, cajas: cajasList, cajaAbierta, isAdm
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="text-right flex items-center justify-end gap-2">
-                                                {caja.fecha_cierre && (
+                                                {caja.fecha_cierre && hasPermission('ver reportes cajas') && (
                                                     <Button variant="outline" size="icon" asChild title="Ver Reporte PDF">
                                                         <a href={`/cajas/${caja.id}/reporte-pdf`} target="_blank" rel="noopener noreferrer">
                                                             <FileText className="h-4 w-4 text-red-600" />
