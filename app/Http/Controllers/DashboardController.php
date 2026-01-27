@@ -18,7 +18,6 @@ class DashboardController extends Controller
         $totalProductos = Producto::count();
         $totalPedidos = Cuaderno::count();
         $pedidosHoy = Cuaderno::whereDate('created_at', Carbon::today())->count();
-        $stockBajo = Producto::where('stock', '<', 5)->count();
 
         // 2. Pedidos por Estado (Cuadernos Status Distribution)
         $statusDistribution = [
@@ -65,7 +64,6 @@ class DashboardController extends Controller
                 'totalProductos' => $totalProductos,
                 'totalPedidos' => $totalPedidos,
                 'pedidosHoy' => $pedidosHoy,
-                'stockBajo' => $stockBajo,
                 'statusDistribution' => $statusDistribution,
                 'ordersOverTime' => $last90Days,
                 'productsByCategory' => $productsByCategory,

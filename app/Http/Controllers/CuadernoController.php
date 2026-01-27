@@ -6,6 +6,8 @@ use App\Models\Cuaderno;
 use App\Models\ImagenCuaderno;
 use App\Models\Imagene;
 use App\Models\Producto;
+use App\Models\Sucursale;
+use App\Models\Inventario;
 use FPDF;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -18,7 +20,25 @@ class CuadernoController extends Controller
 {
     public function createPedido()
     {
-        $productos = Producto::select('id', 'nombre', 'stock', 'precio_1')->where('stock', '>', 0)->get();
+        // Obtener Almacen para cargar productos disponibles
+        $almacen = Sucursale::where('nombre_sucursal', 'Almacen')->first();
+
+        if ($almacen) {
+            $productos = Inventario::where('sucursal_id', $almacen->id)
+                ->where('stock', '>', 0)
+                ->with('producto')
+                ->get()
+                ->map(function ($inv) {
+                    return [
+                        'id' => $inv->producto->id,
+                        'nombre' => $inv->producto->nombre,
+                        'stock' => $inv->stock,
+                        'precio_1' => $inv->producto->precio_1,
+                    ];
+                });
+        } else {
+            $productos = collect();
+        }
 
         return Inertia::render('Pedidos/Create', [
             'productos' => $productos,
@@ -30,11 +50,26 @@ class CuadernoController extends Controller
         $search = $request->input('search');
         $filter = $request->input('filter');
 
-        // Cargar productos para el modal de agregar items
-        $productos = Producto::select('id', 'nombre', 'stock', 'precio_1')
-            ->where('stock', '>', 0)
-            ->orderBy('nombre')
-            ->get();
+        // Cargar productos del Almacen para el modal de agregar items
+        $almacen = Sucursale::where('nombre_sucursal', 'Almacen')->first();
+
+        if ($almacen) {
+            $productos = Inventario::where('sucursal_id', $almacen->id)
+                ->where('stock', '>', 0)
+                ->with('producto')
+                ->orderBy('producto_id')
+                ->get()
+                ->map(function ($inv) {
+                    return [
+                        'id' => $inv->producto->id,
+                        'nombre' => $inv->producto->nombre,
+                        'stock' => $inv->stock,
+                        'precio_1' => $inv->producto->precio_1,
+                    ];
+                });
+        } else {
+            $productos = collect();
+        }
 
         return Inertia::render('Cuadernos/Index', [
             'cuadernos' => (function () use ($search, $filter) {
@@ -140,12 +175,35 @@ class CuadernoController extends Controller
             'precio_venta' => 'required|numeric|min:0',
         ]);
 
+        // Obtener el Almacen (sucursal central)
+        $almacen = Sucursale::where('nombre_sucursal', 'Almacen')->first();
+        if (!$almacen) {
+            return back()->withErrors('Almacén no configurado en el sistema');
+        }
+
+        // Obtener inventario del Almacen
+        $inventario = Inventario::where('producto_id', $request->producto_id)
+            ->where('sucursal_id', $almacen->id)
+            ->first();
+
+        if (!$inventario) {
+            return back()->withErrors('Producto no disponible en el Almacén');
+        }
+
+        if ($inventario->stock < $request->cantidad) {
+            return back()->withErrors('Stock insuficiente. Disponible: ' . $inventario->stock);
+        }
+
+        // Descontar del Almacen
+        $inventario->decrement('stock', $request->cantidad);
+
+        // Asociar al cuaderno
         $cuaderno->productos()->attach($request->producto_id, [
             'cantidad' => $request->cantidad,
             'precio_venta' => $request->precio_venta,
         ]);
 
-        return back()->with('success', 'Producto agregado correctamente');
+        return back()->with('success', 'Producto agregado correctamente. Stock descontado del Almacén');
     }
 
     public function pedidos(Request $request)
@@ -188,16 +246,28 @@ class CuadernoController extends Controller
             'la_paz' => $esLaPaz,
         ]);
 
-        // Asociar productos
+        // Asociar productos y descontar del Almacen
         if ($request->has('productos') && is_array($request->productos)) {
-            $productosData = [];
-            foreach ($request->productos as $item) {
-                $productosData[$item['producto_id']] = [
-                    'cantidad' => $item['cantidad'],
-                    'precio_venta' => $item['precio_venta'],
-                ];
+            $almacen = Sucursale::where('nombre_sucursal', 'Almacen')->first();
+            if ($almacen) {
+                $productosData = [];
+                foreach ($request->productos as $item) {
+                    // Obtener inventario del Almacen y descontar stock
+                    $inventario = Inventario::where('producto_id', $item['producto_id'])
+                        ->where('sucursal_id', $almacen->id)
+                        ->first();
+
+                    if ($inventario && $inventario->stock >= $item['cantidad']) {
+                        $inventario->decrement('stock', $item['cantidad']);
+                    }
+
+                    $productosData[$item['producto_id']] = [
+                        'cantidad' => $item['cantidad'],
+                        'precio_venta' => $item['precio_venta'],
+                    ];
+                }
+                $cuaderno->productos()->attach($productosData);
             }
-            $cuaderno->productos()->attach($productosData);
         }
 
         // Subir imágenes
@@ -737,7 +807,7 @@ class CuadernoController extends Controller
         $pdf->SetFont('Arial', '', 10);
         $pdf->SetTextColor($navy[0], $navy[1], $navy[2]);
         $pdf->Cell(0, 6, utf8_decode('C.I.: ' . ($cuaderno->ci ?: 'N/A')), 0, 1);
-        
+
         $pdf->SetX($x + $padding);
         $pdf->SetFont('Arial', 'B', 11);
         $pdf->SetTextColor($blueAccent[0], $blueAccent[1], $blueAccent[2]);
@@ -747,7 +817,7 @@ class CuadernoController extends Controller
         $pdf->Ln(5);
         $pdf->SetFillColor($lightGray[0], $lightGray[1], $lightGray[2]);
         $pdf->Rect($x + $padding, $pdf->GetY(), $w - (2 * $padding), 30, 'F');
-        
+
         $currentY = $pdf->GetY() + 2;
         $pdf->SetXY($x + $padding + 2, $currentY);
         $pdf->SetFont('Arial', 'B', 8);
@@ -768,7 +838,7 @@ class CuadernoController extends Controller
         // QR Code para seguimiento
         $urlEscaneo = "https://live.miracode.tech/qr?id={$cuaderno->id}&ci={$cuaderno->ci}&celular={$cuaderno->celular}";
         $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($urlEscaneo);
-        
+
         $qrSize = 25;
         $pdf->Image($qrApiUrl, $x + $w - $qrSize - $padding, $y + $h - $qrSize - $padding, $qrSize, $qrSize, 'PNG');
 
@@ -802,7 +872,7 @@ class CuadernoController extends Controller
 
         foreach ($cuadernos as $cuaderno) {
             $pdf->AddPage();
-            
+
             // Preparar datos para la nota
             $totalCantidad = 0;
             $totalPrecio = 0;
@@ -927,7 +997,7 @@ class CuadernoController extends Controller
     {
         $pdf = new FPDF('P', 'mm', 'A4');
         $pdf->AddPage();
-        
+
         // Cabecera
         $pdf->SetFont('Arial', 'B', 16);
         $pdf->Cell(0, 10, utf8_decode($titulo), 0, 1, 'C');

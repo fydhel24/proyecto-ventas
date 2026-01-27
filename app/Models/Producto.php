@@ -16,7 +16,6 @@ class Producto extends Model
         'marca_id',
         'categoria_id',
         'color_id',
-        'stock',
         'estado',
         'fecha',
         'precio_compra',

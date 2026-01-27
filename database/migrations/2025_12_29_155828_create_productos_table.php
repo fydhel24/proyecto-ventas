@@ -26,7 +26,6 @@ return new class extends Migration
             $table->foreignId('color_id')->nullable()
                 ->constrained('colors');
 
-            $table->integer('stock')->default(0);
             $table->string('estado');
             $table->timestamp('fecha');
 
@@ -45,6 +44,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('productos');
+        Schema::enableForeignKeyConstraints();
     }
 };

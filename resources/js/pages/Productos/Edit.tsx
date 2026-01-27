@@ -58,7 +58,6 @@ export default function Edit({
     caracteristicas: producto.caracteristicas || '',
     marca_id: String(producto.marca_id) || '',
     categoria_id: String(producto.categoria_id) || '',
-    stock: String(producto.stock) || '',
     estado: producto.estado ?? true,
     fecha: producto.fecha ? new Date(producto.fecha).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     precio_compra: String(producto.precio_compra) || '',
@@ -357,22 +356,6 @@ export default function Edit({
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
-
-            {/* Stock */}
-            <div className="space-y-2">
-              <Label htmlFor="stock" className="flex items-center gap-1.5 text-sm font-medium">
-                <Hash className="h-4 w-4" />
-                Stock
-              </Label>
-              <Input
-                id="stock"
-                type="number"
-                placeholder="Cantidad disponible"
-                value={data.stock}
-                onChange={(e) => setData('stock', e.target.value)}
-                className="h-11"
-              />
             </div>
 
             {/* Precio de compra */}

@@ -15,7 +15,7 @@ use Laravel\Fortify\Features;
 Route::get('/', function () {
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
-        'productos' => App\Models\Producto::with(['marca', 'fotos'])->where('stock', '>', 0)->latest()->limit(8)->get(),
+        'productos' => App\Models\Producto::with(['marca', 'fotos'])->latest()->limit(8)->get(),
         'categorias' => App\Models\Categoria::all(),
     ]);
 })->name('home');
@@ -63,7 +63,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Rutas de Reportes
     Route::get('/reportes/ventas', [App\Http\Controllers\ReporteController::class, 'ventas'])->name('reportes.ventas');
     Route::post('/reportes/ventas/export', [App\Http\Controllers\ReporteController::class, 'exportPdf'])->name('reportes.ventas.export');
-    
+
     Route::get('/reports', [App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/orders', [App\Http\Controllers\ReportController::class, 'ordersReport'])->name('reports.orders');
     Route::get('/reports/products', [App\Http\Controllers\ReportController::class, 'productsReport'])->name('reports.products');

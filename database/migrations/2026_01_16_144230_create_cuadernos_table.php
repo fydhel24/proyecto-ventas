@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -13,7 +12,7 @@ return new class extends Migration
     public function up()
     {
         Schema::create('cuadernos', function (Blueprint $table) {
-            $table->id(); // El ID por defecto no es nullable ya que es la llave primaria
+            $table->id();
             $table->string('nombre')->nullable();
             $table->string('ci')->nullable();
             $table->string('celular')->nullable();
@@ -22,10 +21,10 @@ return new class extends Migration
             $table->string('tipo')->nullable();
             $table->string('estado')->nullable();
             $table->text('detalle')->nullable();
-            $table->boolean('la_paz')->nullable()->default(false);
-            $table->boolean('enviado')->nullable()->default(false);
-            $table->boolean('p_listo')->nullable()->default(false);
-            $table->boolean('p_pendiente')->nullable()->default(false);
+            $table->boolean('la_paz')->default(false);
+            $table->boolean('enviado')->default(false);
+            $table->boolean('p_listo')->default(false);
+            $table->boolean('p_pendiente')->default(false);
             $table->timestamps();
             $table->softDeletes();
         });
@@ -36,6 +35,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('cuadernos');
+        Schema::enableForeignKeyConstraints();
     }
 };

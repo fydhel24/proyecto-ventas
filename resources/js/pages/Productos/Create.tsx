@@ -55,7 +55,6 @@ export default function Create({
     caracteristicas: '',
     marca_id: '',
     categoria_id: '',
-    stock: '',
     estado: true,
     fecha: today,
     precio_compra: '',
@@ -353,21 +352,6 @@ export default function Create({
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
-
-            {/* Stock */}
-            <div className="space-y-2">
-              <Label htmlFor="stock" className="flex items-center gap-1.5 text-sm font-medium">
-                <Hash className="h-4 w-4" />
-                Stock
-              </Label>
-              <Input
-                id="stock"
-                type="number"
-                placeholder="Cantidad disponible"
-                onChange={(e) => setData('stock', e.target.value)}
-                className="h-11"
-              />
             </div>
 
             {/* Precio de compra */}

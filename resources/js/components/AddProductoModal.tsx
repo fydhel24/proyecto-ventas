@@ -23,14 +23,14 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Check, ChevronsUpDown, AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface Producto {
     id: number;
     nombre: string;
     stock: number;
-    precio_1?: number; // Optional as per current usage, might be missing in props from Index
+    precio_1?: number;
 }
 
 interface AddProductoModalProps {
@@ -52,23 +52,42 @@ function AddProductoModal({
     );
     const [cantidad, setCantidad] = useState<string>('');
     const [precioVenta, setPrecioVenta] = useState<string>('');
-    // const [searchTerm, setSearchTerm] = useState(''); // Allow Command to handle filtering internally or keep for controlled input
-    // The shadcn Command component handles filtering if we don't set shouldFilter=false.
-    // However, we usually need `value` on CommandItem to match the search.
+    const [cantidadError, setCantidadError] = useState<string>('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedProducto || !cantidad || !precioVenta) return;
 
+        const cantidadNum = parseInt(cantidad);
+
+        // Validar cantidad no exceda stock disponible
+        if (cantidadNum > selectedProducto.stock) {
+            setCantidadError(`Máximo disponible: ${selectedProducto.stock}`);
+            return;
+        }
+
+        setCantidadError('');
         onSave(
             selectedProducto.id,
-            parseInt(cantidad),
+            cantidadNum,
             parseFloat(precioVenta),
         );
         setSelectedProducto(null);
         setCantidad('');
         setPrecioVenta('');
         onClose();
+    };
+
+    const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setCantidad(e.target.value);
+        if (selectedProducto) {
+            const num = parseInt(e.target.value);
+            if (num > selectedProducto.stock) {
+                setCantidadError(`Máximo disponible: ${selectedProducto.stock}`);
+            } else {
+                setCantidadError('');
+            }
+        }
     };
 
     return (
@@ -146,10 +165,18 @@ function AddProductoModal({
                                 id="cantidad"
                                 type="number"
                                 min="1"
+                                max={selectedProducto?.stock}
                                 value={cantidad}
-                                onChange={(e) => setCantidad(e.target.value)}
+                                onChange={handleCantidadChange}
                                 placeholder="Cant."
+                                className={cantidadError ? 'border-red-500' : ''}
                             />
+                            {cantidadError && (
+                                <div className="flex items-center gap-2 mt-1 text-xs text-red-500">
+                                    <AlertCircle className="w-3 h-3" />
+                                    {cantidadError}
+                                </div>
+                            )}
                         </div>
                         <div>
                             <Label htmlFor="precio">Precio de Venta (Bs)</Label>
@@ -172,7 +199,12 @@ function AddProductoModal({
                         >
                             Cancelar
                         </Button>
-                        <Button type="submit" disabled={!selectedProducto}>Agregar</Button>
+                        <Button
+                            type="submit"
+                            disabled={!selectedProducto || !!cantidadError || !cantidad || !precioVenta}
+                        >
+                            Agregar
+                        </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

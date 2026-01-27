@@ -9,21 +9,26 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-   public function up(): void
+    public function up(): void
     {
         Schema::create('sucursales', function (Blueprint $table) {
             $table->id();
             $table->string('nombre_sucursal');
-            $table->string('direccion');
+            $table->string('direccion')->nullable();
             $table->boolean('estado')->default(true);
             $table->timestamps();
-             $table->softDeletes();
+            $table->softDeletes();
         });
-    }
 
-    /**
-     * Reverse the migrations.
-     */
+        // Crear Almacen por defecto
+        \DB::table('sucursales')->insert([
+            'nombre_sucursal' => 'Almacen',
+            'direccion' => 'Almacén Central',
+            'estado' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
     public function down(): void
     {
         Schema::dropIfExists('sucursales');

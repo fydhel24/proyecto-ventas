@@ -39,7 +39,6 @@ import {
 interface Producto {
     id: number;
     nombre: string;
-    stock: number;
     precio_1: string;
     marca: { nombre_marca: string } | null;
     categoria: { nombre_cat: string } | null;
@@ -235,12 +234,6 @@ export default function Index({ productos, filters }: Props) {
                                                     <TableHead className="text-[11px] uppercase font-black tracking-widest text-muted-foreground h-12">
                                                         Categoría
                                                     </TableHead>
-                                                    <TableHead className="text-[11px] uppercase font-black tracking-widest text-muted-foreground h-12">
-                                                        <div className="flex items-center gap-2">
-                                                            <WarehouseIcon className="h-3.5 w-3.5" />
-                                                            Stock
-                                                        </div>
-                                                    </TableHead>
                                                     <TableHead className="text-[11px] uppercase font-black tracking-widest text-muted-foreground h-12 text-center">
                                                         <div className="flex items-center justify-center gap-2">
                                                             <DollarSignIcon className="h-3.5 w-3.5" />
@@ -261,9 +254,6 @@ export default function Index({ productos, filters }: Props) {
                                                         <TableCell className="font-bold text-sm py-4">{p.nombre}</TableCell>
                                                         <TableCell className="text-xs font-medium text-muted-foreground">{p.marca?.nombre_marca || '—'}</TableCell>
                                                         <TableCell className="text-xs font-medium text-muted-foreground">{p.categoria?.nombre_cat || '—'}</TableCell>
-                                                        <TableCell className="py-4">
-                                                             {p.stock} Unid.
-                                                        </TableCell>
                                                         <TableCell className="text-center">
                                                             <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-xl bg-primary/5 border border-primary/20 text-primary font-black text-sm shadow-sm">
                                                                 <span className="text-[10px] mr-1 opacity-70">Bs</span> {Number(p.precio_1).toLocaleString('es-BO', { minimumFractionDigits: 2 })}
