@@ -92,9 +92,13 @@ interface Props {
     isAdmin: boolean;
     categorias: Category[];
     usuarios: User[];
+    sucursalesConCajaAbierta: number[];
 }
 
-export default function POS({ sucursal, sucursales, isAdmin, categorias, usuarios }: Props) {
+import { AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+export default function POS({ sucursal, sucursales, isAdmin, categorias, usuarios, sucursalesConCajaAbierta }: Props) {
     const { app_url } = usePage().props as any;
     const [search, setSearch] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -107,6 +111,11 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias, usuario
     const [assignUser, setAssignUser] = useState(false);
     const [openUserSelect, setOpenUserSelect] = useState(false);
     const [isMobileGridView, setIsMobileGridView] = useState(false);
+
+    // Check if current branch has an open box
+    const isBoxOpen = currentSucursalId
+        ? sucursalesConCajaAbierta.includes(parseInt(currentSucursalId))
+        : false;
 
     const { data, setData, reset } = useForm({
         sucursal_id: currentSucursalId,
@@ -325,7 +334,17 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias, usuario
             <Head title="Punto de Venta" />
             <div className="flex flex-col h-[calc(100vh-100px)] p-2 sm:p-4 gap-4 overflow-hidden">
 
-                <div className="flex flex-col lg:flex-row items-center justify-between bg-card p-3 sm:p-4 rounded-2xl border shadow-sm gap-3 sm:gap-4">
+                {!isBoxOpen && (
+                    <Alert variant="destructive" className="border-destructive/50 bg-destructive/10 text-destructive animate-in fade-in slide-in-from-top-2">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Caja Cerrada</AlertTitle>
+                        <AlertDescription>
+                            No hay una caja abierta para esta sucursal. Debe abrir una caja antes de realizar ventas.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                <div className={`flex flex-col lg:flex-row items-center justify-between bg-card p-3 sm:p-4 rounded-2xl border shadow-sm gap-3 sm:gap-4 transition-opacity duration-300 ${!isBoxOpen ? 'opacity-50 pointer-events-none grayscale-[0.5]' : ''}`}>
                     <div className="flex items-center gap-3 sm:gap-4">
                         <div className="p-2 sm:p-3 bg-primary text-primary-foreground rounded-xl shadow-inner">
                             <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -620,7 +639,7 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias, usuario
                                             <PopoverContent className="w-[200px] p-0">
                                                 <Command>
                                                     <CommandInput placeholder="Buscar vendedor..." />
-                                                    <CommandList> 
+                                                    <CommandList>
                                                         <CommandEmpty>No se encontró vendedor.</CommandEmpty>
                                                         <CommandGroup>
                                                             {usuarios

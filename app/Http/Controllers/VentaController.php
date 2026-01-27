@@ -109,12 +109,20 @@ class VentaController extends Controller
             ? \App\Models\User::all(['id', 'name', 'sucursal_id']) 
             : \App\Models\User::where('sucursal_id', $user->sucursal_id)->get(['id', 'name', 'sucursal_id']);
 
+        // Get IDs of branches with open boxes
+        $sucursalesConCajaAbierta = \App\Models\Caja::whereNull('fecha_cierre')
+            ->pluck('sucursal_id')
+            ->unique()
+            ->values()
+            ->toArray();
+
         return Inertia::render('Ventas/POS', [
             'sucursal' => $sucursalActual,
             'sucursales' => $sucursales,
             'isAdmin' => $isAdmin,
             'categorias' => \App\Models\Categoria::all(),
             'usuarios' => $usuarios,
+            'sucursalesConCajaAbierta' => $sucursalesConCajaAbierta,
         ]);
     }
 
