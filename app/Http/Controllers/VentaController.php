@@ -74,6 +74,21 @@ class VentaController extends Controller
                 ? $request->sucursal_id
                 : $user->sucursal_id;
 
+            // Calcular montos según tipo de pago
+            $monto_efectivo = 0;
+            $monto_qr = 0;
+
+            if ($request->tipo_pago === 'Efectivo') {
+                $monto_efectivo = $request->monto_total;
+                $monto_qr = 0;
+            } elseif ($request->tipo_pago === 'QR') {
+                $monto_efectivo = 0;
+                $monto_qr = $request->monto_total;
+            } elseif ($request->tipo_pago === 'Efectivo + QR') {
+                $monto_qr = $request->qr ?? 0;
+                $monto_efectivo = $request->monto_total - $monto_qr;
+            }
+
             $venta = Venta::create([
                 'cliente' => $request->cliente,
                 'ci' => $request->ci,
@@ -81,8 +96,8 @@ class VentaController extends Controller
                 'monto_total' => $request->monto_total,
                 'pagado' => $request->pagado,
                 'cambio' => $request->cambio,
-                'efectivo' => $request->monto_total ?? 0,
-                'qr' => $request->qr ?? 0,
+                'efectivo' => $monto_efectivo,
+                'qr' => $monto_qr,
                 'user_vendedor_id' => $user->id,
                 'sucursal_id' => $sucursal_id,
                 'estado' => 'completado',
@@ -113,7 +128,6 @@ class VentaController extends Controller
                 'venta_id' => $venta->id,
                 'message' => 'Venta realizada con éxito'
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 422);
@@ -181,7 +195,7 @@ class VentaController extends Controller
 
         $inventarios = Inventario::with(['producto.marca', 'producto.categoria', 'producto.fotos'])
             ->where('sucursal_id', $sucursal_id)
-            ->whereHas('producto', function($q) use ($query, $categoria_id) {
+            ->whereHas('producto', function ($q) use ($query, $categoria_id) {
                 if ($query) {
                     $q->where('nombre', 'like', "%{$query}%");
                 }
