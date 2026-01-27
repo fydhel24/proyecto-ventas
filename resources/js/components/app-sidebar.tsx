@@ -52,22 +52,23 @@ const mainNavItems: NavItem[] = [
         items: [
             {
                 title: 'Administrar Stock',
-                href: '/inventarios',
+                href: inventarios.index().url,
                 icon: Boxes,
             },
             {
                 title: 'Solicitudes',
                 href: solicitudes.index().url,
                 icon: Send,
+                permission: 'ver solicitudes',
             },
             {
                 title: 'Envíos',
                 href: envios.index().url,
                 icon: Truck,
+                permission: 'ver envios',
             },
         ],
     },
-
     {
         title: 'Ventas',
         href: ventas.index().url,
@@ -86,21 +87,20 @@ const mainNavItems: NavItem[] = [
         icon: ShieldCheck,
         permission: 'ver roles',
     },
-
     {
         title: 'WhatsApp Bot',
         href: whatsappMiranda().url,
         icon: MessageCircle,
     },
     {
-        title: 'Cuaderno',
+        title: 'Cuadernos',
         href: cuadernos.index().url,
         icon: BookOpenText,
-        permission: 'ver productos',
+        permission: 'ver ventas',
         items: [
             {
                 title: 'Todos',
-                href: cuadernos.index(),
+                href: cuadernos.index().url,
                 icon: List,
             },
             {
@@ -129,7 +129,7 @@ const mainNavItems: NavItem[] = [
         title: 'Reportes',
         href: '/reportes/ventas',
         icon: BarChart3,
-        permission: 'ver ventas',
+        permission: 'ver reportes',
         items: [
             {
                 title: 'Ventas',
@@ -137,7 +137,7 @@ const mainNavItems: NavItem[] = [
                 icon: BarChart3,
             },
             {
-                title: 'Pedidos Confirmadas',
+                title: 'Pedidos',
                 href: '/reports/orders',
                 icon: CheckCircle2,
             },

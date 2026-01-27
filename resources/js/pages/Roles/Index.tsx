@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Checkbox } from '@/components/ui/checkbox';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
-import { ShieldCheck, Plus, Trash2, Key, Info } from 'lucide-react';
+import { ShieldCheck, Plus, Trash2, Key, Info, ChevronDown } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { store, destroy, update } from '@/routes/roles';
@@ -32,10 +32,69 @@ const breadcrumbs = [
     { title: 'Roles', href: '/roles' },
 ];
 
+// Grupos de permisos temáticos para mejor UX
+const PERMISSION_GROUPS: Record<string, string[]> = {
+    'Dashboard': [
+        'ver dashboard',
+    ],
+    'Productos': [
+        'ver productos',
+        'crear productos',
+        'editar productos',
+        'eliminar productos',
+    ],
+    'Sucursales': [
+        'ver sucursales',
+        'crear sucursales',
+        'editar sucursales',
+        'eliminar sucursales',
+    ],
+    'Inventarios': [
+        'ver inventarios',
+        'crear inventarios',
+        'editar inventarios',
+        'eliminar inventarios',
+        'ver solicitudes',
+        'crear solicitudes',
+        'confirmar solicitudes',
+        'ver envios',
+        'crear envios',
+    ],
+    'Ventas y Pedidos': [
+        'ver ventas',
+        'crear ventas',
+        'editar ventas',
+        'eliminar ventas',
+        'ver cuadernos',
+        'crear cuadernos',
+        'editar cuadernos',
+    ],
+    'Reportes': [
+        'ver reportes',
+        'exportar reportes',
+    ],
+    'Usuarios y Seguridad': [
+        'ver usuarios',
+        'crear usuarios',
+        'editar usuarios',
+        'eliminar usuarios',
+        'ver roles',
+        'crear roles',
+        'asignar permisos',
+        'editar roles',
+    ],
+};
+
 export default function Index({ roles, all_permissions }: Props) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isPermissionDialogOpen, setIsPermissionDialogOpen] = useState(false);
     const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+    const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+        'Dashboard': true,
+        'Productos': true,
+        'Inventarios': true,
+        'Ventas y Pedidos': true,
+    });
 
     const { data, setData, post, processing, reset, errors } = useForm({
         name: '',
@@ -93,6 +152,20 @@ export default function Index({ roles, all_permissions }: Props) {
             current.push(permissionName);
         }
         setPermData('permissions', current);
+    };
+
+    const toggleGroup = (groupName: string) => {
+        setExpandedGroups(prev => ({
+            ...prev,
+            [groupName]: !prev[groupName]
+        }));
+    };
+
+    const getPermissionCountByGroup = (groupName: string, permissions: Permission[]): { assigned: number; total: number } => {
+        const groupPerms = PERMISSION_GROUPS[groupName] || [];
+        const total = groupPerms.length;
+        const assigned = groupPerms.filter(p => permissions.some(perm => perm.name === p)).length;
+        return { assigned, total };
     };
 
     return (
@@ -219,7 +292,7 @@ export default function Index({ roles, all_permissions }: Props) {
 
                 {/* Modal de Gestión de Permisos */}
                 <Dialog open={isPermissionDialogOpen} onOpenChange={setIsPermissionDialogOpen}>
-                    <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col p-0 overflow-hidden">
+                    <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col p-0 overflow-hidden">
                         <DialogHeader className="p-6 border-b">
                             <DialogTitle className="flex items-center gap-2">
                                 <Key className="h-5 w-5 text-primary" />
@@ -235,23 +308,63 @@ export default function Index({ roles, all_permissions }: Props) {
                                     </div>
                                 )}
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-6">
-                                    {all_permissions.map((permission) => (
-                                        <div key={permission.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
-                                            <Checkbox
-                                                id={`perm-${permission.id}`}
-                                                checked={permData.permissions.includes(permission.name)}
-                                                onCheckedChange={() => togglePermission(permission.name)}
-                                                className="border-primary/50 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                                            />
-                                            <label
-                                                htmlFor={`perm-${permission.id}`}
-                                                className="text-sm font-medium leading-none cursor-pointer select-none"
-                                            >
-                                                {permission.name}
-                                            </label>
-                                        </div>
-                                    ))}
+                                <div className="space-y-4">
+                                    {Object.entries(PERMISSION_GROUPS).map(([groupName, groupPermissions]) => {
+                                        const isExpanded = expandedGroups[groupName] !== false;
+                                        const { assigned, total } = getPermissionCountByGroup(groupName, selectedRole?.permissions || []);
+
+                                        return (
+                                            <div key={groupName} className="border rounded-lg overflow-hidden">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleGroup(groupName)}
+                                                    className="w-full flex items-center justify-between p-4 bg-muted/50 hover:bg-muted/70 transition-colors"
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <ChevronDown
+                                                            className={`h-5 w-5 text-muted-foreground transition-transform ${!isExpanded ? '-rotate-90' : ''}`}
+                                                        />
+                                                        <span className="font-semibold text-sm">{groupName}</span>
+                                                        <span className="text-xs text-muted-foreground ml-2">
+                                                            {assigned}/{total}
+                                                        </span>
+                                                    </div>
+                                                    <div className="h-2 w-24 bg-muted rounded-full overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-primary transition-all"
+                                                            style={{ width: `${(assigned / total) * 100}%` }}
+                                                        />
+                                                    </div>
+                                                </button>
+
+                                                {isExpanded && (
+                                                    <div className="p-4 bg-background space-y-3 border-t">
+                                                        {groupPermissions.map((permissionName) => {
+                                                            const permission = all_permissions.find(p => p.name === permissionName);
+                                                            if (!permission) return null;
+
+                                                            return (
+                                                                <div key={permission.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/30 transition-colors">
+                                                                    <Checkbox
+                                                                        id={`perm-${permission.id}`}
+                                                                        checked={permData.permissions.includes(permission.name)}
+                                                                        onCheckedChange={() => togglePermission(permission.name)}
+                                                                        className="border-primary/50 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                                                    />
+                                                                    <label
+                                                                        htmlFor={`perm-${permission.id}`}
+                                                                        className="text-sm font-medium leading-none cursor-pointer select-none flex-1"
+                                                                    >
+                                                                        {permission.name}
+                                                                    </label>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                             <DialogFooter className="p-6 border-top bg-muted/20">

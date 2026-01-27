@@ -15,25 +15,73 @@ class RolesAndPermissionsSeeder extends Seeder
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // create permissions
-        $permissions = [
-            'ver dashboard',
-            'ver productos', 'crear productos', 'editar productos', 'eliminar productos',
-            'ver sucursales', 'crear sucursales', 'editar sucursales', 'eliminar sucursales',
-            'ver inventarios', 'crear inventarios', 'editar inventarios', 'eliminar inventarios',
-            'ver ventas', 'crear ventas',
-            'ver usuarios', 'crear usuarios', 'editar usuarios', 'eliminar usuarios',
-            'ver roles', 'asignar permisos',
+        // Definición de permisos por grupos temáticos
+        $permissionGroups = [
+            'Dashboard' => [
+                'ver dashboard',
+            ],
+            'Productos' => [
+                'ver productos',
+                'crear productos',
+                'editar productos',
+                'eliminar productos',
+            ],
+            'Sucursales' => [
+                'ver sucursales',
+                'crear sucursales',
+                'editar sucursales',
+                'eliminar sucursales',
+            ],
+            'Inventarios' => [
+                'ver inventarios',
+                'crear inventarios',
+                'editar inventarios',
+                'eliminar inventarios',
+                'ver solicitudes',
+                'crear solicitudes',
+                'confirmar solicitudes',
+                'ver envios',
+                'crear envios',
+            ],
+            'Ventas' => [
+                'ver ventas',
+                'crear ventas',
+                'editar ventas',
+                'eliminar ventas',
+                'ver cuadernos',
+                'crear cuadernos',
+                'editar cuadernos',
+            ],
+            'Reportes' => [
+                'ver reportes',
+                'exportar reportes',
+            ],
+            'Usuarios y Seguridad' => [
+                'ver usuarios',
+                'crear usuarios',
+                'editar usuarios',
+                'eliminar usuarios',
+                'ver roles',
+                'crear roles',
+                'asignar permisos',
+                'editar roles',
+            ],
         ];
 
-        foreach ($permissions as $permission) {
-            \Spatie\Permission\Models\Permission::findOrCreate($permission);
+        // Crear todos los permisos
+        $allPermissions = [];
+        foreach ($permissionGroups as $group => $permissions) {
+            foreach ($permissions as $permission) {
+                $allPermissions[] = $permission;
+                \Spatie\Permission\Models\Permission::findOrCreate($permission);
+            }
         }
 
-        // create roles and assign existing permissions
+        // Crear roles y asignar permisos
         $roleAdmin = \Spatie\Permission\Models\Role::findOrCreate('admin');
         $roleAdmin->syncPermissions(\Spatie\Permission\Models\Permission::all());
 
+        // Vendedor: puede ver y crear ventas, ver productos e inventarios
         $roleVendedor = \Spatie\Permission\Models\Role::findOrCreate('vendedor');
         $roleVendedor->syncPermissions([
             'ver dashboard',
@@ -41,6 +89,42 @@ class RolesAndPermissionsSeeder extends Seeder
             'ver inventarios',
             'ver ventas',
             'crear ventas',
+            'ver cuadernos',
+            'crear cuadernos',
+        ]);
+
+        // Almacenero: maneja inventarios y solicitudes
+        $roleAlmacenero = \Spatie\Permission\Models\Role::findOrCreate('almacenero');
+        $roleAlmacenero->syncPermissions([
+            'ver dashboard',
+            'ver productos',
+            'ver inventarios',
+            'crear inventarios',
+            'editar inventarios',
+            'ver solicitudes',
+            'crear solicitudes',
+            'confirmar solicitudes',
+            'ver envios',
+            'crear envios',
+        ]);
+
+        // Jefe de Sucursal: acceso completo a su sucursal
+        $roleJefeSucursal = \Spatie\Permission\Models\Role::findOrCreate('jefe_sucursal');
+        $roleJefeSucursal->syncPermissions([
+            'ver dashboard',
+            'ver productos',
+            'ver sucursales',
+            'ver inventarios',
+            'crear inventarios',
+            'editar inventarios',
+            'ver ventas',
+            'crear ventas',
+            'ver usuarios',
+            'ver cuadernos',
+            'crear cuadernos',
+            'editar cuadernos',
+            'ver reportes',
+            'exportar reportes',
         ]);
 
         // create a default admin user if none exists
@@ -53,5 +137,8 @@ class RolesAndPermissionsSeeder extends Seeder
             ]);
             $user->assignRole($roleAdmin);
         }
+
+        // Guardar grupos de permisos en configuración para uso en frontend
+        config(['permission_groups' => $permissionGroups]);
     }
 }

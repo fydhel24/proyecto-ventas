@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
-import { create, show } from '@/routes/ventas';
+import { create } from '@/routes/ventas';
 import { Plus, ShoppingCart, Eye } from 'lucide-react';
 import React from 'react';
 
