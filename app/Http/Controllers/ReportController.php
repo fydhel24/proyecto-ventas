@@ -77,8 +77,21 @@ class ReportController extends Controller
         // Total products count
         $totalProducts = Producto::count();
 
-        // Low stock products
-        $lowStockProducts = Producto::where('stock', '<', 5)->get();
+        // Fetch all active branches for the matrix headers
+        $sucursales = \App\Models\Sucursale::where('estado', true)->get();
+
+        // Low stock products (Stock from Inventory)
+        $lowStockProducts = Producto::query()
+            ->withSum('inventarios', 'stock')
+            ->get()
+            ->filter(function ($product) {
+                return ($product->inventarios_sum_stock ?? 0) < 5;
+            })
+            ->map(function ($product) {
+                $product->stock = $product->inventarios_sum_stock ?? 0;
+                return $product;
+            })
+            ->values();
 
         // Count by Category
         $byCategory = Producto::join('categorias', 'productos.categoria_id', '=', 'categorias.id')
@@ -93,38 +106,48 @@ class ReportController extends Controller
             ->get();
 
         // Inventory Valuation
-        $valuation = Producto::select(
-            \DB::raw('SUM(stock * precio_compra) as total_cost'),
-            \DB::raw('SUM(stock * precio_1) as total_value_p1')
-        )->first();
+        $valuation = \App\Models\Inventario::join('productos', 'inventarios.producto_id', '=', 'productos.id')
+            ->select(
+                \DB::raw('SUM(inventarios.stock * productos.precio_compra) as total_cost'),
+                \DB::raw('SUM(inventarios.stock * productos.precio_1) as total_value_p1')
+            )->first();
 
-        // Sales analysis within date range
-        $products = Producto::withCount(['cuadernos as sales_count' => function ($q) use ($startDate, $endDate) {
-            $q->when($startDate, function ($query) use ($startDate) {
-                $query->whereDate('cuaderno_producto.created_at', '>=', $startDate);
-            })->when($endDate, function ($query) use ($endDate) {
-                $query->whereDate('cuaderno_producto.created_at', '<=', $endDate);
-            });
-        }])
-        ->orderBy('sales_count', 'desc')
-        ->paginate(15)
-        ->withQueryString();
+        // Products List with Inventory by Branch
+        $search = $request->input('search');
+        
+        $products = Producto::with(['inventarios' => function($q) use ($sucursales) {
+                $q->whereIn('sucursal_id', $sucursales->pluck('id'));
+            }])
+            ->withSum('inventarios', 'stock')
+            ->when($search, function ($q, $search) {
+                $q->where('nombre', 'like', "%{$search}%");
+            })
+            ->orderBy('nombre')
+            ->paginate(15)
+            ->withQueryString();
+
+        // Map stock for the paginated result
+        $products->getCollection()->transform(function ($product) {
+            $product->stock = $product->inventarios_sum_stock ?? 0;
+            return $product;
+        });
 
         return Inertia::render('Reports/ProductsReport', [
             'products' => $products,
+            'sucursales' => $sucursales,
             'stats' => [
                 'total_products' => $totalProducts,
-                'low_stock_count' => count($lowStockProducts),
-                'low_stock_list' => $lowStockProducts,
+                'low_stock_count' => $lowStockProducts->count(),
+                'low_stock_list' => $lowStockProducts->take(10),
                 'by_category' => $byCategory,
                 'by_brand' => $byBrand,
                 'valuation' => [
-                    'cost' => (float) $valuation->total_cost,
-                    'potential_revenue' => (float) $valuation->total_value_p1,
-                    'potential_profit' => (float) ($valuation->total_value_p1 - $valuation->total_cost),
+                    'cost' => (float) ($valuation->total_cost ?? 0),
+                    'potential_revenue' => (float) ($valuation->total_value_p1 ?? 0),
+                    'potential_profit' => (float) (($valuation->total_value_p1 ?? 0) - ($valuation->total_cost ?? 0)),
                 ]
             ],
-            'filters' => $request->only(['start_date', 'end_date']),
+            'filters' => $request->only(['start_date', 'end_date', 'search']),
         ]);
     }
 }

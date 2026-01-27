@@ -21,11 +21,22 @@ import {
 import { Search, Calendar, ArrowLeft, Package } from 'lucide-react';
 import React, { useState, useMemo } from 'react';
 
+interface Inventario {
+    id: number;
+    sucursal_id: number;
+    stock: number;
+}
+
 interface Product {
     id: number;
     nombre: string;
     stock: number;
-    sales_count: number;
+    inventarios: Inventario[]; // Added inventories relationship
+}
+
+interface Sucursal {
+    id: number;
+    nombre_sucursal: string;
 }
 
 interface ProductsReportProps {
@@ -34,6 +45,7 @@ interface ProductsReportProps {
         links: any[];
         total: number;
     };
+    sucursales: Sucursal[]; // Added branches
     stats: {
         total_products: number;
         low_stock_count: number;
@@ -49,18 +61,24 @@ interface ProductsReportProps {
     filters: {
         start_date?: string;
         end_date?: string;
+        search?: string; // Added search filter
     };
 }
 
-export default function ProductsReport({ products, stats, filters }: ProductsReportProps) {
-    const [startDate, setStartDate] = useState(filters.start_date || '');
-    const [endDate, setEndDate] = useState(filters.end_date || '');
+export default function ProductsReport({ products, sucursales, stats, filters }: ProductsReportProps) {
+    const [search, setSearch] = useState(filters.search || '');
 
-    const handleFilter = () => {
-        router.get('/reports/products', {
-            start_date: startDate,
-            end_date: endDate,
-        }, { preserveState: true });
+    const handleSearch = () => {
+        router.get('/reports/products', { search }, { preserveState: true });
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') handleSearch();
+    };
+
+    const getStockForBranch = (product: Product, sucursalId: number) => {
+        const inventory = product.inventarios.find(inv => inv.sucursal_id === sucursalId);
+        return inventory ? inventory.stock : 0;
     };
 
     const columns = useMemo<ColumnDef<Product>[]>(
@@ -75,30 +93,35 @@ export default function ProductsReport({ products, stats, filters }: ProductsRep
                 header: 'Producto',
                 cell: ({ getValue }) => <span className="font-bold">{getValue<string>()}</span>,
             },
+            // Dynamic Columns for each Branch
+            ...sucursales.map(sucursal => ({
+                id: `sucursal_${sucursal.id}`,
+                header: () => <span className="text-[10px] uppercase font-black text-center block">{sucursal.nombre_sucursal}</span>,
+                cell: ({ row }: { row: any }) => {
+                    const stock = getStockForBranch(row.original, sucursal.id);
+                    return (
+                        <div className={`text-center font-mono font-medium ${stock === 0 ? 'text-muted-foreground/30' : ''}`}>
+                            {stock > 0 ? stock : '-'}
+                        </div>
+                    );
+                },
+            })),
             {
                 accessorKey: 'stock',
-                header: 'Stock Actual',
+                header: 'Total Global',
                 cell: ({ getValue }) => {
                     const stock = getValue<number>();
                     return (
-                        <Badge variant={stock < 5 ? 'destructive' : 'outline'}>
-                            {stock} unidades
-                        </Badge>
+                        <div className="flex justify-center">
+                            <Badge variant={stock < 5 ? 'destructive' : 'secondary'} className="font-bold">
+                                {stock}
+                            </Badge>
+                        </div>
                     );
                 },
             },
-            {
-                accessorKey: 'sales_count',
-                header: 'Unidades Vendidas',
-                cell: ({ getValue }) => (
-                    <div className="flex items-center gap-2">
-                        <span className="text-lg font-black text-primary">{getValue<number>()}</span>
-                        <span className="text-xs text-muted-foreground uppercase tracking-widest font-bold">vendidos</span>
-                    </div>
-                ),
-            },
         ],
-        []
+        [sucursales]
     );
 
     const table = useReactTable({
@@ -215,32 +238,19 @@ export default function ProductsReport({ products, stats, filters }: ProductsRep
                             {/* Sales Filter */}
                             <Card className="rounded-xl border border-border/50 shadow-sm overflow-hidden">
                                 <CardHeader className="pb-4 border-b bg-muted/20">
-                                    <div className="flex flex-wrap items-end gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
-                                                <Calendar className="w-3 h-3" /> Analizar Ventas Desde
-                                            </label>
+                                    <div className="flex w-full max-w-sm items-center space-x-2">
+                                        <div className="relative flex-1">
+                                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                                             <Input
-                                                type="date"
-                                                value={startDate}
-                                                onChange={(e) => setStartDate(e.target.value)}
-                                                className="h-10 w-48 rounded-lg bg-background border-border/40"
+                                                type="search"
+                                                placeholder="Buscar producto..."
+                                                className="pl-8 bg-background"
+                                                value={search}
+                                                onChange={(e) => setSearch(e.target.value)}
+                                                onKeyDown={handleKeyDown}
                                             />
                                         </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
-                                                <Calendar className="w-3 h-3" /> Hasta
-                                            </label>
-                                            <Input
-                                                type="date"
-                                                value={endDate}
-                                                onChange={(e) => setEndDate(e.target.value)}
-                                                className="h-10 w-48 rounded-lg bg-background border-border/40"
-                                            />
-                                        </div>
-                                        <Button onClick={handleFilter} className="h-10 px-6 font-bold rounded-lg shadow-lg shadow-primary/10 transition-all hover:scale-[1.02]">
-                                            <Search className="w-4 h-4 mr-2" /> Analizar
-                                        </Button>
+                                        <Button onClick={handleSearch}>Buscar</Button>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="p-0">
