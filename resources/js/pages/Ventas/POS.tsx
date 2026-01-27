@@ -95,7 +95,7 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias }: Props
 
     const { data, setData, reset } = useForm({
         sucursal_id: currentSucursalId,
-        cliente: 'Cliente General',
+        cliente: '',
         ci: '',
         tipo_pago: 'Efectivo',
         carrito: [] as any[],
@@ -105,6 +105,16 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias }: Props
         efectivo: 0,
         qr: 0,
     } as VentaForm);
+
+    // Helper for safe number input (allows empty string)
+    const handleNumberInput = (val: string, setter: (v: number) => void) => {
+        if (val === '') {
+            setter(0);
+            return;
+        }
+        const num = parseFloat(val);
+        if (!isNaN(num)) setter(num);
+    };
 
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -511,34 +521,50 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias }: Props
                                 </div>
                             ) : (
                                 <>
-                                    <div className="space-y-3">
+                                    <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
                                         {cart.map((item) => (
-                                            <div key={`cart-${item.inventario_id}`} className="flex items-center gap-3 bg-muted/30 p-3 rounded-xl border border-muted/50 group transition-all hover:bg-muted/50">
+                                            <div key={`cart-${item.inventario_id}`} className="flex items-center gap-3 bg-card p-3 rounded-xl border border-border shadow-sm group transition-all hover:bg-muted/30 focus-within:ring-2 focus-within:ring-primary/50 focus-within:border-primary">
                                                 {/* Imagen solo en desktop */}
-                                                <div className="hidden sm:block h-16 w-16 rounded-lg overflow-hidden bg-background shrink-0 shadow-sm border">
+                                                <div className="hidden sm:block h-16 w-16 rounded-lg overflow-hidden bg-background shrink-0 shadow-sm border border-border">
                                                     <img src={getImageUrl(item.producto.fotos)} className="w-full h-full object-cover" alt={item.producto.nombre} />
                                                 </div>
                                                 <div className="flex-1 min-w-0 space-y-2">
-                                                    <h4 className="font-bold text-sm sm:text-base line-clamp-1">{item.producto.nombre}</h4>
-                                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
-                                                        <div className="flex items-center bg-background rounded-lg border p-0.5 shadow-inner">
-                                                            <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-md" onClick={() => updateQuantity(item.inventario_id, -1)}>
-                                                                <Minus className="h-4 w-4" />
-                                                            </Button>
-                                                            <span className="w-10 text-center text-sm font-black">{item.cantidad}</span>
-                                                            <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-md" onClick={() => updateQuantity(item.inventario_id, 1)}>
-                                                                <Plus className="h-4 w-4" />
-                                                            </Button>
+                                                    <h4 className="font-bold text-sm sm:text-base line-clamp-1 text-foreground">{item.producto.nombre}</h4>
+                                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Cant:</span>
+                                                            <div className="flex items-center bg-background rounded-lg border border-input p-0.5 shadow-sm focus-within:ring-1 focus-within:ring-primary focus-within:border-primary">
+                                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" onClick={() => updateQuantity(item.inventario_id, -1)}>
+                                                                    <Minus className="h-3.5 w-3.5" />
+                                                                </Button>
+                                                                <Input
+                                                                    type="number"
+                                                                    className="w-12 h-8 text-center border-none p-0 focus-visible:ring-0 font-bold bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                    value={item.cantidad.toString()}
+                                                                    onChange={(e) => {
+                                                                        const val = parseInt(e.target.value);
+                                                                        if (!isNaN(val)) {
+                                                                            const newQty = Math.max(1, Math.min(val, item.stock_max));
+                                                                            setCart(prev => prev.map(p => p.inventario_id === item.inventario_id ? { ...p, cantidad: newQty } : p));
+                                                                        }
+                                                                    }}
+                                                                />
+                                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" onClick={() => updateQuantity(item.inventario_id, 1)}>
+                                                                    <Plus className="h-3.5 w-3.5" />
+                                                                </Button>
+                                                            </div>
                                                         </div>
-                                                        <div className="flex items-center gap-2 w-full sm:w-auto">
-                                                            <Label className="text-xs font-semibold text-muted-foreground shrink-0">Precio:</Label>
+
+                                                        <div className="flex items-center gap-2 w-full sm:w-auto flex-1">
+                                                            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider shrink-0">Precio:</Label>
                                                             <Input
                                                                 type="number"
-                                                                className="h-11 sm:h-9 flex-1 sm:w-28 rounded-lg text-base sm:text-sm font-bold border-2 bg-background text-center"
-                                                                value={item.precio_seleccionado || 0}
+                                                                className="h-9 flex-1 sm:w-24 rounded-lg text-sm font-bold border-input bg-background text-right pr-3 focus-visible:ring-primary"
+                                                                value={item.precio_seleccionado || ''}
+                                                                onFocus={(e) => e.target.select()}
                                                                 onChange={(e) => {
-                                                                    const p = parseFloat(e.target.value) || 0;
-                                                                    setCart(cart.map(i => i.inventario_id === item.inventario_id ? { ...i, precio_seleccionado: p } : i));
+                                                                    const p = parseFloat(e.target.value);
+                                                                    setCart(cart.map(i => i.inventario_id === item.inventario_id ? { ...i, precio_seleccionado: isNaN(p) ? 0 : p } : i));
                                                                 }}
                                                                 step="0.01"
                                                                 min="0"
@@ -546,8 +572,8 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias }: Props
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex flex-col items-end gap-2">
-                                                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeItem(item.inventario_id)}>
+                                                <div className="flex flex-col items-end gap-2 pl-2 border-l border-border/50">
+                                                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors" onClick={() => removeItem(item.inventario_id)}>
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
                                                     <div className="text-base sm:text-lg font-black text-primary">Bs. {(item.cantidad * item.precio_seleccionado).toFixed(2)}</div>
@@ -583,21 +609,21 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias }: Props
                                         <div className="space-y-3 sm:col-span-2">
                                             <Label className="text-xs font-semibold text-muted-foreground">Medio de pago</Label>
                                             <RadioGroup value={data.tipo_pago} onValueChange={val => setData('tipo_pago', val)} className="flex flex-col sm:flex-row gap-3">
-                                                <div className="flex items-center space-x-2 flex-1">
-                                                    <RadioGroupItem value="Efectivo" id="efectivo" className="border-2" />
-                                                    <Label htmlFor="efectivo" className="flex-1 cursor-pointer p-3 border-2 rounded-xl font-semibold hover:bg-muted/50 transition-colors">
+                                                <div className="flex items-center space-x-2 flex-1 relative">
+                                                    <RadioGroupItem value="Efectivo" id="efectivo" className="peer sr-only" />
+                                                    <Label htmlFor="efectivo" className="flex-1 cursor-pointer p-3 border-2 border-border rounded-xl font-bold text-muted-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary peer-data-[state=checked]:bg-primary/5 transition-all text-center hover:bg-muted/30">
                                                         💵 Efectivo
                                                     </Label>
                                                 </div>
-                                                <div className="flex items-center space-x-2 flex-1">
-                                                    <RadioGroupItem value="QR" id="qr" className="border-2" />
-                                                    <Label htmlFor="qr" className="flex-1 cursor-pointer p-3 border-2 rounded-xl font-semibold hover:bg-muted/50 transition-colors">
+                                                <div className="flex items-center space-x-2 flex-1 relative">
+                                                    <RadioGroupItem value="QR" id="qr" className="peer sr-only" />
+                                                    <Label htmlFor="qr" className="flex-1 cursor-pointer p-3 border-2 border-border rounded-xl font-bold text-muted-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary peer-data-[state=checked]:bg-primary/5 transition-all text-center hover:bg-muted/30">
                                                         📱 QR
                                                     </Label>
                                                 </div>
-                                                <div className="flex items-center space-x-2 flex-1">
-                                                    <RadioGroupItem value="Efectivo + QR" id="mixto" className="border-2" />
-                                                    <Label htmlFor="mixto" className="flex-1 cursor-pointer p-3 border-2 rounded-xl font-semibold hover:bg-muted/50 transition-colors">
+                                                <div className="flex items-center space-x-2 flex-1 relative">
+                                                    <RadioGroupItem value="Efectivo + QR" id="mixto" className="peer sr-only" />
+                                                    <Label htmlFor="mixto" className="flex-1 cursor-pointer p-3 border-2 border-border rounded-xl font-bold text-muted-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary peer-data-[state=checked]:bg-primary/5 transition-all text-center hover:bg-muted/30">
                                                         💵 + 📱 Mixto
                                                     </Label>
                                                 </div>
@@ -605,28 +631,38 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias }: Props
                                         </div>
 
                                         {(data.tipo_pago === 'Efectivo' || data.tipo_pago === 'Efectivo + QR') && (
-                                            <div className="space-y-2">
-                                                <Label className="text-xs font-semibold text-muted-foreground">Monto en efectivo</Label>
-                                                <Input
-                                                    type="number"
-                                                    className="h-12 text-lg rounded-xl bg-muted/40 border-none font-bold text-center"
-                                                    value={data.efectivo}
-                                                    onChange={e => setData('efectivo', parseFloat(e.target.value) || 0)}
-                                                    min="0"
-                                                    step="0.01"
-                                                    placeholder="0.00"
-                                                    required
-                                                />
+                                            <div className="space-y-2 group">
+                                                <div className="flex justify-between items-center">
+                                                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground group-focus-within:text-primary transition-colors">Monto en efectivo</Label>
+                                                    <Button type="button" variant="ghost" size="sm" className="h-5 text-[10px] text-muted-foreground hover:text-destructive" onClick={() => setData('efectivo', 0)}>Limpiar</Button>
+                                                </div>
+                                                <div className="relative">
+                                                    <Input
+                                                        type="number"
+                                                        className="h-12 pl-4 pr-4 text-lg rounded-xl bg-muted/30 border-input font-bold text-center focus-visible:ring-primary focus-visible:border-primary transition-all shadow-inner"
+                                                        value={data.efectivo || ''}
+                                                        onFocus={(e) => e.target.select()}
+                                                        onChange={e => handleNumberInput(e.target.value, (v) => setData('efectivo', v))}
+                                                        min="0"
+                                                        step="0.01"
+                                                        placeholder="0.00"
+                                                        required
+                                                    />
+                                                </div>
                                             </div>
                                         )}
                                         {(data.tipo_pago === 'QR' || data.tipo_pago === 'Efectivo + QR') && (
-                                            <div className="space-y-2">
-                                                <Label className="text-xs font-semibold text-muted-foreground">Monto por QR</Label>
+                                            <div className="space-y-2 group">
+                                                <div className="flex justify-between items-center">
+                                                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground group-focus-within:text-primary transition-colors">Monto por QR</Label>
+                                                    <Button type="button" variant="ghost" size="sm" className="h-5 text-[10px] text-muted-foreground hover:text-destructive" onClick={() => setData('qr', 0)}>Limpiar</Button>
+                                                </div>
                                                 <Input
                                                     type="number"
-                                                    className="h-12 text-lg rounded-xl bg-muted/40 border-none font-bold text-center"
-                                                    value={data.qr}
-                                                    onChange={e => setData('qr', parseFloat(e.target.value) || 0)}
+                                                    className="h-12 text-lg rounded-xl bg-muted/30 border-input font-bold text-center focus-visible:ring-primary focus-visible:border-primary transition-all shadow-inner"
+                                                    value={data.qr || ''}
+                                                    onFocus={(e) => e.target.select()}
+                                                    onChange={e => handleNumberInput(e.target.value, (v) => setData('qr', v))}
                                                     min="0"
                                                     step="0.01"
                                                     placeholder="0.00"
