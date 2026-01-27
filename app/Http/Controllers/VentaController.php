@@ -12,6 +12,76 @@ use Inertia\Inertia;
 
 class VentaController extends Controller
 {
+    public function historial(Request $request)
+    {
+        $user = auth()->user();
+        $isAdmin = $user->hasRole('admin');
+
+        $query = $request->input('query');
+        $sucursalId = $isAdmin ? $request->input('sucursal_id') : $user->sucursal_id;
+
+        $ventas = Venta::with(['detalles.inventario.producto', 'vendedor', 'sucursal'])
+            ->when($sucursalId, function ($q) use ($sucursalId) {
+                return $q->where('sucursal_id', $sucursalId);
+            })
+            ->when($query, function ($q) use ($query) {
+                return $q->where(function ($subQ) use ($query) {
+                    $subQ->where('cliente', 'like', "%{$query}%")
+                         ->orWhere('id', 'like', "%{$query}%")
+                         ->orWhereHas('detalles.inventario.producto', function ($prodQ) use ($query) {
+                             $prodQ->where('nombre', 'like', "%{$query}%");
+                         });
+                });
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(15)
+            ->withQueryString();
+
+        $sucursales = $isAdmin ? Sucursale::where('estado', true)->get() : [];
+
+        return Inertia::render('Ventas/Historial', [
+            'ventas' => $ventas,
+            'sucursales' => $sucursales,
+            'isAdmin' => $isAdmin,
+            'filters' => [
+                'query' => $query,
+                'sucursal_id' => $sucursalId,
+            ]
+        ]);
+    }
+
+    public function cancelar($id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $venta = Venta::with('detalles')->findOrFail($id);
+
+            if ($venta->estado === 'anulado') {
+                return back()->with('error', 'La venta ya está anulada.');
+            }
+
+            // Devolver stock
+            foreach ($venta->detalles as $detalle) {
+                $inventario = Inventario::find($detalle->inventario_id);
+                if ($inventario) {
+                    $inventario->increment('stock', $detalle->cantidad);
+                }
+            }
+
+            // Cambiar estado
+            $venta->update(['estado' => 'anulado']);
+            // No hacemos soft delete para que siga visible en el historial como 'anulada'
+
+            DB::commit();
+
+            return back()->with('success', 'Venta anulada correctamente y stock restaurado.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error al anular la venta: ' . $e->getMessage());
+        }
+    }
     /**
      * Display a listing of the resource.
      */

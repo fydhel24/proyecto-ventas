@@ -21,7 +21,7 @@ import solicitudes from '@/routes/solicitudes';
 import envios from '@/routes/envios';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BarChart3, BookOpenText, Boxes, Building, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Send, ShieldCheck, ShoppingCart, Truck, Users } from 'lucide-react';
+import { BarChart3, BookOpenText, Boxes, Building, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Plus, Send, ShieldCheck, ShoppingCart, Truck, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 import { usePermissions } from '@/hooks/use-permissions';
 
@@ -40,9 +40,21 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Ventas',
-        href: ventas.index().url,
+        href: '/ventas',
         icon: ShoppingCart,
         permission: 'ver ventas',
+        items: [
+            {
+                title: 'Nueva Venta',
+                href: '/ventas/create',
+                icon: Plus,
+            },
+            {
+                title: 'Historial',
+                href: '/ventas/historial',
+                icon: List,
+            },
+        ],
     },
     {
         title: 'Cuadernos',

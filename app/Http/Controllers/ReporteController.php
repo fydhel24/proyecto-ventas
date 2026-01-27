@@ -42,10 +42,14 @@ class ReporteController extends Controller
             $ventasQuery->whereIn('tipo_pago', $tiposPago);
         }
 
-        // Búsqueda por producto
+        // Búsqueda por producto, cliente o ticket
         if ($query) {
-            $ventasQuery->whereHas('detalles.inventario.producto', function ($q) use ($query) {
-                $q->where('nombre', 'like', '%' . $query . '%');
+            $ventasQuery->where(function ($q) use ($query) {
+                $q->where('cliente', 'like', "%{$query}%")
+                  ->orWhere('id', 'like', "%{$query}%")
+                  ->orWhereHas('detalles.inventario.producto', function ($subQ) use ($query) {
+                      $subQ->where('nombre', 'like', '%' . $query . '%');
+                  });
             });
         }
 
@@ -139,8 +143,12 @@ class ReporteController extends Controller
             }
 
             if ($query) {
-                $ventasQuery->whereHas('detalles.inventario.producto', function ($q) use ($query) {
-                    $q->where('nombre', 'like', '%' . $query . '%');
+                $ventasQuery->where(function ($q) use ($query) {
+                    $q->where('cliente', 'like', "%{$query}%")
+                      ->orWhere('id', 'like', "%{$query}%")
+                      ->orWhereHas('detalles.inventario.producto', function ($subQ) use ($query) {
+                          $subQ->where('nombre', 'like', '%' . $query . '%');
+                      });
                 });
             }
 
