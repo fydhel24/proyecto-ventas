@@ -179,10 +179,10 @@ export default function HistorialVentas({ ventas, isAdmin, filters }: Props) {
                                                     Bs. {Number(venta.monto_total).toFixed(2)}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Badge variant={venta.estado === 'anulado' ? 'destructive' : 'default'} className={
-                                                        venta.estado === 'anulado' ? '' : 'bg-green-600 hover:bg-green-700'
+                                                    <Badge variant={venta.estado === 'Cancelado' ? 'destructive' : 'default'} className={
+                                                        venta.estado === 'Cancelado' ? '' : 'bg-green-600 hover:bg-green-700'
                                                     }>
-                                                        {venta.estado === 'anulado' ? 'Anulado' : 'Completado'}
+                                                        {venta.estado === 'Cancelado' ? 'Cancelado' : 'Completado'}
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="text-right">
@@ -198,7 +198,7 @@ export default function HistorialVentas({ ventas, isAdmin, filters }: Props) {
                                                             </Tooltip>
                                                         </TooltipProvider>
 
-                                                        {venta.estado !== 'anulado' && (
+                                                        {venta.estado !== 'Cancelado' && (
                                                             <AlertDialog>
                                                                 <AlertDialogTrigger asChild>
                                                                     <Button variant="outline" size="icon" className="text-red-600 hover:bg-red-50 hover:text-red-700">

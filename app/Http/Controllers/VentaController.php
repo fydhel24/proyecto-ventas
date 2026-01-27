@@ -57,7 +57,7 @@ class VentaController extends Controller
 
             $venta = Venta::with('detalles')->findOrFail($id);
 
-            if ($venta->estado === 'anulado') {
+            if ($venta->estado === 'Cancelado') {
                 return back()->with('error', 'La venta ya está anulada.');
             }
 
@@ -70,7 +70,7 @@ class VentaController extends Controller
             }
 
             // Cambiar estado
-            $venta->update(['estado' => 'anulado']);
+            $venta->update(['estado' => 'Cancelado']);
             // No hacemos soft delete para que siga visible en el historial como 'anulada'
 
             DB::commit();
@@ -104,12 +104,17 @@ class VentaController extends Controller
 
         $sucursalActual = $user->sucursal_id ? Sucursale::find($user->sucursal_id) : null;
         $sucursales = $isAdmin ? Sucursale::where('estado', true)->get() : [];
+        
+        $usuarios = $isAdmin 
+            ? \App\Models\User::all(['id', 'name', 'sucursal_id']) 
+            : \App\Models\User::where('sucursal_id', $user->sucursal_id)->get(['id', 'name', 'sucursal_id']);
 
         return Inertia::render('Ventas/POS', [
             'sucursal' => $sucursalActual,
             'sucursales' => $sucursales,
             'isAdmin' => $isAdmin,
             'categorias' => \App\Models\Categoria::all(),
+            'usuarios' => $usuarios,
         ]);
     }
 
@@ -168,7 +173,8 @@ class VentaController extends Controller
                 'cambio' => $request->cambio,
                 'efectivo' => $monto_efectivo,
                 'qr' => $monto_qr,
-                'user_vendedor_id' => $user->id,
+                'qr' => $monto_qr,
+                'user_vendedor_id' => $request->user_vendedor_id ?? $user->id,
                 'sucursal_id' => $sucursal_id,
                 'estado' => 'completado',
             ]);

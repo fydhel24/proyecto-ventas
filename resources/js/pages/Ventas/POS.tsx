@@ -1,7 +1,10 @@
+import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -10,9 +13,10 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { searchProductos, store } from '@/routes/ventas';
 import axios from 'axios';
-import { Boxes, Minus, Plus, Search, ShoppingCart, Trash2, X, Building2, User2 } from 'lucide-react';
+import { Boxes, Minus, Plus, Search, ShoppingCart, Trash2, X, Building2, User2, LayoutGrid, List, Check, ChevronsUpDown } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface VentaForm {
     sucursal_id: string;
@@ -25,6 +29,7 @@ interface VentaForm {
     cambio: number;
     efectivo: number;
     qr: number;
+    user_vendedor_id?: number;
 }
 
 interface Photo {
@@ -75,14 +80,21 @@ interface PaginationData {
     data: Inventory[];
 }
 
+interface User {
+    id: number;
+    name: string;
+    sucursal_id: number | null;
+}
+
 interface Props {
     sucursal: Sucursal | null;
     sucursales: Sucursal[];
     isAdmin: boolean;
     categorias: Category[];
+    usuarios: User[];
 }
 
-export default function POS({ sucursal, sucursales, isAdmin, categorias }: Props) {
+export default function POS({ sucursal, sucursales, isAdmin, categorias, usuarios }: Props) {
     const { app_url } = usePage().props as any;
     const [search, setSearch] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -92,6 +104,9 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias }: Props
     const [isLoading, setIsLoading] = useState(false);
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [assignUser, setAssignUser] = useState(false);
+    const [openUserSelect, setOpenUserSelect] = useState(false);
+    const [isMobileGridView, setIsMobileGridView] = useState(false);
 
     const { data, setData, reset } = useForm({
         sucursal_id: currentSucursalId,
@@ -104,7 +119,8 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias }: Props
         cambio: 0,
         efectivo: 0,
         qr: 0,
-    } as VentaForm);
+        user_vendedor_id: undefined as number | undefined,
+    } as VentaForm & { user_vendedor_id?: number });
 
     // Helper for safe number input (allows empty string)
     const handleNumberInput = (val: string, setter: (v: number) => void) => {
@@ -118,8 +134,12 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias }: Props
 
     const [isProcessing, setIsProcessing] = useState(false);
 
+    const [isLoaded, setIsLoaded] = useState(false);
+
     useEffect(() => {
         const savedCart = localStorage.getItem('nexus_pos_cart');
+        const savedData = localStorage.getItem('nexus_pos_data');
+
         if (savedCart) {
             try {
                 setCart(JSON.parse(savedCart));
@@ -127,11 +147,46 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias }: Props
                 console.error("Error al cargar carrito", e);
             }
         }
+
+        if (savedData) {
+            try {
+                const parsedData = JSON.parse(savedData);
+                // Merge saved data with current values, prioritizing saved if valid
+                setData(prev => ({
+                    ...prev,
+                    cliente: parsedData.cliente || '',
+                    ci: parsedData.ci || '',
+                    tipo_pago: parsedData.tipo_pago || 'Efectivo',
+                    efectivo: parsedData.efectivo || 0,
+                    qr: parsedData.qr || 0,
+                    user_vendedor_id: parsedData.user_vendedor_id,
+                }));
+                if (parsedData.user_vendedor_id) setAssignUser(true);
+            } catch (e) {
+                console.error("Error al cargar datos del formulario", e);
+            }
+        }
+        setIsLoaded(true);
     }, []);
 
     useEffect(() => {
+        if (!isLoaded) return;
         localStorage.setItem('nexus_pos_cart', JSON.stringify(cart));
-    }, [cart]);
+    }, [cart, isLoaded]);
+
+    // Persist relevant form data
+    useEffect(() => {
+        if (!isLoaded) return;
+        const dataToSave = {
+            cliente: data.cliente,
+            ci: data.ci,
+            tipo_pago: data.tipo_pago,
+            efectivo: data.efectivo,
+            qr: data.qr,
+            user_vendedor_id: data.user_vendedor_id
+        };
+        localStorage.setItem('nexus_pos_data', JSON.stringify(dataToSave));
+    }, [data.cliente, data.ci, data.tipo_pago, data.efectivo, data.qr, data.user_vendedor_id, isLoaded]);
 
     useEffect(() => {
         if (currentSucursalId) fetchProducts(1);
@@ -233,13 +288,15 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias }: Props
                 pagado: data.efectivo + data.qr,
                 cambio: Math.max(0, (data.efectivo + data.qr) - total),
                 efectivo: data.efectivo,
-                qr: data.qr
+                qr: data.qr,
+                user_vendedor_id: data.user_vendedor_id
             });
 
             if (response.data.success) {
                 window.open(`/ventas/${response.data.venta_id}/pdf`, '_blank');
                 setCart([]);
                 localStorage.removeItem('nexus_pos_cart');
+                localStorage.removeItem('nexus_pos_data');
                 reset();
                 setIsCartOpen(false);
                 toast.success('Venta procesada exitosamente');
@@ -274,7 +331,17 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias }: Props
                             <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
                         </div>
                         <div className="flex flex-col">
-                            <h1 className="text-lg sm:text-xl font-black tracking-tight">Venta Rápida</h1>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-lg sm:text-xl font-black tracking-tight">Venta Rápida</h1>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="sm:hidden h-8 w-8 ml-2"
+                                    onClick={() => setIsMobileGridView(!isMobileGridView)}
+                                >
+                                    {isMobileGridView ? <List className="h-5 w-5" /> : <LayoutGrid className="h-5 w-5" />}
+                                </Button>
+                            </div>
                             {isAdmin ? (
                                 <Select value={currentSucursalId} onValueChange={setCurrentSucursalId}>
                                     <SelectTrigger className="h-6 sm:h-7 border-none bg-transparent p-0 text-xs font-bold text-muted-foreground focus:ring-0">
@@ -350,100 +417,111 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias }: Props
                         <>
                             {/* MÓVIL: Tarjetas horizontales */}
                             <div className="flex flex-col gap-3 sm:hidden pb-12">
-                                {items.map((inv) => (
-                                    <Card
-                                        key={inv.id}
-                                        className="group relative hover:shadow-lg transition-all duration-300 border shadow-sm rounded-xl overflow-hidden bg-card cursor-pointer"
-                                        onClick={() => addToCart(inv)}
-                                    >
-                                        <div className="flex items-center gap-3 p-3">
-                                            <div className="h-20 w-20 rounded-lg overflow-hidden bg-muted/5 shrink-0">
-                                                <img
-                                                    src={getImageUrl(inv.producto.fotos)}
-                                                    alt={inv.producto.nombre}
-                                                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
-                                                />
-                                                {inv.stock <= 0 && (
-                                                    <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-                                                        <Badge variant="destructive" className="font-bold text-xs">Agotado</Badge>
+                                {items.map((inventory) => {
+                                    const isOutOfStock = inventory.stock <= 0;
+                                    return (
+                                        <Card
+                                            key={inventory.id}
+                                            className={`overflow-hidden hover:shadow-lg transition-all cursor-pointer group flex flex-col ${isOutOfStock ? 'border-destructive/50 bg-destructive/5' : ''}`}
+                                            onClick={() => addToCart(inventory)}
+                                        >
+                                            <div className="aspect-square relative overflow-hidden bg-muted">
+                                                {inventory.producto.fotos && inventory.producto.fotos.length > 0 ? (
+                                                    <img
+                                                        src={getImageUrl(inventory.producto.fotos)}
+                                                        alt={inventory.producto.nombre}
+                                                        className={`w-full h-full object-cover transition-transform group-hover:scale-110 ${isOutOfStock ? 'opacity-50 grayscale' : ''}`}
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                                                        <Boxes className="w-12 h-12 opacity-20" />
                                                     </div>
                                                 )}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-1.5 mb-1">
-                                                    <span className="text-[8px] font-bold text-primary/70">{inv.producto.marca?.nombre || 'General'}</span>
-                                                    <span className="text-[7px] text-muted-foreground">•</span>
-                                                    <span className="text-[8px] font-medium text-muted-foreground">{inv.producto.categoria?.nombre_cat}</span>
-                                                </div>
-                                                <h3 className="text-sm font-bold line-clamp-2 leading-tight group-hover:text-primary transition-colors mb-1">
-                                                    {inv.producto.nombre}
-                                                </h3>
-                                                <div className="text-lg font-black text-foreground">
-                                                    Bs. {inv.producto.precio_1}
-                                                </div>
-                                                {inv.stock > 0 && inv.stock < 5 && (
-                                                    <Badge variant="destructive" className="mt-1 text-[8px] h-4 px-1.5 font-bold">
-                                                        Últimos {inv.stock}
+                                                <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
+                                                    <Badge variant="secondary" className="font-bold shadow-sm">
+                                                        Bs. {inventory.producto.precio_1}
                                                     </Badge>
-                                                )}
-                                            </div>
-                                            <div className="shrink-0">
-                                                <div className="bg-primary text-primary-foreground p-3 rounded-full">
-                                                    <ShoppingCart className="h-5 w-5" />
+
+                                                    {isOutOfStock ? (
+                                                        <Badge variant="destructive" className="font-bold shadow-sm">
+                                                            SIN STOCK
+                                                        </Badge>
+                                                    ) : (
+                                                        <Badge variant="outline" className="font-bold shadow-sm bg-background/80 backdrop-blur-sm">
+                                                            Stock: {inventory.stock}
+                                                        </Badge>
+                                                    )}
                                                 </div>
                                             </div>
-                                        </div>
-                                    </Card>
-                                ))}
+                                            <CardContent className="p-4 flex-1 flex flex-col gap-2">
+                                                <div className="flex-1">
+                                                    <h3 className={`font-bold leading-tight line-clamp-2 ${isOutOfStock ? 'text-muted-foreground' : ''}`}>
+                                                        {inventory.producto.nombre}
+                                                    </h3>
+                                                    {inventory.producto.marca && (
+                                                        <p className="text-xs text-muted-foreground mt-1">
+                                                            {inventory.producto.marca.nombre}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
                             </div>
 
                             {/* DESKTOP: Tarjetas verticales (grid) */}
                             <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-4 pb-12">
-                                {items.map((inv) => (
-                                    <Card
-                                        key={inv.id}
-                                        className="group relative hover:shadow-2xl transition-all duration-300 border-none shadow-sm rounded-2xl overflow-hidden bg-card cursor-pointer"
-                                        onClick={() => addToCart(inv)}
-                                    >
-                                        <div className="aspect-square relative overflow-hidden bg-muted/5">
-                                            <img
-                                                src={getImageUrl(inv.producto.fotos)}
-                                                alt={inv.producto.nombre}
-                                                className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
-                                            />
-                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                <div className="bg-white text-black p-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform">
-                                                    <Plus className="h-6 w-6" />
+                                {items.map((inv) => {
+                                    const isOutOfStock = inv.stock <= 0;
+                                    return (
+                                        <Card
+                                            key={inv.id}
+                                            className={`group relative hover:shadow-2xl transition-all duration-300 shadow-sm rounded-2xl overflow-hidden bg-card cursor-pointer ${isOutOfStock ? 'border-2 border-destructive/50 bg-destructive/5' : 'border-none'}`}
+                                            onClick={() => addToCart(inv)}
+                                        >
+                                            <div className="aspect-square relative overflow-hidden bg-muted/5">
+                                                <img
+                                                    src={getImageUrl(inv.producto.fotos)}
+                                                    alt={inv.producto.nombre}
+                                                    className={`object-cover w-full h-full group-hover:scale-110 transition-transform duration-500 ${isOutOfStock ? 'opacity-50 grayscale' : ''}`}
+                                                />
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <div className="bg-white text-black p-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform">
+                                                        <Plus className="h-6 w-6" />
+                                                    </div>
+                                                </div>
+
+                                                <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
+                                                    {isOutOfStock ? (
+                                                        <Badge variant="destructive" className="font-bold text-xs shadow-sm">
+                                                            SIN STOCK
+                                                        </Badge>
+                                                    ) : (
+                                                        <Badge variant="outline" className="font-bold shadow-sm bg-background/80 backdrop-blur-sm text-[10px] h-5">
+                                                            Stock: {inv.stock}
+                                                        </Badge>
+                                                    )}
                                                 </div>
                                             </div>
-                                            {inv.stock <= 0 && (
-                                                <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-                                                    <Badge variant="destructive" className="font-bold text-xs">Agotado</Badge>
+                                            <CardContent className="p-3">
+                                                <div className="flex flex-col gap-0.5">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-[9px] font-bold text-primary/70">{inv.producto.marca?.nombre || 'General'}</span>
+                                                        <span className="text-[8px] text-muted-foreground">•</span>
+                                                        <span className="text-[9px] font-medium text-muted-foreground">{inv.producto.categoria?.nombre_cat}</span>
+                                                    </div>
+                                                    <h3 className={`text-sm font-bold line-clamp-2 min-h-[2rem] leading-tight group-hover:text-primary transition-colors ${isOutOfStock ? 'text-muted-foreground' : ''}`}>
+                                                        {inv.producto.nombre}
+                                                    </h3>
+                                                    <div className="mt-2 text-base font-black text-foreground">
+                                                        Bs. {inv.producto.precio_1}
+                                                    </div>
                                                 </div>
-                                            )}
-                                            {inv.stock > 0 && inv.stock < 5 && (
-                                                <Badge variant="destructive" className="absolute top-2 right-2 text-[8px] h-4 px-1.5 font-bold">
-                                                    Últimos {inv.stock}
-                                                </Badge>
-                                            )}
-                                        </div>
-                                        <CardContent className="p-3">
-                                            <div className="flex flex-col gap-0.5">
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="text-[9px] font-bold text-primary/70">{inv.producto.marca?.nombre || 'General'}</span>
-                                                    <span className="text-[8px] text-muted-foreground">•</span>
-                                                    <span className="text-[9px] font-medium text-muted-foreground">{inv.producto.categoria?.nombre_cat}</span>
-                                                </div>
-                                                <h3 className="text-sm font-bold line-clamp-2 min-h-[2rem] leading-tight group-hover:text-primary transition-colors">
-                                                    {inv.producto.nombre}
-                                                </h3>
-                                                <div className="mt-2 text-base font-black text-foreground">
-                                                    Bs. {inv.producto.precio_1}
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
                             </div>
                         </>
                     )}
@@ -497,18 +575,89 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias }: Props
             <Dialog open={isCartOpen} onOpenChange={setIsCartOpen}>
                 <DialogContent className="max-w-full sm:max-w-2xl max-h-[95vh] flex flex-col p-0 overflow-hidden rounded-[1.5rem] sm:rounded-[2.5rem] border-none shadow-2xl">
                     <div className="bg-primary p-4 sm:p-6 text-primary-foreground shrink-0">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <DialogTitle className="text-2xl sm:text-3xl font-black tracking-tighter flex items-center gap-2">
-                                    <ShoppingCart className="h-6 w-6" /> Finalizar venta
+                        <div className="flex items-center justify-between gap-2 sm:gap-4">
+                            <div className="min-w-0">
+                                <DialogTitle className="text-xl sm:text-3xl font-black tracking-tighter flex items-center gap-2">
+                                    <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" /> <span className="truncate">Finalizar venta</span>
                                 </DialogTitle>
-                                <DialogDescription className="opacity-80 font-medium text-primary-foreground/80">
+                                <DialogDescription className="opacity-80 font-medium text-primary-foreground/80 text-xs sm:text-sm">
                                     {cart.length} producto{cart.length !== 1 ? 's' : ''} • Total: Bs. {total.toFixed(2)}
                                 </DialogDescription>
                             </div>
-                            <Button variant="ghost" size="icon" onClick={() => setIsCartOpen(false)} className="rounded-full h-10 w-10 text-primary-foreground hover:bg-primary-foreground/20">
-                                <X className="h-6 w-6" />
-                            </Button>
+
+                            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                                <div className="flex items-center gap-2 bg-primary-foreground/10 px-2 sm:px-3 py-1.5 rounded-full border border-primary-foreground/20">
+                                    <Label htmlFor="assign-sw" className="hidden sm:block text-[10px] font-bold uppercase tracking-wider cursor-pointer select-none text-primary-foreground">
+                                        Asignar
+                                    </Label>
+                                    <Switch
+                                        id="assign-sw"
+                                        checked={assignUser}
+                                        onCheckedChange={(c) => {
+                                            setAssignUser(c);
+                                            if (!c) setData('user_vendedor_id', undefined);
+                                        }}
+                                        className="scale-75 sm:scale-100 data-[state=checked]:bg-white data-[state=unchecked]:bg-black/20"
+                                    />
+                                </div>
+
+                                {assignUser && (
+                                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                                        <Popover open={openUserSelect} onOpenChange={setOpenUserSelect}>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    role="combobox"
+                                                    aria-expanded={openUserSelect}
+                                                    className="w-[180px] sm:w-[220px] h-8 sm:h-9 justify-between bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground font-medium hover:bg-primary-foreground/20 hover:text-primary-foreground border-none text-xs sm:text-sm"
+                                                >
+                                                    {data.user_vendedor_id
+                                                        ? usuarios.find((u) => u.id === data.user_vendedor_id)?.name
+                                                        : "Seleccionar vendedor..."}
+                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-[200px] p-0">
+                                                <Command>
+                                                    <CommandInput placeholder="Buscar vendedor..." />
+                                                    <CommandList> 
+                                                        <CommandEmpty>No se encontró vendedor.</CommandEmpty>
+                                                        <CommandGroup>
+                                                            {usuarios
+                                                                .filter(u => {
+                                                                    if (isAdmin) return true;
+                                                                    return u.sucursal_id === (sucursal?.id || parseInt(currentSucursalId));
+                                                                })
+                                                                .map((user) => (
+                                                                    <CommandItem
+                                                                        key={user.id}
+                                                                        value={user.name}
+                                                                        onSelect={() => {
+                                                                            setData('user_vendedor_id', user.id);
+                                                                            setOpenUserSelect(false);
+                                                                        }}
+                                                                    >
+                                                                        <Check
+                                                                            className={cn(
+                                                                                "mr-2 h-4 w-4",
+                                                                                data.user_vendedor_id === user.id ? "opacity-100" : "opacity-0"
+                                                                            )}
+                                                                        />
+                                                                        {user.name}
+                                                                    </CommandItem>
+                                                                ))}
+                                                        </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+                                )}
+
+                                <Button variant="ghost" size="icon" onClick={() => setIsCartOpen(false)} className="rounded-full h-8 w-8 sm:h-10 sm:w-10 text-primary-foreground hover:bg-primary-foreground/20">
+                                    <X className="h-5 w-5 sm:h-6 sm:w-6" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
 
@@ -596,6 +745,9 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias }: Props
                                                 />
                                             </div>
                                         </div>
+
+
+
                                         <div className="space-y-2">
                                             <Label className="text-xs font-semibold text-muted-foreground">NIT / CI</Label>
                                             <Input
