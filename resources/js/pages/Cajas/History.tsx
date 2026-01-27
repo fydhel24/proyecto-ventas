@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import cajas, { store, update } from '@/routes/cajas';
-import { Plus, Wallet, Eye, Lock, Unlock, AlertCircle, ArrowLeft, Building2 } from 'lucide-react';
+import { Plus, Wallet, Eye, Lock, Unlock, AlertCircle, ArrowLeft, Building2, FileText } from 'lucide-react';
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -36,7 +36,6 @@ interface Props {
 
 export default function History({ sucursal, cajas: cajasList, cajaAbierta, isAdmin }: Props) {
     const [isOpenModalOpen, setIsOpenModalOpen] = useState(false);
-    const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
     const { user } = usePage().props.auth as any;
 
     const { data: openData, setData: setOpenData, post: postOpen, processing: processingOpen, errors: errorsOpen, reset: resetOpen } = useForm({
@@ -61,17 +60,23 @@ export default function History({ sucursal, cajas: cajasList, cajaAbierta, isAdm
         });
     };
 
-    const handleCloseBox = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleCloseBox = () => {
         if (!cajaAbierta) return;
 
-        putClose(update(cajaAbierta.id).url, {
-            onSuccess: () => {
-                setIsCloseModalOpen(false);
-                resetClose();
-                toast.success('Caja cerrada correctamente');
+        toast('¿Seguro que deseas cerrar la caja?', {
+            description: "Se cerrará la caja y se calcularán los montos automáticamente.",
+            action: {
+                label: 'Confirmar',
+                onClick: () => {
+                    putClose(update(cajaAbierta.id).url, {
+                        onSuccess: () => {
+                            resetClose();
+                            toast.success('Caja cerrada correctamente');
+                        },
+                        onError: () => toast.error('Error al cerrar la caja')
+                    });
+                }
             },
-            onError: () => toast.error('Error al cerrar la caja')
         });
     };
 
@@ -117,7 +122,7 @@ export default function History({ sucursal, cajas: cajasList, cajaAbierta, isAdm
                                     <CardTitle className="mt-2 text-xl">Caja Actual</CardTitle>
                                     <CardDescription>Aperturada por {cajaAbierta.usuario_apertura?.name}</CardDescription>
                                 </div>
-                                <Button variant="destructive" onClick={() => setIsCloseModalOpen(true)}>
+                                <Button variant="destructive" onClick={handleCloseBox} disabled={processingClose}>
                                     <Lock className="mr-2 h-4 w-4" /> Cerrar Caja
                                 </Button>
                             </div>
@@ -193,7 +198,14 @@ export default function History({ sucursal, cajas: cajasList, cajaAbierta, isAdm
                                                     {caja.estado.toUpperCase()}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="text-right">
+                                            <TableCell className="text-right flex items-center justify-end gap-2">
+                                                {caja.fecha_cierre && (
+                                                    <Button variant="outline" size="icon" asChild title="Ver Reporte PDF">
+                                                        <a href={`/cajas/${caja.id}/reporte-pdf`} target="_blank" rel="noopener noreferrer">
+                                                            <FileText className="h-4 w-4 text-red-600" />
+                                                        </a>
+                                                    </Button>
+                                                )}
                                                 <Button variant="ghost" size="icon" asChild>
                                                     <Link href={cajas.show(caja.id).url}>
                                                         <Eye className="h-4 w-4" />
@@ -257,43 +269,6 @@ export default function History({ sucursal, cajas: cajasList, cajaAbierta, isAdm
                             <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setIsOpenModalOpen(false)}>Cancelar</Button>
                                 <Button type="submit" disabled={processingOpen}>Abrir Caja</Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-
-                {/* Close Box Modal */}
-                <Dialog open={isCloseModalOpen} onOpenChange={setIsCloseModalOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Cerrar Caja</DialogTitle>
-                            <DialogDescription>
-                                Ingresa el monto total en efectivo contado en caja.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleCloseBox} className="space-y-4">
-                            <div className="p-4 bg-muted rounded-lg text-sm text-muted-foreground flex gap-2">
-                                <AlertCircle className="w-5 h-5 shrink-0" />
-                                <p>Al cerrar la caja, se calculará automáticamente la diferencia basada en las ventas registradas.</p>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="monto_final">Monto Final en Efectivo</Label>
-                                <Input
-                                    id="monto_final"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    placeholder="0.00"
-                                    value={closeData.monto_final}
-                                    onChange={(e) => setCloseData('monto_final', e.target.value)}
-                                    required
-                                    autoFocus
-                                />
-                                {errorsClose.monto_final && <span className="text-sm text-destructive">{errorsClose.monto_final}</span>}
-                            </div>
-                            <DialogFooter>
-                                <Button type="button" variant="outline" onClick={() => setIsCloseModalOpen(false)}>Cancelar</Button>
-                                <Button type="submit" variant="destructive" disabled={processingClose}>Cerrar Caja</Button>
                             </DialogFooter>
                         </form>
                     </DialogContent>

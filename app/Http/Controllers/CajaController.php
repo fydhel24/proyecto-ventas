@@ -169,7 +169,7 @@ class CajaController extends Controller
          }
          
          $request->validate([
-             'monto_final' => 'required|numeric|min:0',
+             'monto_final' => 'nullable|numeric|min:0',
          ]);
          
          // Recalcular totales para asegurar consistencia
@@ -184,19 +184,24 @@ class CajaController extends Controller
          
          $totalEfectivoEsperado = $caja->efectivo_inicial + $totalEfectivoVentas;
          
-         $diferencia = $request->monto_final - $totalEfectivoEsperado;
+         // Si no se envía monto_final, asumimos que es igual al esperado (cierre automático sin conteo)
+         $montoFinal = $request->has('monto_final') && !is_null($request->monto_final) 
+            ? $request->monto_final 
+            : $totalEfectivoEsperado;
+         
+         $diferencia = $montoFinal - $totalEfectivoEsperado;
          
          $caja->update([
              'fecha_cierre' => now(),
              'user_cierre_id' => auth()->id(),
-             'monto_final' => $request->monto_final,
+             'monto_final' => $montoFinal,
              'total_efectivo' => $totalEfectivoVentas,
              'total_qr' => $totalQrVentas,
              'diferencia' => $diferencia,
              'estado' => 'cerrada',
          ]);
          
-         return redirect()->route('cajas.index')->with('success', 'Caja cerrada correctamente.');
+         return redirect()->back()->with('success', 'Caja cerrada correctamente.');
     }
 
     /**
@@ -272,7 +277,7 @@ class CajaController extends Controller
     public function closeAll(Request $request)
     {
         $request->validate([
-            'monto_final' => 'required|numeric|min:0',
+            'monto_final' => 'nullable|numeric|min:0',
         ]);
 
         $user = auth()->user();
@@ -300,12 +305,17 @@ class CajaController extends Controller
 
             $totalEfectivoEsperado = $caja->efectivo_inicial + $totalEfectivoVentas;
 
-            $diferencia = $request->monto_final - $totalEfectivoEsperado;
+            // Si no se envía monto_final, asumimos que es igual al esperado
+            $montoFinal = $request->has('monto_final') && !is_null($request->monto_final)
+                ? $request->monto_final
+                : $totalEfectivoEsperado;
+
+            $diferencia = $montoFinal - $totalEfectivoEsperado;
 
             $caja->update([
                 'fecha_cierre' => now(),
                 'user_cierre_id' => $user->id,
-                'monto_final' => $request->monto_final,
+                'monto_final' => $montoFinal,
                 'total_efectivo' => $totalEfectivoVentas,
                 'total_qr' => $totalQrVentas,
                 'diferencia' => $diferencia,
@@ -316,5 +326,148 @@ class CajaController extends Controller
         }
 
         return redirect()->route('cajas.index')->with('success', "Se cerraron $closed cajas correctamente.");
+    }
+
+    public function reportePdf(Caja $caja)
+    {
+        $caja->load(['usuarioApertura', 'usuarioCierre', 'sucursal']);
+
+        $fechaCierre = $caja->fecha_cierre ?? now();
+        $ventas = \App\Models\Venta::where('sucursal_id', $caja->sucursal_id)
+            ->whereBetween('created_at', [$caja->fecha_apertura, $fechaCierre])
+            ->where('estado', 'completado')
+            ->get();
+
+        $pdf = new \FPDF('P', 'mm', 'Letter');
+        $pdf->AddPage();
+        
+        // --- ENCABEZADO ---
+        $imgLogo = public_path('images/logo.png');
+        if (file_exists($imgLogo)) {
+            $pdf->Image($imgLogo, 10, 10, 30);
+        }
+
+        $pdf->SetFont('Arial', 'B', 16);
+        $pdf->Cell(0, 10, utf8_decode('REPORTE DE CAJA'), 0, 1, 'C');
+        $pdf->SetFont('Arial', '', 10);
+        $pdf->Cell(0, 5, utf8_decode('MIRACODE S.A.'), 0, 1, 'C');
+        $pdf->Ln(15);
+
+        // --- INFORMACIÓN GENERAL ---
+        $pdf->SetFont('Arial', 'B', 12);
+        $pdf->SetFillColor(240, 240, 240);
+        $pdf->Cell(0, 8, utf8_decode(' INFORMACIÓN GENERAL'), 0, 1, 'L', true);
+        $pdf->Ln(2);
+
+        $pdf->SetFont('Arial', '', 10);
+        
+        // Fila 1
+        $pdf->Cell(35, 6, utf8_decode('Sucursal:'), 0, 0, 'L');
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->Cell(60, 6, utf8_decode($caja->sucursal->nombre_sucursal), 0, 0, 'L');
+        
+        $pdf->SetFont('Arial', '', 10);
+        $pdf->Cell(35, 6, utf8_decode('Nro. Caja:'), 0, 0, 'L');
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->Cell(60, 6, utf8_decode('#' . $caja->id), 0, 1, 'L');
+
+        // Fila 2
+        $pdf->SetFont('Arial', '', 10);
+        $pdf->Cell(35, 6, utf8_decode('Apertura:'), 0, 0, 'L');
+        $pdf->Cell(60, 6, utf8_decode($caja->fecha_apertura . ' (' . ($caja->usuarioApertura->name ?? '-') . ')'), 0, 0, 'L');
+
+        $pdf->Cell(35, 6, utf8_decode('Estado:'), 0, 0, 'L');
+        $pdf->Cell(60, 6, utf8_decode(strtoupper($caja->estado)), 0, 1, 'L');
+
+        // Fila 3
+        if ($caja->fecha_cierre) {
+            $pdf->SetFont('Arial', '', 10);
+            $pdf->Cell(35, 6, utf8_decode('Cierre:'), 0, 0, 'L');
+            $pdf->Cell(60, 6, utf8_decode($caja->fecha_cierre . ' (' . ($caja->usuarioCierre->name ?? '-') . ')'), 0, 1, 'L');
+        } else {
+            $pdf->Ln(6);
+        }
+
+        $pdf->Ln(5);
+
+        // --- MONTOS ---
+        $pdf->SetFont('Arial', 'B', 12);
+        $pdf->Cell(0, 8, utf8_decode(' ARQUEO DE CAJA'), 0, 1, 'L', true);
+        $pdf->Ln(2);
+
+        $pdf->SetFont('Arial', '', 10);
+        $pdf->Cell(50, 6, utf8_decode('Monto Inicial:'), 0, 0);
+        $pdf->Cell(50, 6, 'Bs. ' . number_format($caja->monto_inicial, 2), 0, 1);
+        
+        // Calcular totales
+        $totalVentas = $ventas->sum('monto_total');
+        $totalEfectivo = $ventas->sum('efectivo');
+        $totalQr = $ventas->sum('qr');
+        $ventasCount = $ventas->count();
+
+        $pdf->Cell(50, 6, utf8_decode('Ventas Efectivo:'), 0, 0);
+        $pdf->Cell(50, 6, 'Bs. ' . number_format($totalEfectivo, 2), 0, 1);
+
+        $pdf->Cell(50, 6, utf8_decode('Ventas QR:'), 0, 0);
+        $pdf->Cell(50, 6, 'Bs. ' . number_format($totalQr, 2), 0, 1);
+        
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->Cell(50, 6, utf8_decode('TOTAL VENTAS:'), 0, 0);
+        $pdf->Cell(50, 6, 'Bs. ' . number_format($totalVentas, 2), 0, 1);
+
+        if ($caja->monto_final) {
+            $pdf->Ln(2);
+            $pdf->SetFont('Arial', '', 10);
+            $pdf->Cell(50, 6, utf8_decode('Monto Final Declarado:'), 0, 0);
+            $pdf->Cell(50, 6, 'Bs. ' . number_format($caja->monto_final, 2), 0, 1);
+            
+            $pdf->SetFont('Arial', 'B', 10);
+            $pdf->Cell(50, 6, utf8_decode('Diferencia:'), 0, 0);
+            $color = $caja->diferencia == 0 ? [0, 0, 0] : ($caja->diferencia > 0 ? [0, 128, 0] : [255, 0, 0]);
+            $pdf->SetTextColor($color[0], $color[1], $color[2]);
+            $pdf->Cell(50, 6, 'Bs. ' . number_format($caja->diferencia, 2), 0, 1);
+            $pdf->SetTextColor(0, 0, 0);
+        }
+
+        $pdf->Ln(10);
+
+        // --- DETALLE DE VENTAS ---
+        $pdf->SetFont('Arial', 'B', 12);
+        $pdf->Cell(0, 8, utf8_decode(' DETALLE DE VENTAS (' . $ventasCount . ')'), 0, 1, 'L', true);
+        $pdf->Ln(2);
+
+        // Tabla Header
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->SetFillColor(230, 230, 230);
+        $pdf->Cell(30, 7, 'Hora', 1, 0, 'C', true);
+        $pdf->Cell(80, 7, 'Cliente', 1, 0, 'C', true);
+        $pdf->Cell(25, 7, 'Efectivo', 1, 0, 'C', true);
+        $pdf->Cell(25, 7, 'QR', 1, 0, 'C', true);
+        $pdf->Cell(25, 7, 'Total', 1, 1, 'C', true);
+
+        // Tabla Body
+        $pdf->SetFont('Arial', '', 8);
+        $fill = false;
+
+        foreach ($ventas as $venta) {
+            $pdf->Cell(30, 6, $venta->created_at->format('H:i:s'), 1, 0, 'C', $fill);
+            $pdf->Cell(80, 6, utf8_decode(substr($venta->nombre, 0, 45)), 1, 0, 'L', $fill);
+            $pdf->Cell(25, 6, number_format($venta->efectivo, 2), 1, 0, 'R', $fill);
+            $pdf->Cell(25, 6, number_format($venta->qr, 2), 1, 0, 'R', $fill);
+            $pdf->Cell(25, 6, number_format($venta->monto_total, 2), 1, 1, 'R', $fill);
+            
+            // $fill = !$fill; // Alternar color si se desea
+        }
+        
+        // Tabla Footer
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->Cell(110, 7, 'TOTALES', 1, 0, 'R', true);
+        $pdf->Cell(25, 7, number_format($totalEfectivo, 2), 1, 0, 'R', true);
+        $pdf->Cell(25, 7, number_format($totalQr, 2), 1, 0, 'R', true);
+        $pdf->Cell(25, 7, number_format($totalVentas, 2), 1, 1, 'R', true);
+
+        return response($pdf->Output('S'))
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="reporte_caja_' . $caja->id . '.pdf"');
     }
 }

@@ -4,11 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { update, history } from '@/routes/cajas';
-import { ArrowLeft, User, Calendar, DollarSign, Wallet, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { ArrowLeft, User, Calendar, DollarSign, Wallet, AlertTriangle, CheckCircle } from 'lucide-react';
+import React from 'react';
 import { toast } from 'sonner';
 
 interface Caja {
@@ -42,24 +39,26 @@ const breadcrumbs = [
 ];
 
 export default function Show({ caja, totalVentas, totalEfectivo, totalQr }: Props) {
-    const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
-
     // Calcular esperado
     const efectivoEsperado = Number(caja.efectivo_inicial) + Number(totalEfectivo);
-    const diferencia = caja.monto_final ? (caja.monto_final - efectivoEsperado) : 0;
 
-    const { data: closeData, setData: setCloseData, put: putClose, processing: processingClose, errors: errorsClose, reset: resetClose } = useForm({
-        monto_final: '',
-    });
+    // Setup form for put request (even if empty) to handle loading state
+    const { put: putClose, processing: processingClose } = useForm({});
 
-    const handleCloseBox = (e: React.FormEvent) => {
-        e.preventDefault();
-        putClose(update(caja.id).url, {
-            onSuccess: () => {
-                setIsCloseModalOpen(false);
-                toast.success('Caja cerrada correctamente');
+    const handleCloseBox = () => {
+        toast('¿Seguro que deseas cerrar esta caja?', {
+            description: "Se calcularán los montos automáticamente.",
+            action: {
+                label: 'Confirmar',
+                onClick: () => {
+                    putClose(update(caja.id).url, {
+                        onSuccess: () => {
+                            toast.success('Caja cerrada correctamente');
+                        },
+                        onError: () => toast.error('Error al cerrar la caja')
+                    });
+                }
             },
-            onError: () => toast.error('Error al cerrar la caja')
         });
     };
 
@@ -83,7 +82,7 @@ export default function Show({ caja, totalVentas, totalEfectivo, totalQr }: Prop
                         <p className="text-muted-foreground">{caja.sucursal.nombre_sucursal}</p>
                     </div>
                     {caja.estado === 'abierta' && (
-                        <Button variant="destructive" className="ml-auto" onClick={() => setIsCloseModalOpen(true)}>
+                        <Button variant="destructive" className="ml-auto" onClick={handleCloseBox} disabled={processingClose}>
                             Cerrar Caja
                         </Button>
                     )}
@@ -220,51 +219,6 @@ export default function Show({ caja, totalVentas, totalEfectivo, totalQr }: Prop
                         </CardContent>
                     </Card>
                 </div>
-
-                {/* Close Box Modal (Reused) */}
-                <Dialog open={isCloseModalOpen} onOpenChange={setIsCloseModalOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Cerrar Caja #{caja.id}</DialogTitle>
-                            <DialogDescription>
-                                Estás cerrando la caja de la sucursal <strong>{caja.sucursal.nombre_sucursal}</strong>.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleCloseBox} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4 text-sm mb-2">
-                                <div className="bg-muted p-2 rounded">
-                                    <span className="block text-muted-foreground text-xs">Total Efectivo Sistema</span>
-                                    <span className="font-bold">Bs. {efectivoEsperado.toFixed(2)}</span>
-                                </div>
-                                <div className="bg-muted p-2 rounded">
-                                    <span className="block text-muted-foreground text-xs">Total QR Sistema</span>
-                                    <span className="font-bold">Bs. {totalQr.toFixed(2)}</span>
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="monto_final">Monto Final en Efectivo (Contado)</Label>
-                                <Input
-                                    id="monto_final"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    placeholder="0.00"
-                                    value={closeData.monto_final}
-                                    onChange={(e) => setCloseData('monto_final', e.target.value)}
-                                    required
-                                    autoFocus
-                                    className="text-lg font-bold"
-                                />
-                                {errorsClose.monto_final && <span className="text-sm text-destructive">{errorsClose.monto_final}</span>}
-                            </div>
-                            <DialogFooter>
-                                <Button type="button" variant="outline" onClick={() => setIsCloseModalOpen(false)}>Cancelar</Button>
-                                <Button type="submit" variant="destructive" disabled={processingClose}>Confirmar Cierre</Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
             </div>
         </AppLayout>
     );

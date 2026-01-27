@@ -75,13 +75,20 @@ export default function Index({ sucursales, isAdmin }: Props) {
 
     const handleCloseAll = (e: React.FormEvent) => {
         e.preventDefault();
-        postCloseAll(closeAll().url, {
-            onSuccess: () => {
-                setIsCloseAllModalOpen(false);
-                resetCloseAll();
-                toast.success('Cajas cerradas correctamente');
+
+        toast('¿Seguro que deseas cerrar todas las cajas?', {
+            description: "Esta acción cerrará todas las cajas abiertas automáticamente.",
+            action: {
+                label: 'Confirmar',
+                onClick: () => {
+                    postCloseAll(closeAll().url, {
+                        onSuccess: () => {
+                            toast.success('Cajas cerradas correctamente');
+                        },
+                        onError: () => toast.error('Error al cerrar las cajas')
+                    });
+                }
             },
-            onError: () => toast.error('Error al cerrar las cajas')
         });
     };
 
@@ -98,18 +105,22 @@ export default function Index({ sucursales, isAdmin }: Props) {
         });
     };
 
-    const handleCloseBox = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedSucursal?.caja_abierta) return;
+    const handleCloseBox = (sucursal: Sucursal) => {
+        if (!sucursal.caja_abierta) return;
 
-        putClose(cajas.update(selectedSucursal.caja_abierta.id).url, {
-            onSuccess: () => {
-                setIsCloseModalOpen(false);
-                resetClose();
-                setSelectedSucursal(null);
-                toast.success('Caja cerrada correctamente');
+        toast(`¿Cerrar caja de ${sucursal.nombre_sucursal}?`, {
+            description: "Se cerrará la caja y se calcularán los montos automáticamente.",
+            action: {
+                label: 'Confirmar',
+                onClick: () => {
+                    putClose(cajas.update(sucursal.caja_abierta!.id).url, {
+                        onSuccess: () => {
+                            toast.success('Caja cerrada correctamente');
+                        },
+                        onError: () => toast.error('Error al cerrar la caja')
+                    });
+                }
             },
-            onError: () => toast.error('Error al cerrar la caja')
         });
     };
 
@@ -119,10 +130,7 @@ export default function Index({ sucursales, isAdmin }: Props) {
         setIsOpenModalOpen(true);
     };
 
-    const closeBoxModal = (sucursal: Sucursal) => {
-        setSelectedSucursal(sucursal);
-        setIsCloseModalOpen(true);
-    };
+    // Removed closeBoxModal
 
     const hasOpenBoxes = sucursales.some(s => s.caja_abierta !== null);
     const hasClosedBoxes = sucursales.some(s => s.caja_abierta === null);
@@ -147,8 +155,8 @@ export default function Index({ sucursales, isAdmin }: Props) {
                             </Button>
                             <Button
                                 variant="destructive"
-                                onClick={() => setIsCloseAllModalOpen(true)}
-                                disabled={!hasOpenBoxes}
+                                onClick={handleCloseAll}
+                                disabled={!hasOpenBoxes || processingCloseAll}
                             >
                                 <LockKeyhole className="mr-2 h-4 w-4" /> Cerrar Todas
                             </Button>
@@ -207,7 +215,8 @@ export default function Index({ sucursales, isAdmin }: Props) {
                                             className="flex-1"
                                             variant="destructive"
                                             size="sm"
-                                            onClick={() => closeBoxModal(sucursal)}
+                                            onClick={() => handleCloseBox(sucursal)}
+                                            disabled={processingClose}
                                         >
                                             <Lock className="mr-2 w-4 h-4" /> Cerrar Caja
                                         </Button>
@@ -300,40 +309,6 @@ export default function Index({ sucursales, isAdmin }: Props) {
                     </DialogContent>
                 </Dialog>
 
-                {/* Close All Modal */}
-                <Dialog open={isCloseAllModalOpen} onOpenChange={setIsCloseAllModalOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Cerrar Todas las Cajas</DialogTitle>
-                            <DialogDescription>
-                                Se cerrarán todas las cajas abiertas. Ingresa el monto final en efectivo.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleCloseAll} className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="monto_final_all">Monto Final en Efectivo</Label>
-                                <Input
-                                    id="monto_final_all"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    placeholder="0.00"
-                                    value={closeAllData.monto_final}
-                                    onChange={(e) => setCloseAllData('monto_final', e.target.value)}
-                                    required
-                                    autoFocus
-                                    className="text-lg font-bold"
-                                />
-                                {errorsCloseAll.monto_final && <span className="text-sm text-destructive">{errorsCloseAll.monto_final}</span>}
-                            </div>
-                            <DialogFooter>
-                                <Button type="button" variant="outline" onClick={() => setIsCloseAllModalOpen(false)}>Cancelar</Button>
-                                <Button type="submit" variant="destructive" disabled={processingCloseAll}>Cerrar Todas</Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-
                 {/* Individual Open Box Modal */}
                 <Dialog open={isOpenModalOpen} onOpenChange={setIsOpenModalOpen}>
                     <DialogContent>
@@ -383,40 +358,6 @@ export default function Index({ sucursales, isAdmin }: Props) {
                             <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setIsOpenModalOpen(false)}>Cancelar</Button>
                                 <Button type="submit" disabled={processingOpen}>Abrir Caja</Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-
-                {/* Individual Close Box Modal */}
-                <Dialog open={isCloseModalOpen} onOpenChange={setIsCloseModalOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Cerrar Caja</DialogTitle>
-                            <DialogDescription>
-                                {selectedSucursal?.nombre_sucursal}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleCloseBox} className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="monto_final">Monto Final en Efectivo</Label>
-                                <Input
-                                    id="monto_final"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    placeholder="0.00"
-                                    value={closeData.monto_final}
-                                    onChange={(e) => setCloseData('monto_final', e.target.value)}
-                                    required
-                                    autoFocus
-                                    className="text-lg font-bold"
-                                />
-                                {errorsClose.monto_final && <span className="text-sm text-destructive">{errorsClose.monto_final}</span>}
-                            </div>
-                            <DialogFooter>
-                                <Button type="button" variant="outline" onClick={() => setIsCloseModalOpen(false)}>Cancelar</Button>
-                                <Button type="submit" variant="destructive" disabled={processingClose}>Cerrar Caja</Button>
                             </DialogFooter>
                         </form>
                     </DialogContent>
