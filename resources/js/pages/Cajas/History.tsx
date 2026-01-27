@@ -18,7 +18,6 @@ interface Caja {
     fecha_cierre?: string;
     monto_inicial: number;
     monto_final?: number;
-    total_ventas?: number;
     estado: string;
     sucursal: { id: number, nombre_sucursal: string };
     usuario_apertura: { name: string };
@@ -164,10 +163,11 @@ export default function History({ sucursal, cajas: cajasList, cajaAbierta, isAdm
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Fecha Apertura</TableHead>
-                                    <TableHead>Usuario</TableHead>
+                                    <TableHead>Usuario Apertura</TableHead>
                                     <TableHead>Monto Inicial</TableHead>
+                                    <TableHead>Fecha Cierre</TableHead>
+                                    <TableHead>Usuario Cierre</TableHead>
                                     <TableHead>Monto Final</TableHead>
-                                    <TableHead>Total Ventas</TableHead>
                                     <TableHead>Estado</TableHead>
                                     <TableHead className="text-right">Acciones</TableHead>
                                 </TableRow>
@@ -175,7 +175,7 @@ export default function History({ sucursal, cajas: cajasList, cajaAbierta, isAdm
                             <TableBody>
                                 {cajasList.data.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                                             No hay registros de cajas.
                                         </TableCell>
                                     </TableRow>
@@ -185,8 +185,9 @@ export default function History({ sucursal, cajas: cajasList, cajaAbierta, isAdm
                                             <TableCell>{new Date(caja.fecha_apertura).toLocaleDateString()} {new Date(caja.fecha_apertura).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
                                             <TableCell>{caja.usuario_apertura?.name}</TableCell>
                                             <TableCell>Bs. {caja.monto_inicial}</TableCell>
+                                            <TableCell>{caja.fecha_cierre ? `${new Date(caja.fecha_cierre).toLocaleDateString()} ${new Date(caja.fecha_cierre).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : '-'}</TableCell>
+                                            <TableCell>{caja.usuario_cierre?.name || '-'}</TableCell>
                                             <TableCell>{caja.monto_final ? `Bs. ${caja.monto_final}` : '-'}</TableCell>
-                                            <TableCell>{caja.total_ventas ? `Bs. ${caja.total_ventas}` : '-'}</TableCell>
                                             <TableCell>
                                                 <Badge variant={caja.estado === 'abierta' ? 'default' : 'secondary'} className={caja.estado === 'abierta' ? 'bg-green-500' : ''}>
                                                     {caja.estado.toUpperCase()}
