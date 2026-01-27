@@ -81,7 +81,7 @@ class VentaController extends Controller
                 'monto_total' => $request->monto_total,
                 'pagado' => $request->pagado,
                 'cambio' => $request->cambio,
-                'efectivo' => $request->efectivo ?? 0,
+                'efectivo' => $request->monto_total ?? 0,
                 'qr' => $request->qr ?? 0,
                 'user_vendedor_id' => $user->id,
                 'sucursal_id' => $sucursal_id,
@@ -205,7 +205,7 @@ class VentaController extends Controller
             $baseHeight = 100; // altura base mínima
             $itemHeight = 4; // altura por cada producto
             $totalHeight = $baseHeight + (count($venta->detalles) * $itemHeight);
-            
+
             $pdf = new \FPDF('P', 'mm', array(80, max($totalHeight, 150)));
             $pdf->SetMargins(2, 2, 2);
             $pdf->AddPage();
@@ -243,7 +243,7 @@ class VentaController extends Controller
             $pdf->SetFont('Arial', 'B', 8);
             $pdf->Cell(0, 3, 'DETALLE DE VENTA', 0, 1);
             $pdf->Cell(0, 1, '====================================', 0, 1);
-            
+
             $pdf->SetFont('Arial', 'B', 7);
             $pdf->Cell(32, 4, 'Producto', 0, 0);
             $pdf->Cell(8, 4, 'Cant', 0, 0, 'C');
@@ -260,17 +260,17 @@ class VentaController extends Controller
             }
 
             $pdf->Cell(0, 1, '------------------------------------', 0, 1);
-            
+
             // Totales
             $pdf->SetFont('Arial', 'B', 9);
             $pdf->Cell(55, 5, 'TOTAL:', 0, 0, 'R');
             $pdf->Cell(15, 5, 'Bs. ' . number_format($venta->monto_total, 2), 0, 1, 'R');
-            
+
             $pdf->SetFont('Arial', '', 8);
             $pdf->Cell(55, 4, 'Tipo de pago:', 0, 0, 'R');
             $pdf->SetFont('Arial', 'B', 8);
             $pdf->Cell(15, 4, utf8_decode($venta->tipo_pago), 0, 1, 'R');
-            
+
             // Mostrar desglose si es pago mixto
             if ($venta->efectivo > 0) {
                 $pdf->SetFont('Arial', '', 7);
@@ -282,11 +282,11 @@ class VentaController extends Controller
                 $pdf->Cell(55, 3, 'QR/Transf.:', 0, 0, 'R');
                 $pdf->Cell(15, 3, 'Bs. ' . number_format($venta->qr, 2), 0, 1, 'R');
             }
-            
+
             $pdf->SetFont('Arial', '', 8);
             $pdf->Cell(55, 4, 'Pagado:', 0, 0, 'R');
             $pdf->Cell(15, 4, 'Bs. ' . number_format($venta->pagado, 2), 0, 1, 'R');
-            
+
             if ($venta->cambio > 0) {
                 $pdf->SetFont('Arial', 'B', 8);
                 $pdf->Cell(55, 4, 'Cambio:', 0, 0, 'R');
