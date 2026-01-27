@@ -371,7 +371,6 @@ export default function Create({ sucursales }: Props) {
                                         <SelectContent>
                                             <SelectItem value="Efectivo">Efectivo</SelectItem>
                                             <SelectItem value="QR">QR / Transferencia</SelectItem>
-                                            <SelectItem value="Tarjeta">Tarjeta</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>

@@ -234,7 +234,7 @@ export default function Details({ cuaderno }: { cuaderno: Cuaderno | null }) {
                         </Card>
 
                         <div className="mt-12 text-center pb-8 opacity-50">
-                            <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.4em] mb-4">Nexus Core System</p>
+                            <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.4em] mb-4">MiraCode</p>
                             <div className="flex justify-center gap-6">
                                 <div className="w-4 h-1 bg-muted-foreground rounded-full"></div>
                                 <div className="w-4 h-1 bg-muted-foreground rounded-full"></div>

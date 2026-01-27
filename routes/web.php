@@ -153,12 +153,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('ventas')->name('ventas.')->group(function () {
         Route::middleware('can:ver ventas')->group(function () {
             Route::get('/', [App\Http\Controllers\VentaController::class, 'index'])->name('index');
+            Route::get('/historial', [App\Http\Controllers\VentaController::class, 'historial'])->name('historial');
             Route::get('/search-productos', [App\Http\Controllers\VentaController::class, 'searchProductos'])->name('search-productos');
         });
 
         Route::middleware('can:crear ventas')->group(function () {
             Route::get('/create', [App\Http\Controllers\VentaController::class, 'create'])->name('create');
             Route::post('/', [App\Http\Controllers\VentaController::class, 'store'])->name('store');
+            Route::post('/{venta}/cancelar', [App\Http\Controllers\VentaController::class, 'cancelar'])->name('cancelar');
         });
 
         Route::middleware('can:editar ventas')->group(function () {

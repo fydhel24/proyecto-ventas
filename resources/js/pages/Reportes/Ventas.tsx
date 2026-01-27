@@ -167,320 +167,316 @@ export default function ReporteVentas({ ventas, estadisticas, sucursales, isAdmi
         <AppLayout breadcrumbs={[{ title: 'Reportes', href: '/reportes' }, { title: 'Ventas', href: '/reportes/ventas' }]}>
             <Head title="Reporte de Ventas" />
 
-            <div className="p-4 sm:p-6 space-y-6">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="p-4 sm:p-6 space-y-8 max-w-[1600px] mx-auto">
+                {/* Header Section */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card p-6 rounded-2xl shadow-sm border">
                     <div>
-                        <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
-                            <FileText className="h-8 w-8 text-primary" />
+                        <h1 className="text-3xl font-black tracking-tight flex items-center gap-3 text-foreground">
+                            <div className="p-2 bg-primary/10 rounded-lg">
+                                <FileText className="h-8 w-8 text-primary" />
+                            </div>
                             Reporte de Ventas
                         </h1>
-                        <p className="text-muted-foreground mt-1">Visualiza y analiza las ventas de tu negocio</p>
+                        <p className="text-muted-foreground mt-2 text-sm max-w-2xl">
+                            Análisis detallado de transacciones <strong>completadas</strong>. Las ventas anuladas no se incluyen en estos cálculos.
+                        </p>
                     </div>
                     <Button
                         onClick={exportarPDF}
                         disabled={isExporting || ventas.total === 0}
-                        className="h-12 px-6 rounded-xl font-bold shadow-lg"
+                        size="lg"
+                        className="rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
                     >
                         {isExporting ? (
-                            <>Generando PDF...</>
+                            <>Generando...</>
                         ) : (
                             <>
                                 <Download className="mr-2 h-5 w-5" />
-                                Descargar PDF
+                                Exportar PDF
                             </>
                         )}
                     </Button>
                 </div>
 
-                {/* Filtros */}
-                <Card className="border-none shadow-lg">
-                    <CardHeader className="bg-muted/30">
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                            <Filter className="h-5 w-5" />
-                            Filtros de búsqueda
-                        </CardTitle>
-                        <CardDescription>Personaliza tu reporte aplicando filtros</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div className="space-y-2">
-                                <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" /> Fecha inicio
-                                </Label>
-                                <Input
-                                    type="date"
-                                    value={fechaInicio}
-                                    onChange={e => setFechaInicio(e.target.value)}
-                                    className="h-11 rounded-xl"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" /> Fecha fin
-                                </Label>
-                                <Input
-                                    type="date"
-                                    value={fechaFin}
-                                    onChange={e => setFechaFin(e.target.value)}
-                                    className="h-11 rounded-xl"
-                                />
-                            </div>
-                            {isAdmin && (
-                                <div className="space-y-2">
-                                    <Label className="text-xs font-semibold text-muted-foreground">Sucursal</Label>
-                                    <Select value={sucursalId} onValueChange={setSucursalId}>
-                                        <SelectTrigger className="h-11 rounded-xl">
-                                            <SelectValue placeholder="Todas las sucursales" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">Todas</SelectItem>
-                                            {sucursales.map(s => (
-                                                <SelectItem key={s.id} value={s.id.toString()}>{s.nombre_sucursal}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            )}
-                            <div className="space-y-2">
-                                <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                                    <Search className="h-3 w-3" /> Buscar producto
-                                </Label>
-                                <Input
-                                    placeholder="Nombre del producto..."
-                                    value={query}
-                                    onChange={e => setQuery(e.target.value)}
-                                    className="h-11 rounded-xl"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label className="text-xs font-semibold text-muted-foreground">Métodos de pago</Label>
-                            <div className="flex flex-wrap gap-3">
-                                {['Efectivo', 'QR', 'Efectivo + QR', 'Tarjeta'].map(tipo => (
-                                    <div key={tipo} className="flex items-center space-x-2">
-                                        <Checkbox
-                                            id={tipo}
-                                            checked={tiposPago.includes(tipo)}
-                                            onCheckedChange={() => toggleTipoPago(tipo)}
-                                        />
-                                        <Label htmlFor={tipo} className="cursor-pointer font-medium">
-                                            {tipo}
-                                        </Label>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="flex gap-3 pt-2">
-                            <Button onClick={aplicarFiltros} className="flex-1 h-11 rounded-xl font-bold">
-                                <Filter className="mr-2 h-4 w-4" />
-                                Aplicar filtros
-                            </Button>
-                            <Button onClick={limpiarFiltros} variant="outline" className="h-11 px-6 rounded-xl font-semibold">
-                                Limpiar
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Estadísticas */}
+                {/* KPI Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card className="border-none shadow-md hover:shadow-xl transition-shadow">
+                    <Card className="border-none shadow-md bg-gradient-to-br from-primary/5 to-transparent">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs font-semibold text-muted-foreground uppercase">Total ventas</p>
-                                    <p className="text-3xl font-black text-primary mt-1">Bs. {estadisticas.total_ventas.toFixed(2)}</p>
+                                <div className="space-y-1">
+                                    <p className="text-xs font-bold text-primary uppercase tracking-wider">Ingresos Totales</p>
+                                    <p className="text-3xl font-black text-foreground">Bs. {estadisticas.total_ventas.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                 </div>
-                                <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-                                    <TrendingUp className="h-7 w-7 text-primary" />
+                                <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                                    <TrendingUp className="h-6 w-6 text-primary" />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-none shadow-md hover:shadow-xl transition-shadow">
+                    <Card className="border-none shadow-md bg-gradient-to-br from-green-500/5 to-transparent">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs font-semibold text-muted-foreground uppercase">Efectivo</p>
-                                    <p className="text-3xl font-black text-green-600 mt-1">Bs. {estadisticas.total_efectivo.toFixed(2)}</p>
+                                <div className="space-y-1">
+                                    <p className="text-xs font-bold text-green-600 uppercase tracking-wider">Efectivo</p>
+                                    <p className="text-3xl font-black text-foreground">Bs. {estadisticas.total_efectivo.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                 </div>
-                                <div className="h-14 w-14 rounded-2xl bg-green-100 flex items-center justify-center">
-                                    <DollarSign className="h-7 w-7 text-green-600" />
+                                <div className="h-12 w-12 rounded-xl bg-green-100 flex items-center justify-center">
+                                    <DollarSign className="h-6 w-6 text-green-600" />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-none shadow-md hover:shadow-xl transition-shadow">
+                    <Card className="border-none shadow-md bg-gradient-to-br from-blue-500/5 to-transparent">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs font-semibold text-muted-foreground uppercase">QR / Transferencia</p>
-                                    <p className="text-3xl font-black text-blue-600 mt-1">Bs. {estadisticas.total_qr.toFixed(2)}</p>
+                                <div className="space-y-1">
+                                    <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">QR / Digital</p>
+                                    <p className="text-3xl font-black text-foreground">Bs. {estadisticas.total_qr.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                 </div>
-                                <div className="h-14 w-14 rounded-2xl bg-blue-100 flex items-center justify-center">
-                                    <Smartphone className="h-7 w-7 text-blue-600" />
+                                <div className="h-12 w-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                                    <Smartphone className="h-6 w-6 text-blue-600" />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-none shadow-md hover:shadow-xl transition-shadow">
+                    <Card className="border-none shadow-md bg-gradient-to-br from-orange-500/5 to-transparent">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs font-semibold text-muted-foreground uppercase">Transacciones</p>
-                                    <p className="text-3xl font-black text-orange-600 mt-1">{estadisticas.total_transacciones}</p>
-                                    <p className="text-xs text-muted-foreground mt-1">Promedio: Bs. {estadisticas.promedio_venta.toFixed(2)}</p>
+                                <div className="space-y-1">
+                                    <p className="text-xs font-bold text-orange-600 uppercase tracking-wider">Transacciones</p>
+                                    <p className="text-3xl font-black text-foreground">{estadisticas.total_transacciones}</p>
+                                    <p className="text-[10px] text-muted-foreground font-medium">Ticket Promedio: Bs. {estadisticas.promedio_venta.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                 </div>
-                                <div className="h-14 w-14 rounded-2xl bg-orange-100 flex items-center justify-center">
-                                    <CreditCard className="h-7 w-7 text-orange-600" />
+                                <div className="h-12 w-12 rounded-xl bg-orange-100 flex items-center justify-center">
+                                    <CreditCard className="h-6 w-6 text-orange-600" />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
 
-                {/* Tabla */}
-                <Card className="border-none shadow-lg">
-                    <CardHeader className="bg-muted/30">
-                        <CardTitle className="text-lg">
-                            Listado de ventas ({ventas.total} registros)
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                        <div className="overflow-x-auto">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow className="bg-muted/50">
-                                        <TableHead className="font-bold">Fecha</TableHead>
-                                        <TableHead className="font-bold">Ticket</TableHead>
-                                        <TableHead className="font-bold">Cliente</TableHead>
-                                        <TableHead className="font-bold">Productos</TableHead>
-                                        <TableHead className="font-bold">Tipo Pago</TableHead>
-                                        <TableHead className="font-bold text-right">Total</TableHead>
-                                        {isAdmin && <TableHead className="font-bold">Sucursal</TableHead>}
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {ventas.data.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell colSpan={isAdmin ? 7 : 6} className="text-center py-12 text-muted-foreground">
-                                                No se encontraron ventas con los filtros aplicados
-                                            </TableCell>
-                                        </TableRow>
-                                    ) : (
-                                        ventas.data.map((venta) => (
-                                            <TableRow key={venta.id} className="hover:bg-muted/30">
-                                                <TableCell className="font-medium">
-                                                    {new Date(venta.created_at).toLocaleDateString('es-BO', {
-                                                        day: '2-digit',
-                                                        month: '2-digit',
-                                                        year: 'numeric'
-                                                    })}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline" className="font-mono">
-                                                        #{String(venta.id).padStart(6, '0')}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="font-semibold">{venta.cliente}</TableCell>
-                                                <TableCell>
-                                                    <div className="max-w-xs">
-                                                        {venta.detalles.slice(0, 2).map((d, i) => (
-                                                            <span key={i} className="text-xs text-muted-foreground">
-                                                                {d.inventario.producto.nombre}
-                                                                {i < 1 && venta.detalles.length > 1 ? ', ' : ''}
-                                                            </span>
-                                                        ))}
-                                                        {venta.detalles.length > 2 && (
-                                                            <Badge variant="secondary" className="ml-1 text-xs">
-                                                                +{venta.detalles.length - 2}
-                                                            </Badge>
-                                                        )}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge className={
-                                                        venta.tipo_pago === 'Efectivo' ? 'bg-green-500' :
-                                                            venta.tipo_pago === 'QR' ? 'bg-blue-500' :
-                                                                'bg-purple-500'
-                                                    }>
-                                                        {venta.tipo_pago}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="text-right font-black text-primary">
-                                                    Bs. {Number(venta.monto_total).toFixed(2)}
-                                                </TableCell>
-                                                {isAdmin && (
-                                                    <TableCell className="text-sm text-muted-foreground">
-                                                        {venta.sucursal.nombre_sucursal}
-                                                    </TableCell>
-                                                )}
-                                            </TableRow>
-                                        ))
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    </CardContent>
-                </Card>
+                {/* Filters & Data Section */}
+                <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                    {/* Filters Sidebar */}
+                    <div className="xl:col-span-1 space-y-6">
+                        <Card className="border shadow-sm h-full">
+                            <CardHeader className="bg-muted/40 pb-4">
+                                <CardTitle className="flex items-center gap-2 text-base font-bold">
+                                    <Filter className="h-4 w-4" />
+                                    Filtros Avanzados
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-5 space-y-5">
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-bold text-muted-foreground uppercase">Período</Label>
+                                    <div className="grid gap-2">
+                                        <div className="relative">
+                                            <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                type="datetime-local"
+                                                value={fechaInicio}
+                                                onChange={e => setFechaInicio(e.target.value)}
+                                                className="pl-9 h-10 bg-background"
+                                            />
+                                        </div>
+                                        <div className="relative">
+                                            <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                type="datetime-local"
+                                                value={fechaFin}
+                                                onChange={e => setFechaFin(e.target.value)}
+                                                className="pl-9 h-10 bg-background"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
 
-                {/* Paginación */}
-                {ventas.last_page > 1 && (
-                    <div className="flex items-center justify-center gap-2 sm:gap-4 bg-card p-4 rounded-xl border shadow-sm">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="rounded-full px-3 sm:px-4"
-                            disabled={ventas.current_page === 1}
-                            onClick={() => irAPagina(ventas.current_page - 1)}
-                        >
-                            <Minus className="mr-1 sm:mr-2 h-4 w-4" /> Anterior
-                        </Button>
-                        <div className="flex items-center gap-1">
-                            {[...Array(Math.min(ventas.last_page, 7))].map((_, i) => {
-                                let page;
-                                if (ventas.last_page <= 7) {
-                                    page = i + 1;
-                                } else if (ventas.current_page <= 4) {
-                                    page = i + 1;
-                                } else if (ventas.current_page >= ventas.last_page - 3) {
-                                    page = ventas.last_page - 6 + i;
-                                } else {
-                                    page = ventas.current_page - 3 + i;
-                                }
+                                {isAdmin && (
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-bold text-muted-foreground uppercase">Sucursal</Label>
+                                        <Select value={sucursalId} onValueChange={setSucursalId}>
+                                            <SelectTrigger className="h-10">
+                                                <SelectValue placeholder="Todas" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">Todas las sucursales</SelectItem>
+                                                {sucursales.map(s => (
+                                                    <SelectItem key={s.id} value={s.id.toString()}>{s.nombre_sucursal}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
 
-                                if (page < 1 || page > ventas.last_page) return null;
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-bold text-muted-foreground uppercase">Búsqueda</Label>
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Cliente, Ticket o Producto..."
+                                            value={query}
+                                            onChange={e => setQuery(e.target.value)}
+                                            className="pl-9 h-10"
+                                        />
+                                    </div>
+                                </div>
 
-                                return (
-                                    <Button
-                                        key={page}
-                                        variant={ventas.current_page === page ? "default" : "ghost"}
-                                        size="icon"
-                                        className="h-9 w-9 rounded-full text-xs font-bold"
-                                        onClick={() => irAPagina(page)}
-                                    >
-                                        {page}
+                                <div className="space-y-3">
+                                    <Label className="text-xs font-bold text-muted-foreground uppercase">Método de Pago</Label>
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {['Efectivo', 'QR', 'Efectivo + QR'].map(tipo => (
+                                            <label key={tipo} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer border border-transparent hover:border-border">
+                                                <Checkbox
+                                                    id={tipo}
+                                                    checked={tiposPago.includes(tipo)}
+                                                    onCheckedChange={() => toggleTipoPago(tipo)}
+                                                    className="rounded-[4px] data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                                />
+                                                <span className="text-sm font-medium">{tipo}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="pt-2 flex gap-2">
+                                    <Button onClick={aplicarFiltros} className="flex-1 font-bold">
+                                        Aplicar
                                     </Button>
-                                );
-                            })}
-                        </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="rounded-full px-3 sm:px-4"
-                            disabled={ventas.current_page === ventas.last_page}
-                            onClick={() => irAPagina(ventas.current_page + 1)}
-                        >
-                            Siguiente <Plus className="ml-1 sm:ml-2 h-4 w-4" />
-                        </Button>
+                                    <Button onClick={limpiarFiltros} variant="secondary" className="px-3">
+                                        Limpiar
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
-                )}
+
+                    {/* Data Table */}
+                    <div className="xl:col-span-3">
+                        <Card className="border shadow-sm h-full flex flex-col">
+                            <CardHeader className="bg-muted/30 py-4 border-b">
+                                <CardTitle className="text-sm font-medium flex justify-between items-center">
+                                    <span>Transacciones Registradas</span>
+                                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-md font-bold">
+                                        Total: {ventas.total}
+                                    </span>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0 flex-1">
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="bg-muted/50 hover:bg-muted/50">
+                                                <TableHead className="w-[100px] font-bold">Fecha</TableHead>
+                                                <TableHead className="w-[80px] font-bold text-center">Ticket</TableHead>
+                                                <TableHead className="min-w-[150px] font-bold">Cliente</TableHead>
+                                                <TableHead className="min-w-[200px] font-bold">Detalle</TableHead>
+                                                <TableHead className="w-[120px] font-bold">Pago</TableHead>
+                                                <TableHead className="w-[120px] font-bold text-right">Total</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {ventas.data.length === 0 ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                                                        No se encontraron resultados para los filtros seleccionados.
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : (
+                                                ventas.data.map((venta) => (
+                                                    <TableRow key={venta.id} className="hover:bg-muted/30 transition-colors">
+                                                        <TableCell className="text-xs font-medium text-muted-foreground">
+                                                            {new Date(venta.created_at).toLocaleDateString('es-BO', {
+                                                                day: '2-digit',
+                                                                month: '2-digit',
+                                                                year: '2-digit'
+                                                            })}
+                                                            <div className="text-[10px] opacity-70">
+                                                                {new Date(venta.created_at).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell className="text-center">
+                                                            <Badge variant="outline" className="font-mono text-[10px] px-1 py-0 h-5">
+                                                                #{String(venta.id).padStart(6, '0')}
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="font-semibold text-sm truncate max-w-[140px]" title={venta.cliente}>
+                                                                {venta.cliente}
+                                                            </div>
+                                                            {venta.ci && <div className="text-[10px] text-muted-foreground">NIT/CI: {venta.ci}</div>}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="flex flex-col gap-1 max-w-[220px]">
+                                                                {venta.detalles.slice(0, 2).map((d, i) => (
+                                                                    <div key={i} className="text-xs truncate flex items-center justify-between gap-2 border-b border-border/50 pb-0.5 last:border-0 last:pb-0">
+                                                                        <span className="truncate flex-1">{d.inventario.producto.nombre}</span>
+                                                                        <span className="font-mono text-muted-foreground text-[10px]">x{d.cantidad}</span>
+                                                                    </div>
+                                                                ))}
+                                                                {venta.detalles.length > 2 && (
+                                                                    <Badge variant="secondary" className="w-fit text-[9px] h-4">
+                                                                        +{venta.detalles.length - 2} más
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Badge className={
+                                                                venta.tipo_pago === 'Efectivo' ? 'bg-green-100 text-green-700 hover:bg-green-200 border-none shadow-none' :
+                                                                    venta.tipo_pago === 'QR' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200 border-none shadow-none' :
+                                                                        'bg-purple-100 text-purple-700 hover:bg-purple-200 border-none shadow-none'
+                                                            }>
+                                                                {venta.tipo_pago}
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell className="text-right font-black text-sm">
+                                                            Bs. {Number(venta.monto_total).toFixed(2)}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </CardContent>
+
+                            {/* Pagination Footer */}
+                            {ventas.last_page > 1 && (
+                                <div className="p-4 border-t bg-muted/20 flex items-center justify-between">
+                                    <div className="text-xs text-muted-foreground hidden sm:block">
+                                        Mostrando {ventas.data.length} de {ventas.total} resultados
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={ventas.current_page === 1}
+                                            onClick={() => irAPagina(ventas.current_page - 1)}
+                                            className="h-8 w-8 p-0"
+                                        >
+                                            <Minus className="h-4 w-4" />
+                                        </Button>
+                                        <div className="text-xs font-medium px-2">
+                                            Página {ventas.current_page} de {ventas.last_page}
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={ventas.current_page === ventas.last_page}
+                                            onClick={() => irAPagina(ventas.current_page + 1)}
+                                            className="h-8 w-8 p-0"
+                                        >
+                                            <Plus className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </Card>
+                    </div>
+                </div>
             </div>
         </AppLayout>
     );

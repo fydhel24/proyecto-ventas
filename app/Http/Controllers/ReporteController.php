@@ -25,8 +25,9 @@ class ReporteController extends Controller
         $tiposPago = $request->input('tipos_pago', []);
         $sucursalId = $request->input('sucursal_id', $isAdmin ? null : $user->sucursal_id);
 
-        // Query base con joins optimizados
+        // Query base con joins optimizados - SOLO COMPLETADOS
         $ventasQuery = Venta::with(['detalles.inventario.producto', 'vendedor', 'sucursal'])
+            ->where('estado', 'completado')
             ->whereBetween('created_at', [
                 Carbon::parse($fechaInicio)->startOfDay(),
                 Carbon::parse($fechaFin)->endOfDay()
@@ -42,10 +43,14 @@ class ReporteController extends Controller
             $ventasQuery->whereIn('tipo_pago', $tiposPago);
         }
 
-        // Búsqueda por producto
+        // Búsqueda por producto, cliente o ticket
         if ($query) {
-            $ventasQuery->whereHas('detalles.inventario.producto', function ($q) use ($query) {
-                $q->where('nombre', 'like', '%' . $query . '%');
+            $ventasQuery->where(function ($q) use ($query) {
+                $q->where('cliente', 'like', "%{$query}%")
+                  ->orWhere('id', 'like', "%{$query}%")
+                  ->orWhereHas('detalles.inventario.producto', function ($subQ) use ($query) {
+                      $subQ->where('nombre', 'like', '%' . $query . '%');
+                  });
             });
         }
 
@@ -78,10 +83,11 @@ class ReporteController extends Controller
 
     private function calcularEstadisticas($fechaInicio, $fechaFin, $sucursalId, $tiposPago, $query)
     {
-        $ventasQuery = Venta::whereBetween('created_at', [
-            Carbon::parse($fechaInicio)->startOfDay(),
-            Carbon::parse($fechaFin)->endOfDay()
-        ]);
+        $ventasQuery = Venta::where('estado', 'completado')
+            ->whereBetween('created_at', [
+                Carbon::parse($fechaInicio),
+                Carbon::parse($fechaFin)
+            ]);
 
         if ($sucursalId) {
             $ventasQuery->where('sucursal_id', $sucursalId);
@@ -125,6 +131,7 @@ class ReporteController extends Controller
 
             // Query para obtener ventas (límite de 500 para PDF)
             $ventasQuery = Venta::with(['detalles.inventario.producto', 'vendedor', 'sucursal'])
+                ->where('estado', 'completado')
                 ->whereBetween('created_at', [
                     Carbon::parse($fechaInicio)->startOfDay(),
                     Carbon::parse($fechaFin)->endOfDay()
@@ -139,8 +146,12 @@ class ReporteController extends Controller
             }
 
             if ($query) {
-                $ventasQuery->whereHas('detalles.inventario.producto', function ($q) use ($query) {
-                    $q->where('nombre', 'like', '%' . $query . '%');
+                $ventasQuery->where(function ($q) use ($query) {
+                    $q->where('cliente', 'like', "%{$query}%")
+                      ->orWhere('id', 'like', "%{$query}%")
+                      ->orWhereHas('detalles.inventario.producto', function ($subQ) use ($query) {
+                          $subQ->where('nombre', 'like', '%' . $query . '%');
+                      });
                 });
             }
 
@@ -206,7 +217,7 @@ class ReporteController extends Controller
             // Footer
             $pdf->Ln(5);
             $pdf->SetFont('Arial', 'I', 8);
-            $pdf->Cell(0, 5, utf8_decode('Generado el ' . now()->format('d/m/Y H:i') . ' - Nexus Sistema de Ventas'), 0, 1, 'C');
+            $pdf->Cell(0, 5, utf8_decode('Generado el ' . now()->format('d/m/Y H:i') . ' - MiraCode Sistema de Ventas'), 0, 1, 'C');
 
             return response($pdf->Output('S'), 200, [
                 'Content-Type' => 'application/pdf',
