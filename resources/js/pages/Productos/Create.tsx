@@ -404,7 +404,6 @@ export default function Create({
               />
             </div>
 
-            {/* Stock Inicial removed */}
 
             {/* Botón precios adicionales */}
             <div className="md:col-span-2 flex items-center">
