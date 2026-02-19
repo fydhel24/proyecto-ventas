@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Producto;
 use App\Models\Categoria;
-use App\Models\Marca;
+use App\Models\Laboratorio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -51,14 +51,15 @@ class ShopController extends Controller
 
     public function index(Request $request)
     {
-        $query = Producto::with(['marca', 'categoria', 'fotos']);
+        $query = Producto::with(['laboratorio', 'categoria', 'fotos']);
 
         // Filtro por búsqueda
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('nombre', 'like', "%{$search}%")
+                    ->orWhere('principio_activo', 'like', "%{$search}%")
                     ->orWhere('caracteristicas', 'like', "%{$search}%")
-                    ->orWhereHas('marca', fn($q) => $q->where('nombre_marca', 'like', "%{$search}%"))
+                    ->orWhereHas('laboratorio', fn($q) => $q->where('nombre_lab', 'like', "%{$search}%"))
                     ->orWhereHas('categoria', fn($q) => $q->where('nombre_cat', 'like', "%{$search}%"));
             });
         }
@@ -68,9 +69,9 @@ class ShopController extends Controller
             $query->where('categoria_id', $categoria_id);
         }
 
-        // Filtro por marca
-        if ($marca_id = $request->input('marca')) {
-            $query->where('marca_id', $marca_id);
+        // Filtro por laboratorio
+        if ($laboratorio_id = $request->input('laboratorio')) {
+            $query->where('laboratorio_id', $laboratorio_id);
         }
 
         // Filtro por rango de precio
@@ -102,16 +103,16 @@ class ShopController extends Controller
         return Inertia::render('Tienda/Index', [
             'productos' => $productos,
             'categorias' => Categoria::all(),
-            'marcas' => Marca::all(),
-            'filters' => $request->only(['search', 'categoria', 'marca', 'sort', 'max_price', 'in_stock']),
+            'laboratorios' => Laboratorio::all(),
+            'filters' => $request->only(['search', 'categoria', 'laboratorio', 'sort', 'max_price', 'in_stock']),
         ]);
     }
 
     public function show(Producto $producto)
     {
-        $producto->load(['marca', 'categoria', 'fotos']);
+        $producto->load(['laboratorio', 'categoria', 'fotos']);
 
-        $sugerencias = Producto::with(['marca', 'fotos'])
+        $sugerencias = Producto::with(['laboratorio', 'fotos'])
             ->where('categoria_id', $producto->categoria_id)
             ->where('id', '!=', $producto->id)
             ->limit(4)

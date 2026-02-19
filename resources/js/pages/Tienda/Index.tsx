@@ -33,11 +33,11 @@ interface Props {
         last_page: number;
     };
     categorias: any[];
-    marcas: any[];
+    laboratorios: any[];
     filters: {
         search?: string;
         categoria?: string;
-        marca?: string;
+        laboratorio?: string;
         sort?: string;
         min_price?: string;
         max_price?: string;
@@ -45,10 +45,10 @@ interface Props {
     };
 }
 
-export default function Index({ productos, categorias = [], marcas = [], filters = {} }: Props) {
+export default function Index({ productos, categorias = [], laboratorios = [], filters = {} }: Props) {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [catSearch, setCatSearch] = useState('');
-    const [brandSearch, setBrandSearch] = useState('');
+    const [labSearch, setLabSearch] = useState('');
     const [priceRange, setPriceRange] = useState(filters.max_price || '5000');
     const [searchInput, setSearchInput] = useState(filters.search || '');
 
@@ -81,8 +81,8 @@ export default function Index({ productos, categorias = [], marcas = [], filters
         c.nombre_cat.toLowerCase().includes(catSearch.toLowerCase())
     );
 
-    const filteredMarcas = marcas.filter(m =>
-        m.nombre_marca.toLowerCase().includes(brandSearch.toLowerCase())
+    const filteredLaboratorios = laboratorios.filter(l =>
+        (l.nombre_lab || '').toLowerCase().includes(labSearch.toLowerCase())
     );
 
     return (
@@ -99,8 +99,8 @@ export default function Index({ productos, categorias = [], marcas = [], filters
                             <ChevronRight className="h-3 w-3" />
                             <span className="text-primary">Tienda</span>
                         </div>
-                        <h1 className="text-4xl md:text-6xl font-black tracking-tight leading-none">
-                            {filters?.search ? `Buscando: ${filters.search}` : 'Tienda Miracode'}
+                        <h1 className="text-4xl md:text-6xl font-black tracking-tight leading-none text-primary">
+                            {filters?.search ? `Buscando: ${filters.search}` : 'Farmacia Nexus'}
                         </h1>
                     </div>
 
@@ -149,7 +149,7 @@ export default function Index({ productos, categorias = [], marcas = [], filters
                         <div className="space-y-6">
                             <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-primary">
                                 <DollarSign className="h-4 w-4" />
-                                Rango de Inversión
+                                Rango de Precio (Bs.)
                             </h3>
                             <div className="px-2">
                                 <input
@@ -206,37 +206,37 @@ export default function Index({ productos, categorias = [], marcas = [], filters
                             </div>
                         </div>
 
-                        {/* Marcas */}
+                        {/* Laboratorios */}
                         <div className="space-y-6">
                             <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-primary">
                                 <LayoutGrid className="h-4 w-4" />
-                                Marcas
+                                Laboratorios
                             </h3>
                             <div className="relative mb-4">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
-                                    placeholder="Buscar marca..."
-                                    value={brandSearch}
-                                    onChange={(e) => setBrandSearch(e.target.value)}
+                                    placeholder="Buscar laboratorio..."
+                                    value={labSearch}
+                                    onChange={(e) => setLabSearch(e.target.value)}
                                     className="pl-9 h-10 rounded-xl border-2 bg-muted/30"
                                 />
                             </div>
                             <div className="flex flex-col gap-1 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                                 <Button
-                                    variant={!filters?.marca ? 'secondary' : 'ghost'}
+                                    variant={!filters?.laboratorio ? 'secondary' : 'ghost'}
                                     className="justify-start font-black h-11 rounded-xl text-sm px-4"
-                                    onClick={() => handleFilterChange('marca', null)}
+                                    onClick={() => handleFilterChange('laboratorio', null)}
                                 >
-                                    Todas las marcas
+                                    Todos los laboratorios
                                 </Button>
-                                {filteredMarcas.map((marca) => (
+                                {filteredLaboratorios.map((lab) => (
                                     <Button
-                                        key={marca.id}
-                                        variant={filters?.marca === String(marca.id) ? 'secondary' : 'ghost'}
+                                        key={lab.id}
+                                        variant={filters?.laboratorio === String(lab.id) ? 'secondary' : 'ghost'}
                                         className="justify-start font-black h-11 rounded-xl text-sm px-4 transition-all hover:translate-x-1"
-                                        onClick={() => handleFilterChange('marca', String(marca.id))}
+                                        onClick={() => handleFilterChange('laboratorio', String(lab.id))}
                                     >
-                                        {marca.nombre_marca}
+                                        {lab.nombre_lab}
                                     </Button>
                                 ))}
                             </div>

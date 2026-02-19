@@ -100,7 +100,7 @@ export function SearchBar({ initialSearch = '', onSearchChange, className }: Sea
                     <Input
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Buscar productos, marcas, colores..."
+                        placeholder="Buscar medicamentos, laboratorios, principio activo..."
                         className="pl-12 pr-10 h-12 bg-muted/40 border-primary/20 focus-visible:ring-primary/30 transition-all focus:bg-background text-base"
                         onFocus={() => {
                             if (suggestions.length > 0) setIsOpen(true);

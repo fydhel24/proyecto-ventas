@@ -83,7 +83,7 @@ export function ProductCard({ producto }: ProductCardProps) {
                     {/* Brand */}
                     <div className="flex justify-between items-center gap-2 mb-1.5 md:mb-2">
                         <p className="text-[9px] md:text-xs font-black uppercase tracking-wider text-primary/70 truncate">
-                            {producto.marca?.nombre_marca || 'Miracode'}
+                            {producto.laboratorio?.nombre_lab || 'Nexus Farma'}
                         </p>
                         {/* Wishlist - Mobile only */}
                         <button
@@ -108,7 +108,7 @@ export function ProductCard({ producto }: ProductCardProps) {
                                     <p className="text-sm md:text-2xl font-black text-primary leading-none">
                                         {formatPrice(producto.precio_1)}
                                     </p>
-                                                                   </div>
+                                </div>
                                 <Button
                                     size="icon"
                                     className="md:hidden h-8 w-8 rounded-lg flex-shrink-0"

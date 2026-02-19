@@ -19,8 +19,9 @@ use Laravel\Fortify\Features;
 Route::get('/', function () {
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
-        'productos' => App\Models\Producto::with(['marca', 'fotos'])->latest()->limit(8)->get(),
+        'productos' => App\Models\Producto::with(['laboratorio', 'fotos'])->latest()->limit(8)->get(),
         'categorias' => App\Models\Categoria::all(),
+        'laboratorios' => App\Models\Laboratorio::all(),
     ]);
 })->name('home');
 
@@ -68,8 +69,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
-    // Crear categorías y marcas desde modales
-    Route::post('/marcas', [MarcaController::class, 'store'])->middleware('can:crear productos');
+    // Crear categorías y laboratorios desde modales
+    Route::post('/laboratorios', [\App\Http\Controllers\LaboratorioController::class, 'store'])->middleware('can:crear productos');
     Route::post('/categorias', [CategoriaController::class, 'store'])->middleware('can:crear productos');
 
     // ===== GESTIÓN DE SUCURSALES =====
@@ -222,9 +223,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('can:asignar permisos');
 
     // ===== HERRAMIENTAS =====
-    Route::get('/whatsapp-miranda', function () {
-        return Inertia::render('whatsapp-miranda');
-    })->name('whatsapp-miranda')->middleware('can:ver whatsapp');
+    Route::get('/whatsapp-bot', function () {
+        return Inertia::render('whatsapp-bot');
+    })->name('whatsapp-bot')->middleware('can:ver whatsapp');
 });
 
 require __DIR__.'/settings.php';

@@ -27,8 +27,8 @@ import whatsappClient from '@/lib/whatsapp-client';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'WhatsApp Miranda',
-        href: '/whatsapp-miranda',
+        title: 'WhatsApp Nexus',
+        href: '/whatsapp-bot',
     },
 ];
 
@@ -37,7 +37,7 @@ const HelpSection = ({ isConnected }: { isConnected: boolean }) => (
         <div className="flex flex-col gap-3">
             <h3 className="font-black text-4xl flex items-center gap-4 text-foreground tracking-tight">
                 <Shield className="w-10 h-10 text-primary" />
-                🛡️ Sistema Anti-Baneo Miranda
+                🛡️ Sistema Anti-Baneo Nexus
             </h3>
             <p className="text-xl text-muted-foreground font-medium max-w-2xl">
                 Guía oficial para una operación segura, rápida y eficiente en WhatsApp.
@@ -52,7 +52,7 @@ const HelpSection = ({ isConnected }: { isConnected: boolean }) => (
                 <ul className="space-y-4 text-base text-foreground/80 font-bold">
                     <li className="flex gap-3">
                         <span className="text-primary">1.</span>
-                        <span><b>Cliente envía "miranda"</b> → Bot responde en <b>1-3 segundos</b> con QR + mensaje</span>
+                        <span><b>Cliente envía "nexus"</b> → Bot responde en <b>1-3 segundos</b> con QR + mensaje</span>
                     </li>
                     <li className="flex gap-3">
                         <span className="text-primary">2.</span>
@@ -119,7 +119,7 @@ const HelpSection = ({ isConnected }: { isConnected: boolean }) => (
                 <Info className="w-10 h-10" />
             </div>
             <div className="text-center md:text-left">
-                <h4 className="font-black text-foreground mb-2 text-2xl">Integración Laravel</h4>
+                <h4 className="font-black text-foreground mb-2 text-2xl">Integración Nexus</h4>
                 <p className="text-muted-foreground font-bold text-lg mb-4">
                     Base URL: <code className="bg-background px-3 py-1 rounded-lg text-primary font-black border border-primary/20">{import.meta.env.VITE_WHATSAPP_API_URL || 'http://localhost:3000'}</code>
                 </p>
@@ -132,7 +132,7 @@ const HelpSection = ({ isConnected }: { isConnected: boolean }) => (
     </div>
 );
 
-export default function WhatsAppMiranda() {
+export default function WhatsAppBot() {
     const { login, getStatus, getConfig, toggleAutoResponder, updateSettings, addPreset, updatePreset, deletePreset, getQR, logoutSession, loading, error } = useWhatsApp();
     const [status, setStatus] = useState<any>(null);
     const [config, setConfig] = useState<any>(null);
@@ -191,7 +191,6 @@ export default function WhatsAppMiranda() {
         try {
             const data = await getConfig(userId);
             if (data) {
-                setConfig(data);
                 setSettings({
                     palabrasClave: Array.isArray(data.palabrasClave) ? data.palabrasClave.join(', ') : (data.palabrasClave || ''),
                     minResponseDelay: data.minResponseDelay || 1000,
@@ -202,6 +201,7 @@ export default function WhatsAppMiranda() {
                     maxMensajesPorDia: data.maxMensajesPorDia || 1000,
                     cooldownMinutos: data.cooldownMinutos || 0.5
                 });
+                setConfig(data);
             }
         } catch (err) {
             console.error('Error fetching config', err);
@@ -375,7 +375,7 @@ export default function WhatsAppMiranda() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="WhatsApp Miranda" />
+            <Head title="WhatsApp Bot" />
 
             <div className="flex flex-col space-y-6 max-w-6xl mx-auto w-full pb-12">
                 {/* Modern Header / Status Bar */}
@@ -385,7 +385,7 @@ export default function WhatsAppMiranda() {
                             <MessageSquare className="w-8 h-8" />
                         </div>
                         <div className="flex-1">
-                            <h2 className="font-extrabold text-xl text-foreground leading-tight">Miranda WhatsApp Hub</h2>
+                            <h2 className="font-extrabold text-xl text-foreground leading-tight">Nexus WhatsApp Hub</h2>
                             <div className="flex items-center gap-2 mt-1">
                                 <StatusBadge status={status?.status} />
                                 <span className="text-xs font-medium text-muted-foreground italic">ID Usuario: {import.meta.env.VITE_WHATSAPP_USER_ID || '1'}</span>
@@ -409,7 +409,7 @@ export default function WhatsAppMiranda() {
                         </div>
                         <div className="flex gap-2">
                             <Dialog>
-                                <DialogTrigger >
+                                <DialogTrigger asChild>
                                     <Button variant="outline" size="icon" className="h-12 w-12 rounded-xl border-primary/20 text-primary hover:bg-primary/10">
                                         <HelpCircle className="w-5 h-5" />
                                     </Button>
@@ -474,7 +474,7 @@ export default function WhatsAppMiranda() {
                             <Card className="overflow-hidden border-none shadow-xl rounded-3xl">
                                 <CardHeader className="text-primary-foreground p-8 bg-primary">
                                     <CardTitle className="text-2xl font-black">Vincular con WhatsApp</CardTitle>
-                                    <CardDescription className="text-primary-foreground/80 text-base font-medium">Control de enlace oficial para el automatizador Miranda.</CardDescription>
+                                    <CardDescription className="text-primary-foreground/80 text-base font-medium">Control de enlace oficial para el bot de Nexus.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="flex flex-col items-center justify-center py-16 bg-card">
                                     {!status || status.status !== 'CONNECTED' ? (
@@ -517,7 +517,7 @@ export default function WhatsAppMiranda() {
                                                     <p className="font-extrabold text-2xl text-primary leading-tight">ONLINE</p>
                                                 </div>
                                                 <div className="p-6 bg-muted rounded-2xl border border-border text-left">
-                                                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mb-1 leading-none">aasd</p>
+                                                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mb-1 leading-none">Estado Bot</p>
                                                     <p className={`font-extrabold text-2xl leading-tight ${status.autoResponder ? 'text-primary' : 'text-muted-foreground/50'}`}>
                                                         {status.autoResponder ? 'ACTIVO' : 'PAUSADO'}
                                                     </p>
@@ -537,7 +537,7 @@ export default function WhatsAppMiranda() {
                                             <Lock className="w-10 h-10 text-primary" />
                                         </div>
                                         <h3 className="text-2xl font-black text-foreground mb-2">Configuración Bloqueada</h3>
-                                        <p className="text-muted-foreground font-bold text-center max-w-md">Vincule su WhatsApp para personalizar los parámetros de su asistente Miranda.</p>
+                                        <p className="text-muted-foreground font-bold text-center max-w-md">Vincule su WhatsApp para personalizar los parámetros de su asistente Nexus.</p>
                                         <Button
                                             onClick={() => {
                                                 const tabs = document.querySelector('[role="tablist"]');
@@ -568,7 +568,7 @@ export default function WhatsAppMiranda() {
                                                             id="keywords"
                                                             value={settings.palabrasClave}
                                                             onChange={(e) => setSettings({ ...settings, palabrasClave: e.target.value })}
-                                                            placeholder="miranda, info, catalogo, ayuda..."
+                                                            placeholder="nexus, medicamento, stock, ayuda..."
                                                             className="min-h-[120px] rounded-2xl border-border text-lg font-medium transition-all focus-visible:ring-primary"
                                                         />
                                                         <p className="text-xs font-bold text-slate-400 italic">Separa los gatillos por comas. El bot es sensible al contenido del mensaje.</p>
@@ -661,7 +661,7 @@ export default function WhatsAppMiranda() {
                                             <MessageSquare className="w-10 h-10 text-primary" />
                                         </div>
                                         <h3 className="text-2xl font-black text-foreground mb-2">Respuestas Bloqueadas</h3>
-                                        <p className="text-muted-foreground font-bold text-center max-w-md">Inicie sesión para gestionar el catálogo de respuestas inteligentes de Miranda.</p>
+                                        <p className="text-muted-foreground font-bold text-center max-w-md">Inicie sesión para gestionar el catálogo de respuestas inteligentes de Nexus.</p>
                                         <Button
                                             onClick={() => {
                                                 const tabs = document.querySelector('[role="tablist"]');
@@ -796,292 +796,77 @@ export default function WhatsAppMiranda() {
                         </TabsContent>
 
                         <TabsContent value="stats" className="m-0 focus-visible:outline-none space-y-8">
-                            {!isConnected ? (
-                                <Card className="overflow-hidden border-2 rounded-3xl shadow-xl border-primary/20 bg-primary/5">
-                                    <CardContent className="flex flex-col items-center justify-center py-24">
-                                        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-                                            <BarChart3 className="w-10 h-10 text-primary" />
-                                        </div>
-                                        <h3 className="text-2xl font-black text-foreground mb-2">Análisis Bloqueado</h3>
-                                        <p className="text-muted-foreground font-bold text-center max-w-md">Estadísticas de uso y niveles de riesgo disponibles tras la conexión.</p>
-                                        <Button
-                                            onClick={() => {
-                                                const tabs = document.querySelector('[role="tablist"]');
-                                                const statusTab = tabs?.querySelector('[value="status"]') as HTMLElement;
-                                                statusTab?.click();
-                                            }}
-                                            className="mt-8 rounded-2xl font-black px-8 h-12 bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
-                                        >
-                                            Ir a Conexión
-                                        </Button>
-                                    </CardContent>
-                                </Card>
-                            ) : (
-                                <>
+                            <Card className="rounded-[2.5rem] border-none shadow-xl overflow-hidden">
+                                <CardHeader className="p-10 bg-primary text-primary-foreground">
                                     <div className="flex items-center justify-between">
-                                        <h3 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-3">
-                                            <BarChart3 className="w-7 h-7 text-primary" /> Estadísticas en Tiempo Real
-                                        </h3>
-                                        <Button
-                                            onClick={fetchStats}
-                                            disabled={loadingStats}
-                                            size="sm"
-                                            variant="outline"
-                                            className="rounded-xl border-primary/20 text-primary hover:bg-primary/5 h-10 px-6 font-bold"
-                                        >
-                                            {loadingStats ? 'Cargando...' : 'Actualizar Dados'}
+                                        <div>
+                                            <CardTitle className="text-3xl font-black italic uppercase italic">Analítica Nexus</CardTitle>
+                                            <CardDescription className="text-primary-foreground/70 font-bold">Rendimiento del sistema de auto-respuesta.</CardDescription>
+                                        </div>
+                                        <Button variant="outline" size="icon" onClick={fetchStats} disabled={loadingStats} className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/20 rounded-2xl h-14 w-14">
+                                            <BarChart3 className={`w-6 h-6 ${loadingStats ? 'animate-spin' : ''}`} />
                                         </Button>
                                     </div>
-
-                                    {stats ? (
-                                        <div className="space-y-8">
-                                            {/* Risk Level Card */}
-                                            {stats.analisisRiesgo && (
-                                                <Card className={`border-2 overflow-hidden rounded-3xl ${getRiskColor(stats.analisisRiesgo.nivel).border}`} style={{ backgroundColor: getRiskColor(stats.analisisRiesgo.nivel).bg }}>
-                                                    <CardHeader className="pb-4">
-                                                        <div className="flex items-center justify-between">
-                                                            <div>
-                                                                <CardTitle className="text-2xl font-black flex items-center gap-3">
-                                                                    <span className="text-4xl">{getRiskColor(stats.analisisRiesgo.nivel).icon}</span>
-                                                                    Nivel de Riesgo
-                                                                </CardTitle>
-                                                                <Badge className={`${getRiskColor(stats.analisisRiesgo.nivel).badge} font-black mt-3 text-base px-4 py-2 rounded-full`}>
-                                                                    {stats.analisisRiesgo.nivel} ({stats.analisisRiesgo.porcentajeUso})
-                                                                </Badge>
-                                                            </div>
-                                                            <AlertTriangle className="w-12 h-12 opacity-20" />
-                                                        </div>
-                                                    </CardHeader>
-                                                    <CardContent className="space-y-6">
-                                                        <div className="p-6 bg-white/50 rounded-2xl border border-current/10">
-                                                            <p className="font-bold text-lg leading-relaxed">{stats.analisisRiesgo.recomendacion}</p>
-                                                        </div>
-                                                        {stats.analisisRiesgo.factores && (
-                                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                                <div className="p-4 bg-white/50 rounded-xl">
-                                                                    <p className="text-xs font-black uppercase mb-2">Uso Horario Alto</p>
-                                                                    <p className="font-bold text-lg">{stats.analisisRiesgo.factores.usoHorarioAlto ? '❌ Sí' : '✅ No'}</p>
-                                                                </div>
-                                                                <div className="p-4 bg-white/50 rounded-xl">
-                                                                    <p className="text-xs font-black uppercase mb-2">Uso Diario Alto</p>
-                                                                    <p className="font-bold text-lg">{stats.analisisRiesgo.factores.usoDiarioAlto ? '❌ Sí' : '✅ No'}</p>
-                                                                </div>
-                                                                <div className="p-4 bg-white/50 rounded-xl">
-                                                                    <p className="text-xs font-black uppercase mb-2">Muchos Msgs/Contacto</p>
-                                                                    <p className="font-bold text-lg">{stats.analisisRiesgo.factores.muchosMensajesPorContacto ? '❌ Sí' : '✅ No'}</p>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </CardContent>
-                                                </Card>
-                                            )}
-
-                                            {/* Stats Grid */}
-                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                                {/* Connection Status */}
-                                                <Card className="border-none shadow-lg rounded-3xl overflow-hidden">
-                                                    <CardHeader className="bg-primary/5 pb-4">
-                                                        <CardTitle className="text-lg font-black flex items-center gap-2 text-foreground">
-                                                            <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
-                                                            Estado de Conexión
-                                                        </CardTitle>
-                                                    </CardHeader>
-                                                    <CardContent className="pt-8">
-                                                        <div className="space-y-4">
-                                                            <div className="flex justify-between items-center p-4 bg-muted/50 rounded-xl">
-                                                                <span className="font-bold text-foreground">Estado:</span>
-                                                                <Badge className="bg-primary/10 text-primary border-primary/20 font-black">{stats.estadoConexion}</Badge>
-                                                            </div>
-                                                            <div className="flex justify-between items-center p-4 bg-muted/50 rounded-xl">
-                                                                <span className="font-bold text-foreground">Respondedor:</span>
-                                                                <Badge className={`font-black ${stats.autoResponderActivo ? 'bg-primary/10 text-primary border-primary/20' : 'bg-muted text-muted-foreground'}`}>
-                                                                    {stats.autoResponderActivo ? 'ACTIVO' : 'PAUSADO'}
-                                                                </Badge>
-                                                            </div>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
-
-                                                {/* Contacts */}
-                                                <Card className="border-none shadow-lg rounded-3xl overflow-hidden">
-                                                    <CardHeader className="bg-primary/10 pb-4">
-                                                        <CardTitle className="text-lg font-black text-foreground">Contactos</CardTitle>
-                                                    </CardHeader>
-                                                    <CardContent className="pt-8">
-                                                        <div className="space-y-4">
-                                                            <div className="flex justify-between items-center p-4 bg-muted/50 rounded-xl">
-                                                                <span className="font-bold text-foreground">Total:</span>
-                                                                <span className="font-black text-2xl text-primary">{stats.contactos.total}</span>
-                                                            </div>
-                                                            <div className="flex justify-between items-center p-4 bg-muted/50 rounded-xl">
-                                                                <span className="font-bold text-foreground">Últimas 24h:</span>
-                                                                <span className="font-black text-2xl text-primary">{stats.contactos.activos24h}</span>
-                                                            </div>
-                                                            <div className="flex justify-between items-center p-4 bg-muted/50 rounded-xl">
-                                                                <span className="font-bold text-foreground">Inactivos:</span>
-                                                                <span className="font-black text-2xl text-muted-foreground">{stats.contactos.inactivos}</span>
-                                                            </div>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
-                                            </div>
-
-                                            {/* Messages Stats */}
-                                            <Card className="border-none shadow-lg rounded-3xl overflow-hidden">
-                                                <CardHeader className="bg-primary/5 pb-4">
-                                                    <CardTitle className="text-lg font-black text-foreground">Mensajes</CardTitle>
-                                                </CardHeader>
-                                                <CardContent className="pt-8">
-                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                        <div className="p-4 bg-muted/50 rounded-xl">
-                                                            <p className="text-xs font-black uppercase text-muted-foreground mb-2">Enviados</p>
-                                                            <p className="font-black text-3xl text-primary">{stats.mensajes.totalEnviados}</p>
-                                                        </div>
-                                                        <div className="p-4 bg-muted/50 rounded-xl">
-                                                            <p className="text-xs font-black uppercase text-muted-foreground mb-2">Recibidos</p>
-                                                            <p className="font-black text-3xl text-foreground">{stats.mensajes.totalRecibidos}</p>
-                                                        </div>
-                                                        <div className="p-4 bg-muted/50 rounded-xl">
-                                                            <p className="text-xs font-black uppercase text-muted-foreground mb-2">Automáticos</p>
-                                                            <p className="font-black text-3xl text-primary">{stats.mensajes.automaticosEnviados}</p>
-                                                        </div>
-                                                        <div className="p-4 bg-muted/50 rounded-xl">
-                                                            <p className="text-xs font-black uppercase text-muted-foreground mb-2">Ratio</p>
-                                                            <p className="font-black text-3xl text-primary">{stats.mensajes.ratio}x</p>
-                                                        </div>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-
-                                            {/* Rate Limits */}
-                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                                <Card className="border-none shadow-lg rounded-3xl overflow-hidden">
-                                                    <CardHeader className="bg-primary/10 pb-4">
-                                                        <CardTitle className="text-lg font-black text-foreground">Límite Horario</CardTitle>
-                                                    </CardHeader>
-                                                    <CardContent className="pt-8">
-                                                        <div className="space-y-6">
-                                                            <div>
-                                                                <div className="flex justify-between items-center mb-3">
-                                                                    <span className="font-bold text-foreground">Uso: {stats.rateLimits.horario.porcentaje}</span>
-                                                                    <span className="font-black text-sm text-muted-foreground">{stats.rateLimits.horario.usados} / {stats.rateLimits.horario.limite}</span>
-                                                                </div>
-                                                                <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
-                                                                    <div
-                                                                        className="h-full bg-primary rounded-full transition-all"
-                                                                        style={{ width: stats.rateLimits.horario.porcentaje }}
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                            <div className="p-4 bg-muted/50 rounded-xl">
-                                                                <p className="text-xs font-black uppercase text-muted-foreground mb-1">Disponibles</p>
-                                                                <p className="font-black text-2xl text-primary">{stats.rateLimits.horario.disponibles}</p>
-                                                            </div>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
-
-                                                <Card className="border-none shadow-lg rounded-3xl overflow-hidden">
-                                                    <CardHeader className="bg-primary/5 pb-4">
-                                                        <CardTitle className="text-lg font-black text-foreground">Límite Diario</CardTitle>
-                                                    </CardHeader>
-                                                    <CardContent className="pt-8">
-                                                        <div className="space-y-6">
-                                                            <div>
-                                                                <div className="flex justify-between items-center mb-3">
-                                                                    <span className="font-bold text-foreground">Uso: {stats.rateLimits.diario.porcentaje}</span>
-                                                                    <span className="font-black text-sm text-muted-foreground">{stats.rateLimits.diario.usados} / {stats.rateLimits.diario.limite}</span>
-                                                                </div>
-                                                                <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
-                                                                    <div
-                                                                        className="h-full bg-primary rounded-full transition-all"
-                                                                        style={{ width: stats.rateLimits.diario.porcentaje }}
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                            <div className="p-4 bg-muted/50 rounded-xl">
-                                                                <p className="text-xs font-black uppercase text-muted-foreground mb-1">Disponibles</p>
-                                                                <p className="font-black text-2xl text-primary">{stats.rateLimits.diario.disponibles}</p>
-                                                            </div>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
-                                            </div>
-
-                                            {/* Last Update */}
-                                            <div className="text-center text-xs font-bold text-muted-foreground/50 uppercase tracking-widest">
-                                                Última actualización: {new Date(stats.timestamp).toLocaleTimeString('es-ES')}
+                                </CardHeader>
+                                <CardContent className="p-10">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                        <div className="p-8 bg-muted rounded-[2rem] border-2 border-border/50">
+                                            <p className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] mb-4">Mensajes Hoy</p>
+                                            <div className="flex items-end gap-3">
+                                                <h4 className="text-5xl font-black text-primary leading-none">{stats?.messagesSentToday || 0}</h4>
+                                                <span className="text-sm font-bold text-muted-foreground mb-1">/ {settings.maxMensajesPorDia}</span>
                                             </div>
                                         </div>
-                                    ) : null}
-                                </>
-                            )}
+                                        <div className="p-8 bg-muted rounded-[2rem] border-2 border-border/50">
+                                            <p className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] mb-4">Uptime Sesión</p>
+                                            <h4 className="text-3xl font-black text-foreground leading-none">{stats?.sessionUpTime || '00:00:00'}</h4>
+                                            <p className="text-[10px] font-black text-primary uppercase mt-2">Operación Estable</p>
+                                        </div>
+                                        <div className="p-8 bg-muted rounded-[2rem] border-2 border-border/50">
+                                            <p className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] mb-4">Salud Cuenta</p>
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-4 flex-1 bg-background rounded-full overflow-hidden border">
+                                                    <div className="h-full bg-primary" style={{ width: '95%' }} />
+                                                </div>
+                                                <span className="font-black text-primary">95%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </TabsContent>
-
-
                     </div>
                 </Tabs>
             </div>
 
             <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-                <DialogContent className="rounded-3xl">
-                    <DialogHeader>
-                        <DialogTitle className="font-black text-xl">{confirmAction?.title}</DialogTitle>
-                        <DialogDescription className="font-medium">
-                            {confirmAction?.description}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter className="gap-3 sm:gap-0">
-                        <Button variant="ghost" onClick={() => setConfirmDialogOpen(false)} className="rounded-xl font-bold">
-                            Cancelar
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            className="rounded-xl font-bold"
-                            onClick={() => {
-                                confirmAction?.onConfirm();
-                                setConfirmDialogOpen(false);
-                            }}
-                        >
-                            Confirmar
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Dialog de Desconexión */}
-            <Dialog open={showDisconnectedDialog && !isConnected} onOpenChange={setShowDisconnectedDialog}>
-                <DialogContent className="rounded-3xl max-w-md border-2 border-primary">
-                    <DialogHeader className="text-center">
-                        <div className="flex justify-center mb-4">
-                            <div className="w-20 h-20 rounded-full flex items-center justify-center text-primary-foreground bg-primary">
-                                <Smartphone className="w-10 h-10" />
-                            </div>
+                <DialogContent className="rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden max-w-md">
+                    <div className="p-8 space-y-6">
+                        <div className="w-16 h-16 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mx-auto mb-4 scale-125">
+                            <AlertTriangle className="w-8 h-8" />
                         </div>
-                        <DialogTitle className="text-2xl font-black text-center text-foreground">Conecta con WhatsApp</DialogTitle>
-                        <DialogDescription className="text-base font-bold text-center mt-2 text-muted-foreground/80">
-                            Tu sesión de Miranda no está vinculada. Por favor, conecta con WhatsApp escaneando el código QR en la pestaña de <b>Conexión</b>.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="py-6 px-4 bg-muted rounded-2xl border-2 border-dashed text-center border-primary/30">
-                        <p className="font-black text-sm text-primary">📱 Abre WhatsApp en tu celular</p>
-                        <p className="text-xs text-muted-foreground font-bold mt-2 italic">Ve a Dispositivos vinculados y escanea el QR</p>
+                        <div className="text-center space-y-2">
+                            <DialogTitle className="text-2xl font-black tracking-tight">{confirmAction?.title}</DialogTitle>
+                            <DialogDescription className="text-muted-foreground font-medium text-base">
+                                {confirmAction?.description}
+                            </DialogDescription>
+                        </div>
+                        <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-4">
+                            <Button variant="ghost" onClick={() => setConfirmDialogOpen(false)} className="flex-1 h-14 rounded-2xl font-bold">Cancelar</Button>
+                            <Button
+                                variant="destructive"
+                                onClick={() => {
+                                    confirmAction?.onConfirm();
+                                    setConfirmDialogOpen(false);
+                                }}
+                                className="flex-1 h-14 rounded-2xl font-black shadow-lg shadow-destructive/20"
+                            >
+                                Confirmar Acción
+                            </Button>
+                        </DialogFooter>
                     </div>
-                    <DialogFooter>
-                        <Button
-                            onClick={() => {
-                                handleGetQR();
-                                setShowDisconnectedDialog(false);
-                            }}
-                            disabled={loading}
-                            size="lg"
-                            className="w-full h-12 rounded-2xl text-primary-foreground font-black text-base bg-primary hover:scale-[1.02] transition-transform shadow-lg shadow-primary/20"
-                        >
-                            {loading ? 'Preparando...' : 'Ir a Conexión'}
-                        </Button>
-                    </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </AppLayout >
+        </AppLayout>
     );
 }

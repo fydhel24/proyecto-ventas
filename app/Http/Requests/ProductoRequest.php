@@ -18,10 +18,14 @@ class ProductoRequest extends FormRequest
     {
         return [
             'nombre' => 'required|string|max:255',
+            'principio_activo' => 'nullable|string|max:255',
+            'concentracion' => 'nullable|string|max:255',
             'caracteristicas' => 'nullable|string',
-            'marca_id' => 'required|exists:marcas,id',
+            'laboratorio_id' => 'required|exists:laboratorios,id',
             'categoria_id' => 'required|exists:categorias,id',
-            // 'stock' removed as it's not in the model
+            'lote' => 'nullable|string|max:255',
+            'fecha_vencimiento' => 'nullable|date',
+            'registro_sanitario' => 'nullable|string|max:255',
             'estado' => 'required|boolean',
             'fecha' => 'required|date',
             'precio_compra' => 'required|numeric|min:0',

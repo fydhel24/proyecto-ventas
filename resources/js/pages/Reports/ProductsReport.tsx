@@ -51,7 +51,7 @@ interface ProductsReportProps {
         low_stock_count: number;
         low_stock_list: Product[];
         by_category: Array<{ label: string, value: number }>;
-        by_brand: Array<{ label: string, value: number }>;
+        by_lab: Array<{ label: string, value: number }>;
         valuation: {
             cost: number;
             potential_revenue: number;
@@ -138,10 +138,10 @@ export default function ProductsReport({ products, sucursales, stats, filters }:
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-3xl font-bold tracking-tight">
-                                Análisis de <span className="text-primary italic">Productos e Inventario</span>
+                                Análisis de <span className="text-primary italic">Stock y Medicamentos</span>
                             </h1>
                             <p className="text-muted-foreground mt-1">
-                                Monitorea stock, categorías, marcas y rentabilidad de tu catálogo.
+                                Monitorea stock, categorías, laboratorios y rentabilidad de tu catálogo.
                             </p>
                         </div>
                         <Button variant="outline" onClick={() => window.history.back()}>
@@ -153,7 +153,7 @@ export default function ProductsReport({ products, sucursales, stats, filters }:
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <Card className="shadow-none border-border/50">
                             <CardHeader className="py-4">
-                                <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Total Productos</CardTitle>
+                                <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Total Medicamentos</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-black">{stats.total_products}</div>
@@ -215,13 +215,13 @@ export default function ProductsReport({ products, sucursales, stats, filters }:
                             <Card className="rounded-xl border border-border/50 shadow-none overflow-hidden">
                                 <CardHeader className="bg-muted/30 border-b py-4">
                                     <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-orange-500" /> Por Marca
+                                        <div className="w-2 h-2 rounded-full bg-orange-500" /> Por Laboratorio
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="p-0">
                                     <Table>
                                         <TableBody>
-                                            {stats.by_brand.map((item, i) => (
+                                            {(stats as any).by_lab?.map((item: any, i: number) => (
                                                 <TableRow key={i} className="hover:bg-muted/10 border-b border-border/40 last:border-0 transition-none">
                                                     <TableCell className="font-bold text-foreground/80">{item.label}</TableCell>
                                                     <TableCell className="text-right font-black text-orange-500">{item.value}</TableCell>

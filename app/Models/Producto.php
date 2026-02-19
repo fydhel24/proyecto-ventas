@@ -12,10 +12,14 @@ class Producto extends Model
 
     protected $fillable = [
         'nombre',
+        'principio_activo',
+        'concentracion',
         'caracteristicas',
-        'marca_id',
+        'laboratorio_id',
         'categoria_id',
-        'color_id',
+        'lote',
+        'fecha_vencimiento',
+        'registro_sanitario',
         'estado',
         'fecha',
         'precio_compra',
@@ -24,9 +28,9 @@ class Producto extends Model
         'precio_3',
     ];
 
-    public function marca()
+    public function laboratorio()
     {
-        return $this->belongsTo(Marca::class);
+        return $this->belongsTo(Laboratorio::class);
     }
 
     public function categoria()

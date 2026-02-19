@@ -38,65 +38,72 @@ import {
   Tag,
   Type,
   X,
+  Activity,
+  Calendar,
+  ShieldCheck,
 } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Edit({
   producto,
-  marcas: initialMarcas,
+  laboratorios: initialLaboratorios,
   categorias: initialCategorias,
   fotos: initialFotos,
 }: {
   producto: any;
-  marcas: any[];
+  laboratorios: any[];
   categorias: any[];
   fotos: any[];
 }) {
   // ✅ Usa `post` y añade `_method: 'PUT'`
   const { data, setData, post, processing } = useForm({
     nombre: producto.nombre || '',
+    principio_activo: producto.principio_activo || '',
+    concentracion: producto.concentracion || '',
     caracteristicas: producto.caracteristicas || '',
-    marca_id: String(producto.marca_id) || '',
+    laboratorio_id: String(producto.laboratorio_id || producto.marca_id) || '',
     categoria_id: String(producto.categoria_id) || '',
+    lote: producto.lote || '',
+    fecha_vencimiento: producto.fecha_vencimiento || '',
+    registro_sanitario: producto.registro_sanitario || '',
     estado: producto.estado ?? true,
     fecha: producto.fecha ? new Date(producto.fecha).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     precio_compra: String(producto.precio_compra) || '',
     precio_1: String(producto.precio_1) || '',
     precio_2: producto.precio_2 ? String(producto.precio_2) : '',
     precio_3: producto.precio_3 ? String(producto.precio_3) : '',
-    // stock removed
     fotos: [] as File[],
-    _method: 'PUT', // 👈 Simula una petición PUT
+    _method: 'PUT',
   });
 
-  const [marcas, setMarcas] = useState(initialMarcas);
+  const [laboratorios, setLaboratorios] = useState(initialLaboratorios);
   const [categorias, setCategorias] = useState(initialCategorias);
-  const [modalMarcaOpen, setModalMarcaOpen] = useState(false);
+  const [modalLaboratorioOpen, setModalLaboratorioOpen] = useState(false);
   const [modalCategoriaOpen, setModalCategoriaOpen] = useState(false);
   const [mostrarMasPrecios, setMostrarMasPrecios] = useState(!!(producto.precio_2 || producto.precio_3));
-  const [marcaOpen, setMarcaOpen] = useState(false);
+  const [laboratorioOpen, setLaboratorioOpen] = useState(false);
   const [categoriaOpen, setCategoriaOpen] = useState(false);
-  const [nuevaMarca, setNuevaMarca] = useState('');
+  const [nuevoLaboratorio, setNuevoLaboratorio] = useState('');
   const [nuevaCategoria, setNuevaCategoria] = useState('');
   const { props } = usePage();
   const csrfToken = (props as any).csrf_token;
 
-  const handleCreateMarca = async () => {
-    if (!nuevaMarca.trim()) return;
-    const res = await fetch('/marcas', {
+  const handleCreateLaboratorio = async () => {
+    if (!nuevoLaboratorio.trim()) return;
+    const res = await fetch('/laboratorios', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRF-TOKEN': csrfToken || '',
       },
-      body: JSON.stringify({ nombre_marca: nuevaMarca.trim() }),
+      body: JSON.stringify({ nombre_lab: nuevoLaboratorio.trim() }),
     });
 
     if (res.ok) {
       const json = await res.json();
-      setMarcas((prev) => [...prev, json.marca]);
-      setNuevaMarca('');
-      setModalMarcaOpen(false);
+      setLaboratorios((prev) => [...prev, json]);
+      setNuevoLaboratorio('');
+      setModalLaboratorioOpen(false);
     }
   };
 
@@ -128,32 +135,32 @@ export default function Edit({
   return (
     <AppLayout>
       {/* Modales */}
-      <Dialog open={modalMarcaOpen} onOpenChange={setModalMarcaOpen}>
+      <Dialog open={modalLaboratorioOpen} onOpenChange={setModalLaboratorioOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Landmark className="h-5 w-5" />
-              Nueva Marca
+              Nuevo Laboratorio
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <Label htmlFor="marca-input" className="text-sm font-medium">
-              Nombre de la marca
+            <Label htmlFor="lab-input" className="text-sm font-medium">
+              Nombre del laboratorio
             </Label>
             <Input
-              id="marca-input"
-              placeholder="Ej. Samsung, Apple"
-              value={nuevaMarca}
-              onChange={(e) => setNuevaMarca(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateMarca()}
+              id="lab-input"
+              placeholder="Ej. Bagó, Vita"
+              value={nuevoLaboratorio}
+              onChange={(e) => setNuevoLaboratorio(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreateLaboratorio()}
               className="mt-1 h-10"
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setModalMarcaOpen(false)}>
+            <Button variant="outline" onClick={() => setModalLaboratorioOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleCreateMarca} disabled={!nuevaMarca.trim()}>
+            <Button onClick={handleCreateLaboratorio} disabled={!nuevoLaboratorio.trim()}>
               <Plus className="mr-2 h-4 w-4" />
               Agregar
             </Button>
@@ -197,11 +204,11 @@ export default function Edit({
       <Card className="mx-auto w-full max-w-4xl shadow-lg">
         <CardHeader className="border-b pb-6">
           <CardTitle className="flex items-center gap-2 text-2xl font-bold">
-            <Package className="h-6 w-6" />
-            Editar Producto
+            <Activity className="h-6 w-6 text-primary" />
+            Editar Medicamento
           </CardTitle>
           <p className="mt-1 text-sm text-muted-foreground">
-            Modifica los datos del producto
+            Modifica los datos del producto farmacéutico
           </p>
         </CardHeader>
 
@@ -211,11 +218,11 @@ export default function Edit({
             <div className="space-y-2">
               <Label htmlFor="nombre" className="flex items-center gap-1.5 text-sm font-medium">
                 <Type className="h-4 w-4" />
-                Nombre
+                Nombre Comercial
               </Label>
               <Input
                 id="nombre"
-                placeholder="Nombre del producto"
+                placeholder="Ej. Paracetamol Bagó"
                 value={data.nombre}
                 onChange={(e) => setData('nombre', e.target.value)}
                 className="h-11"
@@ -224,61 +231,75 @@ export default function Edit({
 
             {/* Características */}
             <div className="space-y-2">
-              <Label htmlFor="caracteristicas" className="flex items-center gap-1.5 text-sm font-medium">
-                <Type className="h-4 w-4" />
-                Características
+              <Label htmlFor="principio_activo" className="flex items-center gap-1.5 text-sm font-medium">
+                <Activity className="h-4 w-4" />
+                Principio Activo
               </Label>
-              <Textarea
-                id="caracteristicas"
-                placeholder="Describe las características clave"
-                value={data.caracteristicas}
-                onChange={(e) => setData('caracteristicas', e.target.value)}
-                className="h-11 min-h-[44px] resize-none"
+              <Input
+                id="principio_activo"
+                placeholder="Ej. Paracetamol"
+                value={data.principio_activo}
+                onChange={(e) => setData('principio_activo', e.target.value)}
+                className="h-11"
               />
             </div>
 
-            {/* Marca */}
+            <div className="space-y-2">
+              <Label htmlFor="concentracion" className="flex items-center gap-1.5 text-sm font-medium">
+                <Activity className="h-4 w-4" />
+                Concentración
+              </Label>
+              <Input
+                id="concentracion"
+                placeholder="Ej. 500mg"
+                value={data.concentracion}
+                onChange={(e) => setData('concentracion', e.target.value)}
+                className="h-11"
+              />
+            </div>
+
+            {/* Laboratorio */}
             <div className="space-y-2">
               <Label className="flex items-center gap-1.5 text-sm font-medium">
                 <Landmark className="h-4 w-4" />
-                Marca
+                Laboratorio
               </Label>
               <div className="flex gap-2">
-                <Popover open={marcaOpen} onOpenChange={setMarcaOpen}>
+                <Popover open={laboratorioOpen} onOpenChange={setLaboratorioOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       role="combobox"
-                      aria-expanded={marcaOpen}
+                      aria-expanded={laboratorioOpen}
                       className="h-11 flex-1 justify-between"
                     >
-                      {data.marca_id
-                        ? marcas.find((m) => m.id === Number(data.marca_id))?.nombre_marca
-                        : 'Seleccionar marca'}
+                      {data.laboratorio_id
+                        ? laboratorios.find((l) => l.id === Number(data.laboratorio_id))?.nombre_lab
+                        : 'Seleccionar laboratorio'}
                       <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-full p-0" align="start" sideOffset={6}>
                     <Command>
-                      <CommandInput placeholder="Buscar marca..." className="h-10" />
+                      <CommandInput placeholder="Buscar laboratorio..." className="h-10" />
                       <CommandList className="max-h-60 overflow-y-auto">
-                        <CommandEmpty>No se encontró la marca.</CommandEmpty>
+                        <CommandEmpty>No se encontró el laboratorio.</CommandEmpty>
                         <CommandGroup>
-                          {marcas.map((m) => (
+                          {laboratorios.map((l) => (
                             <CommandItem
-                              key={m.id}
-                              value={m.nombre_marca}
+                              key={l.id}
+                              value={l.nombre_lab}
                               onSelect={(currentValue) => {
-                                const selected = marcas.find(
-                                  (marca) => marca.nombre_marca === currentValue
+                                const selected = laboratorios.find(
+                                  (lab) => lab.nombre_lab === currentValue
                                 );
                                 if (selected) {
-                                  setData('marca_id', String(selected.id));
+                                  setData('laboratorio_id', String(selected.id));
                                 }
-                                setMarcaOpen(false);
+                                setLaboratorioOpen(false);
                               }}
                             >
-                              {m.nombre_marca}
+                              {l.nombre_lab}
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -291,7 +312,7 @@ export default function Edit({
                   size="icon"
                   variant="outline"
                   className="h-11 w-11"
-                  onClick={() => setModalMarcaOpen(true)}
+                  onClick={() => setModalLaboratorioOpen(true)}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -377,11 +398,56 @@ export default function Edit({
               />
             </div>
 
+            {/* Lote */}
+            <div className="space-y-2">
+              <Label htmlFor="lote" className="flex items-center gap-1.5 text-sm font-medium">
+                <Hash className="h-4 w-4" />
+                Lote
+              </Label>
+              <Input
+                id="lote"
+                placeholder="Ej. L-123456"
+                value={data.lote}
+                onChange={(e) => setData('lote', e.target.value)}
+                className="h-11"
+              />
+            </div>
+
+            {/* Fecha Vencimiento */}
+            <div className="space-y-2">
+              <Label htmlFor="fecha_vencimiento" className="flex items-center gap-1.5 text-sm font-medium">
+                <Calendar className="h-4 w-4" />
+                Fecha de Vencimiento
+              </Label>
+              <Input
+                id="fecha_vencimiento"
+                type="date"
+                value={data.fecha_vencimiento}
+                onChange={(e) => setData('fecha_vencimiento', e.target.value)}
+                className="h-11"
+              />
+            </div>
+
+            {/* Registro Sanitario */}
+            <div className="space-y-2">
+              <Label htmlFor="registro_sanitario" className="flex items-center gap-1.5 text-sm font-medium">
+                <ShieldCheck className="h-4 w-4" />
+                Registro Sanitario
+              </Label>
+              <Input
+                id="registro_sanitario"
+                placeholder="Ej. NN-12345/2024"
+                value={data.registro_sanitario}
+                onChange={(e) => setData('registro_sanitario', e.target.value)}
+                className="h-11"
+              />
+            </div>
+
             {/* Precio por unidad */}
             <div className="space-y-2">
               <Label htmlFor="precio_1" className="flex items-center gap-1.5 text-sm font-medium">
                 <Tag className="h-4 w-4" />
-                Precio por unidad
+                Precio de Venta (Unidad)
               </Label>
               <Input
                 id="precio_1"
@@ -553,8 +619,8 @@ export default function Edit({
 
             {/* Botón guardar */}
             <div className="md:col-span-2 pt-2">
-              <Button type="submit" disabled={processing} className="h-11 w-full">
-                {processing ? 'Guardando...' : 'Actualizar Producto'}
+              <Button type="submit" disabled={processing} className="h-11 w-full bg-primary hover:bg-primary/90">
+                {processing ? 'Guardando...' : 'Actualizar Medicamento'}
               </Button>
             </div>
           </form>

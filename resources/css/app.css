@@ -96,10 +96,10 @@
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.87 0 0);
     /* Dynamic theme colors - updated by JavaScript */
-    --theme-primary: #2563eb;
-    --theme-secondary: #3b82f6;
-    --whatsapp-primary: #2563eb;
-    --accent-1: #2563eb;
+    --theme-primary: #0ca678; /* Medical Green */
+    --theme-secondary: #087f5b;
+    --whatsapp-primary: #25d366;
+    --accent-1: #0ca678;
     --accent-2: #0ea5e9;
     --accent-3: #ec4899;
     --accent-4: #f59e0b;

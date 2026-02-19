@@ -17,6 +17,9 @@ class DatabaseSeeder extends Seeder
         // Run the roles and permissions seeder first
         $this->call(RolesAndPermissionsSeeder::class);
 
+        // Run pharmacy seeder
+        $this->call(PharmacySeeder::class);
+
         // Create default admin user
         $user = User::firstOrCreate(
             ['email' => 'admin@gmail.com'],

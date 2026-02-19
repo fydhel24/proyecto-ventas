@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\ImageService;
 use App\Models\Producto;
-use App\Models\Marca;
+use App\Models\Laboratorio;
 use App\Models\Categoria;
 use App\Models\Foto;
 use App\Http\Requests\ProductoRequest;
@@ -27,15 +27,17 @@ class ProductoController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Producto::with(['marca', 'categoria', 'fotos'])
+        $query = Producto::with(['laboratorio', 'categoria', 'fotos'])
             ->withCount('fotos');
 
         // Filtro de búsqueda
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('nombre', 'like', "%{$search}%")
-                    ->orWhere('codigo', 'like', "%{$search}%")
-                    ->orWhereHas('marca', fn($q) => $q->where('nombre_marca', 'like', "%{$search}%"))
+                    ->orWhere('principio_activo', 'like', "%{$search}%")
+                    ->orWhere('registro_sanitario', 'like', "%{$search}%")
+                    ->orWhere('lote', 'like', "%{$search}%")
+                    ->orWhereHas('laboratorio', fn($q) => $q->where('nombre_lab', 'like', "%{$search}%"))
                     ->orWhereHas('categoria', fn($q) => $q->where('nombre_cat', 'like', "%{$search}%"));
             });
         }
@@ -45,9 +47,9 @@ class ProductoController extends Controller
             $query->where('categoria_id', $categoriaId);
         }
 
-        // Filtro por marca
-        if ($marcaId = $request->input('marca_id')) {
-            $query->where('marca_id', $marcaId);
+        // Filtro por laboratorio
+        if ($laboratorioId = $request->input('laboratorio_id')) {
+            $query->where('laboratorio_id', $laboratorioId);
         }
 
         // Filtro por estado
@@ -64,9 +66,9 @@ class ProductoController extends Controller
 
         return Inertia::render('Productos/Index', [
             'productos' => $productos,
-            'marcas' => Marca::all(),
+            'laboratorios' => Laboratorio::all(),
             'categorias' => Categoria::all(),
-            'filters' => $request->only(['search', 'categoria_id', 'marca_id', 'estado', 'sort', 'order']),
+            'filters' => $request->only(['search', 'categoria_id', 'laboratorio_id', 'estado', 'sort', 'order']),
         ]);
     }
 
@@ -76,7 +78,7 @@ class ProductoController extends Controller
     public function create()
     {
         return Inertia::render('Productos/Create', [
-            'marcas' => Marca::orderBy('nombre_marca')->get(),
+            'laboratorios' => Laboratorio::orderBy('nombre_lab')->get(),
             'categorias' => Categoria::orderBy('nombre_cat')->get(),
         ]);
     }
@@ -135,7 +137,7 @@ class ProductoController extends Controller
 
         return Inertia::render('Productos/Edit', [
             'producto' => $producto,
-            'marcas' => Marca::orderBy('nombre_marca')->get(),
+            'laboratorios' => Laboratorio::orderBy('nombre_lab')->get(),
             'categorias' => Categoria::orderBy('nombre_cat')->get(),
             'fotos' => $producto->fotos,
         ]);

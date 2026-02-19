@@ -15,16 +15,19 @@ return new class extends Migration
             $table->id();
 
             $table->string('nombre');
+            $table->string('principio_activo')->nullable();
+            $table->string('concentracion')->nullable();
             $table->text('caracteristicas')->nullable();
 
-            $table->foreignId('marca_id')
-                ->constrained('marcas');
+            $table->foreignId('laboratorio_id')
+                ->constrained('laboratorios');
 
             $table->foreignId('categoria_id')
                 ->constrained('categorias');
 
-            $table->foreignId('color_id')->nullable()
-                ->constrained('colors');
+            $table->string('lote')->nullable();
+            $table->date('fecha_vencimiento')->nullable();
+            $table->string('registro_sanitario')->nullable();
 
             $table->string('estado');
             $table->timestamp('fecha');

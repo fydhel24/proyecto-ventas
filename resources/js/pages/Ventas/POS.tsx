@@ -43,7 +43,7 @@ interface Product {
     precio_1: number;
     precio_2: number;
     precio_3: number;
-    marca?: { nombre: string };
+    laboratorio?: { nombre_lab: string };
     categoria?: { nombre_cat: string };
     fotos: Photo[];
 }
@@ -117,19 +117,19 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias, usuario
         ? sucursalesConCajaAbierta.includes(parseInt(currentSucursalId))
         : false;
 
-    const { data, setData, reset } = useForm({
+    const { data, setData, reset } = useForm<VentaForm & { user_vendedor_id?: number }>({
         sucursal_id: currentSucursalId,
         cliente: '',
         ci: '',
         tipo_pago: 'Efectivo',
-        carrito: [] as any[],
+        carrito: [],
         monto_total: 0,
         pagado: 0,
         cambio: 0,
         efectivo: 0,
         qr: 0,
-        user_vendedor_id: undefined as number | undefined,
-    } as VentaForm & { user_vendedor_id?: number });
+        user_vendedor_id: undefined,
+    });
 
     // Helper for safe number input (allows empty string)
     const handleNumberInput = (val: string, setter: (v: number) => void) => {
@@ -477,9 +477,9 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias, usuario
                                                     <h3 className={`font-bold leading-tight line-clamp-2 ${isOutOfStock ? 'text-muted-foreground' : ''}`}>
                                                         {inventory.producto.nombre}
                                                     </h3>
-                                                    {inventory.producto.marca && (
+                                                    {inventory.producto.laboratorio && (
                                                         <p className="text-xs text-muted-foreground mt-1">
-                                                            {inventory.producto.marca.nombre}
+                                                            {inventory.producto.laboratorio.nombre_lab}
                                                         </p>
                                                     )}
                                                 </div>
@@ -526,7 +526,7 @@ export default function POS({ sucursal, sucursales, isAdmin, categorias, usuario
                                             <CardContent className="p-3">
                                                 <div className="flex flex-col gap-0.5">
                                                     <div className="flex items-center gap-1.5">
-                                                        <span className="text-[9px] font-bold text-primary/70">{inv.producto.marca?.nombre || 'General'}</span>
+                                                        <span className="text-[9px] font-bold text-primary/70">{inv.producto.laboratorio?.nombre_lab || 'General'}</span>
                                                         <span className="text-[8px] text-muted-foreground">•</span>
                                                         <span className="text-[9px] font-medium text-muted-foreground">{inv.producto.categoria?.nombre_cat}</span>
                                                     </div>

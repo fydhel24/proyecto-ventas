@@ -39,8 +39,11 @@ import {
 interface Producto {
     id: number;
     nombre: string;
+    principio_activo: string | null;
+    lote: string | null;
+    fecha_vencimiento: string | null;
     precio_1: string;
-    marca: { nombre_marca: string } | null;
+    laboratorio: { nombre_lab: string } | null;
     categoria: { nombre_cat: string } | null;
 }
 
@@ -174,16 +177,16 @@ export default function Index({ productos, filters }: Props) {
                                 <span className="p-2 bg-primary/10 rounded-xl">
                                     <PackageIcon className="w-8 h-8 text-primary" />
                                 </span>
-                                Inventario de <span className="text-primary italic">Productos</span>
+                                Gestión de <span className="text-primary italic">Medicamentos</span>
                             </h1>
                             <p className="text-muted-foreground text-sm font-medium">
-                                Control total sobre el stock, precios y categorías de tu catálogo.
+                                Control total sobre el stock, vencimientos y laboratorios de tu farmacia.
                             </p>
                         </div>
                         <Link href={productosRoutes.create()}>
                             <Button className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 h-11 px-6 font-bold transition-all hover:scale-[1.02] active:scale-95">
                                 <PlusIcon className="mr-2 h-5 w-5" />
-                                Nuevo Producto
+                                Nuevo Medicamento
                             </Button>
                         </Link>
                     </div>
@@ -195,14 +198,14 @@ export default function Index({ productos, filters }: Props) {
                                     <SearchIcon className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                     <input
                                         type="text"
-                                        placeholder="Buscar por nombre, marca o categoría..."
+                                        placeholder="Buscar por nombre, principio activo, laboratorio..."
                                         className="w-full pl-10 pr-4 py-2.5 bg-background border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
                                     />
                                 </div>
                                 <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">
-                                    Total: {productos?.total || 0} Productos
+                                    Total: {productos?.total || 0} Ítems
                                 </div>
                             </div>
                         </CardHeader>
@@ -229,7 +232,7 @@ export default function Index({ productos, filters }: Props) {
                                                         </div>
                                                     </TableHead>
                                                     <TableHead className="text-[11px] uppercase font-black tracking-widest text-muted-foreground h-12">
-                                                        Marca
+                                                        Laboratorio
                                                     </TableHead>
                                                     <TableHead className="text-[11px] uppercase font-black tracking-widest text-muted-foreground h-12">
                                                         Categoría
@@ -251,8 +254,13 @@ export default function Index({ productos, filters }: Props) {
                                                         key={p.id}
                                                         className="group hover:bg-primary/[0.02] dark:hover:bg-primary/[0.05] transition-colors border-b border-border/20"
                                                     >
-                                                        <TableCell className="font-bold text-sm py-4">{p.nombre}</TableCell>
-                                                        <TableCell className="text-xs font-medium text-muted-foreground">{p.marca?.nombre_marca || '—'}</TableCell>
+                                                        <TableCell className="font-bold text-sm py-4">
+                                                            <div className="flex flex-col">
+                                                                <span>{p.nombre}</span>
+                                                                <span className="text-[10px] font-medium text-muted-foreground/70">{p.principio_activo}</span>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell className="text-xs font-medium text-muted-foreground">{p.laboratorio?.nombre_lab || '—'}</TableCell>
                                                         <TableCell className="text-xs font-medium text-muted-foreground">{p.categoria?.nombre_cat || '—'}</TableCell>
                                                         <TableCell className="text-center">
                                                             <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-xl bg-primary/5 border border-primary/20 text-primary font-black text-sm shadow-sm">

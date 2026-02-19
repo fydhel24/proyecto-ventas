@@ -66,7 +66,7 @@ export default function Show({ producto, sugerencias }: Props) {
 
     return (
         <PublicLayout>
-            <Head title={`${producto.nombre} | Miracode Shop`} />
+            <Head title={`${producto.nombre} | Nexus Farma`} />
 
             <div className="container mx-auto px-4 py-8 md:py-16" ref={contentRef}>
                 {/* Back Button */}
@@ -125,7 +125,7 @@ export default function Show({ producto, sugerencias }: Props) {
                                 </Badge>
                                 <div className="h-1.5 w-1.5 rounded-full bg-border" />
                                 <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">
-                                    {producto.marca?.nombre_marca}
+                                    {producto.laboratorio?.nombre_lab}
                                 </span>
                             </div>
 
@@ -144,7 +144,7 @@ export default function Show({ producto, sugerencias }: Props) {
                         </div>
 
                         <p className="text-muted-foreground leading-relaxed text-xl animate-in font-medium">
-                            {producto.caracteristicas || 'Este producto representa la excelencia en nuestra curaduría de tecnología de alto standing.'}
+                            {producto.caracteristicas || 'Medicamento de alta calidad garantizado por Nexus Farma para el cuidado de tu salud.'}
                         </p>
 
                         <Separator className="animate-in h-1 bg-border/50 rounded-full" />
@@ -177,14 +177,14 @@ export default function Show({ producto, sugerencias }: Props) {
                                     onClick={handleAddToCart}
                                 >
                                     <ShoppingCart className="h-7 w-7 transition-all group-hover:scale-110" />
-                                    Lo quiero ahora
+                                    Adquirir
                                 </Button>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {[
-                                    { icon: Truck, label: 'Envío Prioritario', sub: 'Llega en menos de 24h' },
-                                    { icon: ShieldCheck, label: 'Garantía Total', sub: 'Certificado oficial Miracode' },
+                                    { icon: Truck, label: 'Distribución Segura', sub: 'Protocolos de transporte médico' },
+                                    { icon: ShieldCheck, label: 'Calidad Certificada', sub: 'Control de Lote y Registro Sanitario' },
                                 ].map((f, i) => (
                                     <div key={i} className="flex gap-5 p-6 rounded-[2rem] bg-muted/50 border-2 border-border/50 hover:bg-muted transition-colors">
                                         <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">

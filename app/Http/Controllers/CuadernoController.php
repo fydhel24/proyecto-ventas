@@ -86,8 +86,8 @@ class CuadernoController extends Controller
                 // Manejar errores de forma segura para que nunca rompa PHP-FPM
                 try {
                     $cuadernosQuery = Cuaderno::with([
-                        'productos:id,nombre,marca_id,categoria_id,color_id',
-                        'productos.marca:id,nombre_marca',
+                        'productos:id,nombre,laboratorio_id,categoria_id,color_id',
+                        'productos.laboratorio:id,nombre_lab',
                         'productos.categoria:id,nombre_cat',
                         'productos.color:id,codigo_color',
                         'imagenes',
@@ -563,12 +563,12 @@ public function pedidos(Request $request)
         $pdf->SetX(60);
         $pdf->SetFont('Arial', 'B', 18);
         $pdf->SetTextColor($navy[0], $navy[1], $navy[2]);
-        $pdf->Cell(0, 10, utf8_decode('MIRACODE S.A.'), 0, 1, 'R');
+        $pdf->Cell(0, 10, utf8_decode('NEXUS FARMA'), 0, 1, 'R');
 
         $pdf->SetX(60);
         $pdf->SetFont('Arial', '', 9);
         $pdf->SetTextColor($slate[0], $slate[1], $slate[2]);
-        $pdf->Cell(0, 5, utf8_decode('Mirando hacia el futuro.'), 0, 1, 'R');
+        $pdf->Cell(0, 5, utf8_decode('Tu salud en buenas manos.'), 0, 1, 'R');
 
         $pdf->SetX(60);
         $pdf->Cell(0, 5, utf8_decode('WhatsApp: 71234567 | Direccion, Nro'), 0, 1, 'R');

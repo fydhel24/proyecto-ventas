@@ -9,7 +9,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard, whatsappMiranda } from '@/routes';
+import { dashboard } from '@/routes';
 import productos from '@/routes/productos';
 import usuarios from '@/routes/usuarios';
 import roles from '@/routes/roles';
@@ -23,7 +23,7 @@ import cajas from '@/routes/cajas';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 
-import { BarChart3, BookOpenText, Boxes, Building, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Plus, Send, ShieldCheck, ShoppingCart, Truck, Users, Wallet } from 'lucide-react';
+import { BarChart3, BookOpenText, Boxes, Building, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Plus, Send, ShieldCheck, ShoppingCart, Truck, Users, Wallet, Pill } from 'lucide-react';
 import AppLogo from './app-logo';
 import { usePermissions } from '@/hooks/use-permissions';
 
@@ -35,9 +35,9 @@ const mainNavItems: NavItem[] = [
         permission: 'ver dashboard',
     },
     {
-        title: 'Productos',
+        title: 'Medicamentos',
         href: productos.index().url,
-        icon: Package,
+        icon: Pill,
         permission: 'ver productos',
     },
     {
@@ -159,15 +159,15 @@ const mainNavItems: NavItem[] = [
                 icon: CheckCircle2,
             },
             {
-                title: 'Productos',
+                title: 'Medicamentos',
                 href: '/reports/products',
-                icon: Package,
+                icon: Pill,
             },
         ],
     },
     {
-        title: 'WhatsApp Bot',
-        href: whatsappMiranda().url,
+        title: 'Nexus WhatsApp Bot',
+        href: '/whatsapp-bot',
         icon: MessageCircle,
         permission: 'ver whatsapp',
     },
