@@ -31,8 +31,8 @@ Route::get('/qr', [CuadernoController::class, 'qrDetails'])->name('qr.details');
 Route::prefix('tienda')->group(function () {
     Route::get('/search-suggestions', [App\Http\Controllers\ShopController::class, 'searchSuggestions'])->name('shop.suggestions');
     Route::get('/', [App\Http\Controllers\ShopController::class, 'index'])->name('shop.index');
-    Route::get('/{producto}', [App\Http\Controllers\ShopController::class, 'show'])->name('shop.show');
     Route::get('/checkout', [App\Http\Controllers\ShopController::class, 'checkout'])->name('shop.checkout');
+    Route::get('/{producto}', [App\Http\Controllers\ShopController::class, 'show'])->name('shop.show');
 });
 
 Route::post('/cuadernos/pedidos', [CuadernoController::class, 'pedidos'])->name('cuadernos.pedidos');

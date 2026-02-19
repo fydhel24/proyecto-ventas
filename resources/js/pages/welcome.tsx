@@ -398,7 +398,7 @@ export default function Welcome({
                             className="h-20 rounded-[2rem] bg-[var(--theme-primary)] px-12 text-2xl font-black shadow-[var(--theme-primary)]/40 shadow-2xl transition-transform hover:scale-105"
                             asChild
                         >
-                            <Link href="/tienda">ORDINAR AHORA</Link>
+                            <Link href="/tienda">ORDENAR AHORA</Link>
                         </Button>
                     </div>
                 </section>
