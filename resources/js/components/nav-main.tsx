@@ -17,16 +17,15 @@ import { ChevronRight } from 'lucide-react';
 export function NavMain({ items = [] }: { items: NavItem[] }) {
     const page = usePage();
     return (
-        <SidebarGroup className="px-2 py-4">
-            <SidebarGroupLabel className="px-4 text-[10px] uppercase tracking-widest text-sidebar-foreground/40 font-bold">Plataforma</SidebarGroupLabel>
-            <SidebarMenu>
+        <SidebarGroup className="px-3 py-4">
+            <SidebarGroupLabel className="px-3 pb-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 font-black">
+                Navegación Principal
+            </SidebarGroupLabel>
+            <SidebarMenu className="gap-1">
                 {items.map((item) => {
                     const hasSubItems = item.items && item.items.length > 0;
-
-                    // Check if the item itself is active
                     let isActive = page.url.startsWith(resolveUrl(item.href));
 
-                    // Also check if any sub-item is active (to keep parent open/highlighted)
                     if (hasSubItems && item.items) {
                         const isChildActive = item.items.some(subItem => page.url.startsWith(resolveUrl(subItem.href)));
                         if (isChildActive) isActive = true;
@@ -34,38 +33,31 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
 
                     if (!hasSubItems) {
                         return (
-                            <SidebarMenuItem key={item.title} className="relative px-2">
-                                {isActive && (
-                                    <div
-                                        className="absolute left-0 top-1 bottom-1 w-1.5 rounded-full bg-[var(--theme-primary)] shadow-[0_0_12px_var(--theme-primary)] z-20"
-                                    />
-                                )}
+                            <SidebarMenuItem key={item.title}>
                                 <SidebarMenuButton
                                     asChild
                                     isActive={isActive}
                                     tooltip={{ children: item.title }}
                                     className={cn(
-                                        "transition-all duration-300 relative group/btn overflow-hidden",
+                                        "h-10 transition-all duration-300 relative group/btn rounded-lg overflow-hidden",
                                         isActive
-                                            ? "translate-x-1.5 bg-gradient-to-r from-[var(--theme-primary)]/20 via-[var(--theme-primary)]/5 to-transparent"
-                                            : "hover:translate-x-1 hover:bg-sidebar-accent/50"
+                                            ? "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 font-bold"
+                                            : "hover:bg-sidebar-accent/80 text-muted-foreground hover:text-foreground"
                                     )}
                                 >
                                     <Link href={item.href} prefetch>
                                         {item.icon && (
                                             <item.icon
                                                 className={cn(
-                                                    "transition-all duration-300",
-                                                    isActive ? "text-[var(--theme-primary)] scale-110 drop-shadow-[0_0_3px_var(--theme-primary)]" : "group-hover/btn:text-foreground"
+                                                    "transition-all duration-300 size-5",
+                                                    isActive ? "text-emerald-500 scale-110 drop-shadow-[0_0_5px_rgba(16,185,129,0.3)]" : "opacity-70 group-hover/btn:opacity-100"
                                                 )}
                                             />
                                         )}
-                                        <span className={cn(
-                                            "transition-all duration-300 ml-1 truncate",
-                                            isActive ? "font-bold tracking-tight text-[var(--theme-primary)]" : "group-hover/btn:text-foreground font-medium"
-                                        )}>
-                                            {item.title}
-                                        </span>
+                                        <span className="ml-2">{item.title}</span>
+                                        {isActive && (
+                                            <div className="absolute right-0 top-2 bottom-2 w-1 rounded-l-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                                        )}
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
@@ -74,58 +66,47 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
 
                     return (
                         <Collapsible key={item.title} asChild defaultOpen={isActive} className="group/collapsible">
-                            <SidebarMenuItem className="px-2">
+                            <SidebarMenuItem>
                                 <CollapsibleTrigger asChild>
                                     <SidebarMenuButton
                                         tooltip={{ children: item.title }}
                                         className={cn(
-                                            "transition-all duration-300 relative group/btn overflow-hidden",
+                                            "h-10 transition-all duration-300 rounded-lg",
                                             isActive
-                                                ? "bg-gradient-to-r from-[var(--theme-primary)]/10 to-transparent"
-                                                : "hover:bg-sidebar-accent/50"
+                                                ? "bg-emerald-500/5 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 font-bold"
+                                                : "text-muted-foreground hover:bg-sidebar-accent/80 hover:text-foreground"
                                         )}
                                     >
                                         {item.icon && (
                                             <item.icon
                                                 className={cn(
-                                                    "transition-all duration-300",
-                                                    isActive ? "text-[var(--theme-primary)] scale-110 drop-shadow-[0_0_3px_var(--theme-primary)]" : "group-hover/btn:text-foreground"
+                                                    "transition-all duration-300 size-5",
+                                                    isActive ? "text-emerald-500" : "opacity-70"
                                                 )}
                                             />
                                         )}
-                                        <span className={cn(
-                                            "transition-all duration-300 ml-1 truncate",
-                                            isActive ? "font-bold tracking-tight text-[var(--theme-primary)]" : "group-hover/btn:text-foreground font-medium"
-                                        )}>
-                                            {item.title}
-                                        </span>
-                                        <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                                        <span className="ml-2">{item.title}</span>
+                                        <ChevronRight className="ml-auto size-4 transition-transform duration-300 group-data-[state=open]/collapsible:rotate-90 opacity-40" />
                                     </SidebarMenuButton>
                                 </CollapsibleTrigger>
-                                <CollapsibleContent>
-                                    <SidebarMenuSub className="mt-1">
+                                <CollapsibleContent className="px-2">
+                                    <SidebarMenuSub className="mt-1 border-l-2 border-emerald-500/20 ml-4 py-1 gap-1">
                                         {item.items?.map((subItem) => {
                                             const isSubActive = page.url === resolveUrl(subItem.href);
                                             return (
-                                                <SidebarMenuSubItem key={subItem.title} className="pl-9 pr-1 relative">
-                                                    {isSubActive && (
-                                                        <div className="absolute left-7 top-2 bottom-2 w-1 rounded-full bg-[var(--theme-primary)]/60" />
-                                                    )}
+                                                <SidebarMenuSubItem key={subItem.title}>
                                                     <SidebarMenuSubButton
                                                         asChild
                                                         isActive={isSubActive}
                                                         className={cn(
-                                                            "h-9 transition-all duration-300",
-                                                            isSubActive && "bg-[var(--theme-primary)]/10 translate-x-1"
+                                                            "h-8 transition-all duration-300 rounded-md px-3",
+                                                            isSubActive
+                                                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold"
+                                                                : "text-muted-foreground/80 hover:text-foreground hover:bg-emerald-500/5"
                                                         )}
                                                     >
                                                         <Link href={subItem.href}>
-                                                            <span className={cn(
-                                                                "transition-colors text-sm",
-                                                                isSubActive ? "font-bold text-[var(--theme-primary)]" : "font-medium"
-                                                            )}>
-                                                                {subItem.title}
-                                                            </span>
+                                                            <span className="text-xs tracking-tight">{subItem.title}</span>
                                                         </Link>
                                                     </SidebarMenuSubButton>
                                                 </SidebarMenuSubItem>

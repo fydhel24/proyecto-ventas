@@ -69,9 +69,36 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
-    // Crear categorías y laboratorios desde modales
-    Route::post('/laboratorios', [\App\Http\Controllers\LaboratorioController::class, 'store'])->middleware('can:crear productos');
-    Route::post('/categorias', [CategoriaController::class, 'store'])->middleware('can:crear productos');
+    // ===== ENTIDADES =====
+    Route::middleware('can:ver ventas')->group(function () {
+        Route::resource('clientes', \App\Http\Controllers\ClienteController::class);
+        Route::resource('proveedores', \App\Http\Controllers\ProveedorController::class);
+    });
+
+    // ===== GESTIÓN DE PRODUCTOS (Detalles) =====
+    Route::middleware('can:ver productos')->group(function () {
+        Route::resource('laboratorios', \App\Http\Controllers\LaboratorioController::class);
+        Route::resource('categorias', \App\Http\Controllers\CategoriaController::class);
+        Route::get('lotes', [\App\Http\Controllers\LoteController::class, 'index'])->name('lotes.index');
+        Route::get('lotes/vencimientos', [\App\Http\Controllers\LoteController::class, 'vencimientos'])->name('lotes.vencimientos');
+    });
+
+    // ===== COMPRAS Y STOCK =====
+    Route::middleware('can:registrar compra')->group(function () {
+        Route::resource('compras', \App\Http\Controllers\CompraController::class);
+    });
+
+    // ===== RESERVAS =====
+    Route::middleware('can:gestionar reservas')->group(function () {
+        Route::resource('reservas', \App\Http\Controllers\ReservaController::class);
+        Route::post('reservas/{reserva}/convertir', [\App\Http\Controllers\ReservaController::class, 'convertirAVenta'])->name('reservas.convertir');
+    });
+
+    // ===== CONFIGURACIÓN =====
+    Route::middleware('can:ver usuarios')->group(function () {
+        Route::get('settings', [\App\Http\Controllers\ConfiguracionController::class, 'index'])->name('settings.index');
+        Route::post('settings', [\App\Http\Controllers\ConfiguracionController::class, 'update'])->name('settings.update');
+    });
 
     // ===== GESTIÓN DE SUCURSALES =====
     Route::resource('sucursales', SucursalController::class)

@@ -51,6 +51,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'ver cuadernos',
                 'crear cuadernos',
                 'editar cuadernos',
+                'gestionar reservas',
+            ],
+            'Compras' => [
+                'ver compras',
+                'registrar compra',
             ],
             'Reportes' => [
                 'ver reportes',
