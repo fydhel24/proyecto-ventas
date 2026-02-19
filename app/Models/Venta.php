@@ -23,6 +23,8 @@ class Venta extends Model
         'estado',
         'user_vendedor_id',
         'sucursal_id',
+        'mesa_id',
+        'estado_comanda',
     ];
 
     // Relaciones
@@ -34,6 +36,11 @@ class Venta extends Model
     public function sucursal()
     {
         return $this->belongsTo(Sucursale::class);
+    }
+
+    public function mesa()
+    {
+        return $this->belongsTo(Mesa::class);
     }
 
     public function detalles()

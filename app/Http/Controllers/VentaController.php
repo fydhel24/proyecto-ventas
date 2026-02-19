@@ -27,10 +27,10 @@ class VentaController extends Controller
             ->when($query, function ($q) use ($query) {
                 return $q->where(function ($subQ) use ($query) {
                     $subQ->where('cliente', 'like', "%{$query}%")
-                         ->orWhere('id', 'like', "%{$query}%")
-                         ->orWhereHas('detalles.inventario.producto', function ($prodQ) use ($query) {
-                             $prodQ->where('nombre', 'like', "%{$query}%");
-                         });
+                        ->orWhere('id', 'like', "%{$query}%")
+                        ->orWhereHas('detalles.inventario.producto', function ($prodQ) use ($query) {
+                            $prodQ->where('nombre', 'like', "%{$query}%");
+                        });
                 });
             })
             ->orderBy('created_at', 'desc')
@@ -76,7 +76,6 @@ class VentaController extends Controller
             DB::commit();
 
             return back()->with('success', 'Venta anulada correctamente y stock restaurado.');
-
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Error al anular la venta: ' . $e->getMessage());
@@ -104,9 +103,9 @@ class VentaController extends Controller
 
         $sucursalActual = $user->sucursal_id ? Sucursale::find($user->sucursal_id) : null;
         $sucursales = $isAdmin ? Sucursale::where('estado', true)->get() : [];
-        
-        $usuarios = $isAdmin 
-            ? \App\Models\User::all(['id', 'name', 'sucursal_id']) 
+
+        $usuarios = $isAdmin
+            ? \App\Models\User::all(['id', 'name', 'sucursal_id'])
             : \App\Models\User::where('sucursal_id', $user->sucursal_id)->get(['id', 'name', 'sucursal_id']);
 
         // Get IDs of branches with open boxes
@@ -116,6 +115,10 @@ class VentaController extends Controller
             ->values()
             ->toArray();
 
+        $mesas = $isAdmin
+            ? \App\Models\Mesa::all()
+            : \App\Models\Mesa::where('sucursal_id', $user->sucursal_id)->get();
+
         return Inertia::render('Ventas/POS', [
             'sucursal' => $sucursalActual,
             'sucursales' => $sucursales,
@@ -123,6 +126,7 @@ class VentaController extends Controller
             'categorias' => \App\Models\Categoria::all(),
             'usuarios' => $usuarios,
             'sucursalesConCajaAbierta' => $sucursalesConCajaAbierta,
+            'mesas' => $mesas,
         ]);
     }
 
@@ -145,6 +149,8 @@ class VentaController extends Controller
             'cambio' => 'required|numeric',
             'efectivo' => 'nullable|numeric',
             'qr' => 'nullable|numeric',
+            'mesa_id' => 'nullable|exists:mesas,id',
+            'estado_comanda' => 'nullable|string',
         ]);
 
         try {
@@ -181,11 +187,21 @@ class VentaController extends Controller
                 'cambio' => $request->cambio,
                 'efectivo' => $monto_efectivo,
                 'qr' => $monto_qr,
-                'qr' => $monto_qr,
                 'user_vendedor_id' => $request->user_vendedor_id ?? $user->id,
                 'sucursal_id' => $sucursal_id,
+                'mesa_id' => $request->mesa_id,
+                'estado_comanda' => $request->mesa_id ? ($request->estado_comanda ?? 'en_cocina') : 'pagado',
                 'estado' => 'completado',
             ]);
+
+            // Si hay mesa, marcarla como ocupada si el pedido no está pagado
+            if ($request->mesa_id) {
+                $mesa = \App\Models\Mesa::find($request->mesa_id);
+                if ($mesa) {
+                    $nuevoEstadoMesa = ($request->estado_comanda === 'pagado' || !$request->estado_comanda) ? 'disponible' : 'ocupada';
+                    $mesa->update(['estado' => $nuevoEstadoMesa]);
+                }
+            }
 
             foreach ($request->carrito as $item) {
                 $inventario = Inventario::lockForUpdate()->find($item['inventario_id']);
@@ -293,6 +309,43 @@ class VentaController extends Controller
         return response()->json($inventarios);
     }
 
+    public function kitchen()
+    {
+        $user = auth()->user();
+        $isAdmin = $user->hasRole('admin');
+        $sucursal_id = $isAdmin ? null : $user->sucursal_id;
+
+        $pedidos = Venta::with(['detalles.inventario.producto', 'mesa', 'sucursal'])
+            ->whereIn('estado_comanda', ['pendiente', 'en_cocina', 'listo'])
+            ->when($sucursal_id, function ($q) use ($sucursal_id) {
+                return $q->where('sucursal_id', $sucursal_id);
+            })
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        return Inertia::render('Ventas/Kitchen', [
+            'pedidos' => $pedidos,
+        ]);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'estado_comanda' => 'required|string|in:pendiente,en_cocina,listo,entregado,pagado',
+        ]);
+
+        $venta = Venta::findOrFail($id);
+        $venta->update(['estado_comanda' => $request->estado_comanda]);
+
+        // Si se marca como pagado o entregado (dependiendo de la lógica), se podría liberar la mesa
+        if ($venta->mesa_id && ($request->estado_comanda === 'pagado' || $request->estado_comanda === 'entregado')) {
+            // Solo liberar si no hay otros pedidos activos en esa mesa (por simplicidad, liberamos)
+            $venta->mesa->update(['estado' => 'disponible']);
+        }
+
+        return back()->with('success', 'Estado actualizado');
+    }
+
     public function pdf($id)
     {
         try {
@@ -300,7 +353,7 @@ class VentaController extends Controller
             $venta = Venta::with(['vendedor', 'detalles.inventario.producto', 'sucursal'])->findOrFail($id);
 
             // Calcular altura dinámica
-            $baseHeight = 130; 
+            $baseHeight = 130;
             $itemHeight = 5;
             $totalHeight = $baseHeight + (count($venta->detalles) * $itemHeight);
 
@@ -314,7 +367,7 @@ class VentaController extends Controller
             $pdf->SetTextColor(255, 255, 255);
             $pdf->SetFont('Arial', 'B', 14);
             $pdf->Cell(0, 10, 'NOTA DE VENTA', 0, 1, 'C', true);
-            
+
             $pdf->SetTextColor(0, 0, 0); // Black
             $pdf->Ln(2);
 
@@ -334,7 +387,7 @@ class VentaController extends Controller
             $pdf->Cell(15, 4, utf8_decode('Ticket N°:'), 0, 0);
             $pdf->SetFont('Courier', 'B', 8);
             $pdf->Cell(0, 4, str_pad($venta->id, 6, '0', STR_PAD_LEFT), 0, 1);
-            
+
             $pdf->SetX($pdf->GetX() + 2);
             $pdf->SetFont('Arial', 'B', 7);
             $pdf->Cell(15, 4, utf8_decode('Cliente:'), 0, 0);
@@ -357,7 +410,7 @@ class VentaController extends Controller
             // Use vendedor relation or fallback to default
             $vendedorName = $venta->vendedor ? $venta->vendedor->name : 'Cajero';
             $pdf->Cell(0, 4, utf8_decode(substr($vendedorName, 0, 20)), 0, 1);
-            
+
             $pdf->Ln(5);
 
             // --- DETALLE HEADER ---
@@ -375,14 +428,14 @@ class VentaController extends Controller
                 $nombre = $detalle->inventario->producto->nombre;
                 // Si es muy largo cortar
                 if (strlen($nombre) > 22) $nombre = substr($nombre, 0, 22) . '..';
-                
+
                 // Color alternado opcional, aqui simple
                 $pdf->Cell(34, 5, utf8_decode($nombre), 'B', 0, 'L');
                 $pdf->Cell(8, 5, $detalle->cantidad, 'B', 0, 'C');
                 $pdf->Cell(15, 5, number_format($detalle->precio_venta, 2), 'B', 0, 'R');
                 $pdf->Cell(15, 5, number_format($detalle->subtotal, 2), 'B', 1, 'R');
             }
-            
+
             $pdf->Ln(2);
 
             // --- TOTALES ---
@@ -391,7 +444,7 @@ class VentaController extends Controller
             $pdf->SetTextColor(255, 255, 255);
             $pdf->SetFillColor(0, 0, 0);
             $pdf->Cell(27, 6, 'Bs ' . number_format($venta->monto_total, 2), 0, 1, 'C', true);
-            
+
             $pdf->SetTextColor(0, 0, 0);
             $pdf->Ln(2);
 
@@ -415,7 +468,7 @@ class VentaController extends Controller
             $pdf->Ln(6);
             $pdf->SetFont('Arial', 'I', 7);
             $pdf->MultiCell(0, 3, utf8_decode("Gracias por su preferencia\n¡Vuelva pronto!"), 0, 'C');
-            
+
             $pdf->Ln(2);
             $pdf->SetFont('Arial', '', 6);
             $pdf->Cell(0, 3, 'MiraCode', 0, 1, 'C');
@@ -424,7 +477,6 @@ class VentaController extends Controller
                 'Content-Type' => 'application/pdf',
                 'Content-Disposition' => 'inline; filename="ticket_' . $venta->id . '.pdf"'
             ]);
-
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error generando PDF: ' . $e->getMessage()], 500);
         }

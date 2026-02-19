@@ -10,22 +10,41 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard, whatsappMiranda } from '@/routes';
-import productos from '@/routes/productos';
-import usuarios from '@/routes/usuarios';
-import roles from '@/routes/roles';
-import ventas from '@/routes/ventas';
-import cuadernos from '@/routes/cuadernos';
-import sucursales from '@/routes/sucursales';
-import inventarios from '@/routes/inventarios';
-import solicitudes from '@/routes/solicitudes';
-import envios from '@/routes/envios';
 import cajas from '@/routes/cajas';
+import cuadernos from '@/routes/cuadernos';
+import envios from '@/routes/envios';
+import inventarios from '@/routes/inventarios';
+import productos from '@/routes/productos';
+import roles from '@/routes/roles';
+import solicitudes from '@/routes/solicitudes';
+import sucursales from '@/routes/sucursales';
+import usuarios from '@/routes/usuarios';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 
-import { BarChart3, BookOpenText, Boxes, Building, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Plus, Send, ShieldCheck, ShoppingCart, Truck, Users, Wallet } from 'lucide-react';
-import AppLogo from './app-logo';
 import { usePermissions } from '@/hooks/use-permissions';
+import {
+    BarChart3,
+    BookOpenText,
+    Boxes,
+    Building,
+    CheckCircle2,
+    Clock,
+    LayoutGrid,
+    List,
+    MapPin,
+    MessageCircle,
+    Package,
+    Plus,
+    Send,
+    ShieldCheck,
+    ShoppingCart,
+    Truck,
+    Users,
+    Utensils,
+    Wallet,
+} from 'lucide-react';
+import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
     {
@@ -47,9 +66,14 @@ const mainNavItems: NavItem[] = [
         permission: 'ver ventas',
         items: [
             {
-                title: 'Nueva Venta',
+                title: 'Terminal POS',
                 href: '/ventas/create',
                 icon: Plus,
+            },
+            {
+                title: 'Monitor Cocina',
+                href: '/ventas/cocina',
+                icon: Utensils,
             },
             {
                 title: 'Historial',
@@ -184,7 +208,7 @@ const footerNavItems: NavItem[] = [];
 export function AppSidebar() {
     const { hasPermission } = usePermissions();
 
-    const filteredNavItems = mainNavItems.filter(item => {
+    const filteredNavItems = mainNavItems.filter((item) => {
         if (!item.permission) return true;
         return hasPermission(item.permission);
     });

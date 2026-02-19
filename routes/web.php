@@ -153,6 +153,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('ventas')->name('ventas.')->group(function () {
         Route::middleware('can:ver ventas')->group(function () {
             Route::get('/', [App\Http\Controllers\VentaController::class, 'index'])->name('index');
+            Route::get('/cocina', [App\Http\Controllers\VentaController::class, 'kitchen'])->name('kitchen');
             Route::get('/historial', [App\Http\Controllers\VentaController::class, 'historial'])->name('historial');
             Route::get('/search-productos', [App\Http\Controllers\VentaController::class, 'searchProductos'])->name('search-productos');
         });
@@ -160,6 +161,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware('can:crear ventas')->group(function () {
             Route::get('/create', [App\Http\Controllers\VentaController::class, 'create'])->name('create');
             Route::post('/', [App\Http\Controllers\VentaController::class, 'store'])->name('store');
+            Route::patch('/{venta}/status', [App\Http\Controllers\VentaController::class, 'updateStatus'])->name('updateStatus');
             Route::post('/{venta}/cancelar', [App\Http\Controllers\VentaController::class, 'cancelar'])->name('cancelar');
         });
 
@@ -227,4 +229,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('whatsapp-miranda')->middleware('can:ver whatsapp');
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';
