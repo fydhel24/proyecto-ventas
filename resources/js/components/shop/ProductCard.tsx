@@ -1,13 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ShoppingCart, Eye, Heart } from 'lucide-react';
-import { Link, usePage } from '@inertiajs/react';
 import { useCart } from '@/hooks/use-cart';
-import { toast } from 'sonner';
-import { type SharedData } from '@/types';
 import { cn } from '@/lib/utils';
-import { QuickView } from './QuickView';
+import { type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
+import { Eye, Heart, ShoppingCart, Utensils } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { QuickView } from './QuickView';
 
 interface ProductCardProps {
     producto: any;
@@ -31,7 +31,14 @@ export function ProductCard({ producto }: ProductCardProps) {
         toggleWishlist(producto.id);
         const added = !isInWishlist(producto.id);
         toast(added ? 'Agregado a deseos' : 'Eliminado de deseos', {
-            icon: <Heart className={cn("h-4 w-4", added ? "fill-red-500 text-red-500" : "")} />,
+            icon: (
+                <Heart
+                    className={cn(
+                        'h-4 w-4',
+                        added ? 'fill-red-500 text-red-500' : '',
+                    )}
+                />
+            ),
         });
     };
 
@@ -44,11 +51,11 @@ export function ProductCard({ producto }: ProductCardProps) {
     return (
         <>
             {/* Mobile: Vertical Grid Item | Desktop: Vertical */}
-            <Card className="group relative overflow-hidden rounded-2xl border-2 bg-card transition-all hover:shadow-xl hover:border-primary/50 flex flex-col h-full">
+            <Card className="group relative flex h-full flex-col overflow-hidden rounded-2xl border-2 bg-card transition-all hover:border-primary/50 hover:shadow-xl">
                 {/* Image Section */}
                 <Link
                     href={`/tienda/${producto.id}`}
-                    className="w-full aspect-square relative overflow-hidden bg-muted flex-shrink-0"
+                    className="relative aspect-square w-full flex-shrink-0 overflow-hidden bg-muted"
                 >
                     {producto.fotos?.[0] ? (
                         <img
@@ -58,13 +65,13 @@ export function ProductCard({ producto }: ProductCardProps) {
                         />
                     ) : (
                         <div className="flex h-full w-full items-center justify-center">
-                            <ShoppingCart className="h-8 w-8 md:h-12 md:w-12 text-muted-foreground/20" />
+                            <ShoppingCart className="h-8 w-8 text-muted-foreground/20 md:h-12 md:w-12" />
                         </div>
                     )}
 
                     {/* Badge Stock */}
                     {producto.stock <= 5 && (
-                        <div className="absolute top-2 left-2 z-20 rounded-full bg-red-500 px-2 py-0.5 text-[8px] md:text-[10px] font-black uppercase text-white shadow-lg">
+                        <div className="absolute top-2 left-2 z-20 rounded-full bg-red-500 px-2 py-0.5 text-[8px] font-black text-white uppercase shadow-lg md:text-[10px]">
                             {producto.stock} stock
                         </div>
                     )}
@@ -72,32 +79,49 @@ export function ProductCard({ producto }: ProductCardProps) {
                     {/* Wishlist - Desktop only (top right) */}
                     <button
                         onClick={handleWishlist}
-                        className="hidden md:block absolute top-4 right-4 z-20 bg-background/90 backdrop-blur-sm p-2.5 rounded-full text-muted-foreground hover:text-red-500 hover:bg-background transition-all shadow-lg"
+                        className="absolute top-4 right-4 z-20 hidden rounded-full bg-background/90 p-2.5 text-muted-foreground shadow-lg backdrop-blur-sm transition-all hover:bg-background hover:text-red-500 md:block"
                     >
-                        <Heart className={cn("h-5 w-5", isInWishlist(producto.id) ? "fill-red-500 text-red-500" : "")} />
+                        <Heart
+                            className={cn(
+                                'h-5 w-5',
+                                isInWishlist(producto.id)
+                                    ? 'fill-red-500 text-red-500'
+                                    : '',
+                            )}
+                        />
                     </button>
                 </Link>
 
                 {/* Content Section */}
-                <div className="flex-1 flex flex-col p-3 md:p-5 min-w-0">
+                <div className="flex min-w-0 flex-1 flex-col p-3 md:p-5">
                     {/* Brand */}
-                    <div className="flex justify-between items-center gap-2 mb-1.5 md:mb-2">
-                        <p className="text-[9px] md:text-xs font-black uppercase tracking-wider text-primary/70 truncate">
+                    <div className="mb-1.5 flex items-center justify-between gap-2 md:mb-2">
+                        <p className="truncate text-[9px] font-black tracking-wider text-primary/70 uppercase md:text-xs">
                             {producto.marca?.nombre_marca || 'Miracode'}
                         </p>
                         {/* Wishlist - Mobile only */}
                         <button
                             onClick={handleWishlist}
-                            className="md:hidden text-muted-foreground hover:text-red-500 transition-colors flex-shrink-0"
+                            className="flex-shrink-0 text-muted-foreground transition-colors hover:text-red-500 md:hidden"
                         >
-                            <Heart className={cn("h-4 w-4", isInWishlist(producto.id) ? "fill-red-500 text-red-500" : "")} />
+                            <Heart
+                                className={cn(
+                                    'h-4 w-4',
+                                    isInWishlist(producto.id)
+                                        ? 'fill-red-500 text-red-500'
+                                        : '',
+                                )}
+                            />
                         </button>
                     </div>
 
                     {/* Unified Layout for Grid */}
                     <div className="flex flex-1 flex-col justify-between gap-1">
-                        <Link href={`/tienda/${producto.id}`} className="min-w-0">
-                            <h3 className="font-black text-xs md:text-lg leading-tight transition-colors hover:text-primary line-clamp-2 min-h-[2.5em]">
+                        <Link
+                            href={`/tienda/${producto.id}`}
+                            className="min-w-0"
+                        >
+                            <h3 className="line-clamp-2 min-h-[2.5em] text-xs leading-tight font-black transition-colors hover:text-primary md:text-lg">
                                 {producto.nombre}
                             </h3>
                         </Link>
@@ -105,36 +129,36 @@ export function ProductCard({ producto }: ProductCardProps) {
                         <div className="mt-2">
                             <div className="flex items-end justify-between gap-2 md:block">
                                 <div>
-                                    <p className="text-sm md:text-2xl font-black text-primary leading-none">
+                                    <p className="text-sm leading-none font-black text-primary md:text-2xl">
                                         {formatPrice(producto.precio_1)}
                                     </p>
-                                                                   </div>
+                                </div>
                                 <Button
                                     size="icon"
-                                    className="md:hidden h-8 w-8 rounded-lg flex-shrink-0"
+                                    className="h-10 w-10 flex-shrink-0 rounded-full bg-[var(--theme-primary)] md:hidden"
                                     onClick={handleAddToCart}
                                 >
-                                    <ShoppingCart className="h-3.5 w-3.5" />
+                                    <Utensils className="h-4 w-4" />
                                 </Button>
                             </div>
 
                             {/* Desktop Buttons */}
-                            <div className="hidden md:flex items-center gap-2 mt-3">
+                            <div className="mt-4 hidden items-center gap-2 md:flex">
                                 <Button
                                     size="sm"
-                                    className="flex-1 gap-2 rounded-xl h-11 font-black text-sm uppercase"
+                                    className="h-12 flex-1 gap-2 rounded-2xl bg-[var(--theme-primary)] text-sm font-black uppercase transition-transform hover:scale-105"
                                     onClick={handleAddToCart}
                                 >
-                                    <ShoppingCart className="h-4 w-4" />
-                                    <span>Agregar</span>
+                                    <Utensils className="h-4 w-4" />
+                                    <span>AGREGRAR AL PEDIDO</span>
                                 </Button>
                                 <Button
                                     variant="secondary"
                                     size="icon"
-                                    className="rounded-xl h-11 w-11 flex-shrink-0"
+                                    className="h-12 w-12 flex-shrink-0 rounded-2xl border-2"
                                     onClick={handleQuickView}
                                 >
-                                    <Eye className="h-4 w-4" />
+                                    <Eye className="h-5 w-5" />
                                 </Button>
                             </div>
                         </div>

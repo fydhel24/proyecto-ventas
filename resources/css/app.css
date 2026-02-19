@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 @import 'tailwindcss';
 @import "tw-animate-css";
 
@@ -8,9 +8,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-    --font-sans:
-        'Montserrat', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
-        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    /* 2. Actualiza el nombre de la fuente aquí */
+    --font-sans: 
+        'Inter', ui-sans-serif, system-ui, sans-serif, 
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 
         'Noto Color Emoji';
 
     --radius-lg: var(--radius);

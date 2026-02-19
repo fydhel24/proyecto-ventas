@@ -1,5 +1,3 @@
-import { Head, router } from '@inertiajs/react';
-import PublicLayout from '@/layouts/public-layout';
 import { ProductCard } from '@/components/shop/ProductCard';
 import { SearchBar } from '@/components/shop/SearchBar';
 import { Button } from '@/components/ui/button';
@@ -11,19 +9,21 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useCart } from '@/hooks/use-cart';
+import PublicLayout from '@/layouts/public-layout';
+import { Head, router } from '@inertiajs/react';
+import gsap from 'gsap';
 import {
+    ChevronRight,
+    DollarSign,
     LayoutGrid,
     ListFilter,
-    ChevronRight,
-    SlidersHorizontal,
-    SearchX,
+    PackageCheck,
     Search,
-    DollarSign,
-    PackageCheck
+    SearchX,
+    SlidersHorizontal,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import gsap from 'gsap';
-import { useCart } from '@/hooks/use-cart';
 
 interface Props {
     productos: {
@@ -45,7 +45,12 @@ interface Props {
     };
 }
 
-export default function Index({ productos, categorias = [], marcas = [], filters = {} }: Props) {
+export default function Index({
+    productos,
+    categorias = [],
+    marcas = [],
+    filters = {},
+}: Props) {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [catSearch, setCatSearch] = useState('');
     const [brandSearch, setBrandSearch] = useState('');
@@ -58,9 +63,17 @@ export default function Index({ productos, categorias = [], marcas = [], filters
     useEffect(() => {
         const ctx = gsap.context(() => {
             if (gridRef.current) {
-                gsap.fromTo(gridRef.current.children,
+                gsap.fromTo(
+                    gridRef.current.children,
                     { y: 30, opacity: 0, scale: 0.98 },
-                    { y: 0, opacity: 1, scale: 1, stagger: 0.05, duration: 0.6, ease: "power2.out" }
+                    {
+                        y: 0,
+                        opacity: 1,
+                        scale: 1,
+                        stagger: 0.05,
+                        duration: 0.6,
+                        ease: 'power2.out',
+                    },
                 );
             }
         });
@@ -74,15 +87,18 @@ export default function Index({ productos, categorias = [], marcas = [], filters
         } else {
             delete newFilters[key as keyof typeof filters];
         }
-        router.get('/tienda', newFilters, { preserveScroll: true, preserveState: true });
+        router.get('/tienda', newFilters, {
+            preserveScroll: true,
+            preserveState: true,
+        });
     };
 
-    const filteredCategorias = categorias.filter(c =>
-        c.nombre_cat.toLowerCase().includes(catSearch.toLowerCase())
+    const filteredCategorias = categorias.filter((c) =>
+        c.nombre_cat.toLowerCase().includes(catSearch.toLowerCase()),
     );
 
-    const filteredMarcas = marcas.filter(m =>
-        m.nombre_marca.toLowerCase().includes(brandSearch.toLowerCase())
+    const filteredMarcas = marcas.filter((m) =>
+        m.nombre_marca.toLowerCase().includes(brandSearch.toLowerCase()),
     );
 
     return (
@@ -91,16 +107,23 @@ export default function Index({ productos, categorias = [], marcas = [], filters
 
             <div className="container mx-auto px-4 py-8 md:py-12">
                 {/* Header Section */}
-                <div className="flex flex-col gap-6 mb-12">
+                <div className="mb-12 flex flex-col gap-6">
                     {/* Breadcrumb and Title */}
                     <div className="flex-1">
-                        <div className="flex items-center gap-2 text-xs font-black text-muted-foreground uppercase tracking-wider mb-4">
-                            <a href="/" className="hover:text-primary transition-colors">Inicio</a>
+                        <div className="mb-4 flex items-center gap-2 text-xs font-black tracking-wider text-muted-foreground uppercase">
+                            <a
+                                href="/"
+                                className="transition-colors hover:text-primary"
+                            >
+                                Inicio
+                            </a>
                             <ChevronRight className="h-3 w-3" />
                             <span className="text-primary">Tienda</span>
                         </div>
-                        <h1 className="text-4xl md:text-6xl font-black tracking-tight leading-none">
-                            {filters?.search ? `Buscando: ${filters.search}` : 'Tienda Miracode'}
+                        <h1 className="text-4xl leading-none font-black tracking-tight md:text-6xl">
+                            {filters?.search
+                                ? `Buscando: ${filters.search}`
+                                : 'Tienda Miracode'}
                         </h1>
                     </div>
 
@@ -119,13 +142,19 @@ export default function Index({ productos, categorias = [], marcas = [], filters
                             value={filters?.sort || 'latest'}
                             onValueChange={(v) => handleFilterChange('sort', v)}
                         >
-                            <SelectTrigger className="w-[200px] h-12 rounded-2xl font-black bg-card border-2 shadow-sm">
+                            <SelectTrigger className="h-12 w-[200px] rounded-2xl border-2 bg-card font-black shadow-sm">
                                 <SelectValue placeholder="Más Relevantes" />
                             </SelectTrigger>
                             <SelectContent className="rounded-2xl border-2">
-                                <SelectItem value="latest">Más Relevantes</SelectItem>
-                                <SelectItem value="price_asc">Menor Precio</SelectItem>
-                                <SelectItem value="price_desc">Mayor Precio</SelectItem>
+                                <SelectItem value="latest">
+                                    Más Relevantes
+                                </SelectItem>
+                                <SelectItem value="price_asc">
+                                    Menor Precio
+                                </SelectItem>
+                                <SelectItem value="price_desc">
+                                    Mayor Precio
+                                </SelectItem>
                                 <SelectItem value="name_asc">A - Z</SelectItem>
                             </SelectContent>
                         </Select>
@@ -133,7 +162,7 @@ export default function Index({ productos, categorias = [], marcas = [], filters
                         <Button
                             variant="outline"
                             size="icon"
-                            className="lg:hidden h-12 w-12 rounded-2xl border-2 shadow-sm"
+                            className="h-12 w-12 rounded-2xl border-2 shadow-sm lg:hidden"
                             onClick={() => setIsFilterOpen(!isFilterOpen)}
                         >
                             <SlidersHorizontal className="h-5 w-5" />
@@ -141,13 +170,14 @@ export default function Index({ productos, categorias = [], marcas = [], filters
                     </div>
                 </div>
 
-                <div className="flex flex-col lg:flex-row gap-12">
+                <div className="flex flex-col gap-12 lg:flex-row">
                     {/* Sidebar Filters */}
-                    <aside className={`lg:w-80 space-y-12 ${isFilterOpen ? 'block' : 'hidden lg:block'} animate-in slide-in-from-left duration-500`}>
-
+                    <aside
+                        className={`space-y-12 lg:w-80 ${isFilterOpen ? 'block' : 'hidden lg:block'} animate-in duration-500 slide-in-from-left`}
+                    >
                         {/* Filtro por Precio */}
                         <div className="space-y-6">
-                            <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-primary">
+                            <h3 className="flex items-center gap-2 text-xs font-black tracking-widest text-primary uppercase">
                                 <DollarSign className="h-4 w-4" />
                                 Rango de Inversión
                             </h3>
@@ -158,47 +188,79 @@ export default function Index({ productos, categorias = [], marcas = [], filters
                                     max="20000"
                                     step="100"
                                     value={priceRange}
-                                    onChange={(e) => setPriceRange(e.target.value)}
-                                    onMouseUp={() => handleFilterChange('max_price', priceRange)}
-                                    onTouchEnd={() => handleFilterChange('max_price', priceRange)}
-                                    className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                                    onChange={(e) =>
+                                        setPriceRange(e.target.value)
+                                    }
+                                    onMouseUp={() =>
+                                        handleFilterChange(
+                                            'max_price',
+                                            priceRange,
+                                        )
+                                    }
+                                    onTouchEnd={() =>
+                                        handleFilterChange(
+                                            'max_price',
+                                            priceRange,
+                                        )
+                                    }
+                                    className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-muted accent-primary"
                                 />
-                                <div className="flex justify-between mt-4 font-black">
+                                <div className="mt-4 flex justify-between font-black">
                                     <span className="text-sm">Bs. 0</span>
-                                    <span className="text-lg text-primary">{formatPrice(Number(priceRange))}</span>
+                                    <span className="text-lg text-primary">
+                                        {formatPrice(Number(priceRange))}
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Categorías */}
                         <div className="space-y-6">
-                            <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-primary">
+                            <h3 className="flex items-center gap-2 text-xs font-black tracking-widest text-primary uppercase">
                                 <ListFilter className="h-4 w-4" />
                                 Categorías
                             </h3>
                             <div className="relative mb-4">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 <Input
                                     placeholder="Buscar categoría..."
                                     value={catSearch}
-                                    onChange={(e) => setCatSearch(e.target.value)}
-                                    className="pl-9 h-10 rounded-xl border-2 bg-muted/30"
+                                    onChange={(e) =>
+                                        setCatSearch(e.target.value)
+                                    }
+                                    className="h-10 rounded-xl border-2 bg-muted/30 pl-9"
                                 />
                             </div>
-                            <div className="flex flex-col gap-1 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="custom-scrollbar flex max-h-60 flex-col gap-1 overflow-y-auto pr-2">
                                 <Button
-                                    variant={!filters?.categoria ? 'secondary' : 'ghost'}
-                                    className="justify-start font-black h-11 rounded-xl text-sm px-4"
-                                    onClick={() => handleFilterChange('categoria', null)}
+                                    variant={
+                                        !filters?.categoria
+                                            ? 'secondary'
+                                            : 'ghost'
+                                    }
+                                    className="h-11 justify-start rounded-xl px-4 text-sm font-black"
+                                    onClick={() =>
+                                        handleFilterChange('categoria', null)
+                                    }
                                 >
                                     Todas
                                 </Button>
                                 {filteredCategorias.map((cat) => (
                                     <Button
                                         key={cat.id}
-                                        variant={filters?.categoria === String(cat.id) ? 'secondary' : 'ghost'}
-                                        className="justify-start font-black h-11 rounded-xl text-sm px-4 transition-all hover:translate-x-1"
-                                        onClick={() => handleFilterChange('categoria', String(cat.id))}
+                                        variant={
+                                            filters?.categoria ===
+                                            String(cat.id)
+                                                ? 'secondary'
+                                                : 'ghost'
+                                        }
+                                        className="h-11 justify-start rounded-xl px-4 text-sm font-black transition-all hover:translate-x-1"
+                                        onClick={() =>
+                                            handleFilterChange(
+                                                'categoria',
+                                                String(cat.id),
+                                            )
+                                        }
                                     >
                                         {cat.nombre_cat}
                                     </Button>
@@ -208,33 +270,48 @@ export default function Index({ productos, categorias = [], marcas = [], filters
 
                         {/* Marcas */}
                         <div className="space-y-6">
-                            <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-primary">
+                            <h3 className="flex items-center gap-2 text-xs font-black tracking-widest text-primary uppercase">
                                 <LayoutGrid className="h-4 w-4" />
                                 Marcas
                             </h3>
                             <div className="relative mb-4">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 <Input
                                     placeholder="Buscar marca..."
                                     value={brandSearch}
-                                    onChange={(e) => setBrandSearch(e.target.value)}
-                                    className="pl-9 h-10 rounded-xl border-2 bg-muted/30"
+                                    onChange={(e) =>
+                                        setBrandSearch(e.target.value)
+                                    }
+                                    className="h-10 rounded-xl border-2 bg-muted/30 pl-9"
                                 />
                             </div>
-                            <div className="flex flex-col gap-1 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="custom-scrollbar flex max-h-60 flex-col gap-1 overflow-y-auto pr-2">
                                 <Button
-                                    variant={!filters?.marca ? 'secondary' : 'ghost'}
-                                    className="justify-start font-black h-11 rounded-xl text-sm px-4"
-                                    onClick={() => handleFilterChange('marca', null)}
+                                    variant={
+                                        !filters?.marca ? 'secondary' : 'ghost'
+                                    }
+                                    className="h-11 justify-start rounded-xl px-4 text-sm font-black"
+                                    onClick={() =>
+                                        handleFilterChange('marca', null)
+                                    }
                                 >
                                     Todas las marcas
                                 </Button>
                                 {filteredMarcas.map((marca) => (
                                     <Button
                                         key={marca.id}
-                                        variant={filters?.marca === String(marca.id) ? 'secondary' : 'ghost'}
-                                        className="justify-start font-black h-11 rounded-xl text-sm px-4 transition-all hover:translate-x-1"
-                                        onClick={() => handleFilterChange('marca', String(marca.id))}
+                                        variant={
+                                            filters?.marca === String(marca.id)
+                                                ? 'secondary'
+                                                : 'ghost'
+                                        }
+                                        className="h-11 justify-start rounded-xl px-4 text-sm font-black transition-all hover:translate-x-1"
+                                        onClick={() =>
+                                            handleFilterChange(
+                                                'marca',
+                                                String(marca.id),
+                                            )
+                                        }
                                     >
                                         {marca.nombre_marca}
                                     </Button>
@@ -243,11 +320,20 @@ export default function Index({ productos, categorias = [], marcas = [], filters
                         </div>
 
                         {/* Solo en Stock */}
-                        <div className="pt-4 border-t">
+                        <div className="border-t pt-4">
                             <Button
-                                variant={filters?.in_stock === '1' ? 'default' : 'outline'}
-                                className="w-full gap-2 rounded-2xl h-12 font-black border-2"
-                                onClick={() => handleFilterChange('in_stock', filters?.in_stock === '1' ? null : '1')}
+                                variant={
+                                    filters?.in_stock === '1'
+                                        ? 'default'
+                                        : 'outline'
+                                }
+                                className="h-12 w-full gap-2 rounded-2xl border-2 font-black"
+                                onClick={() =>
+                                    handleFilterChange(
+                                        'in_stock',
+                                        filters?.in_stock === '1' ? null : '1',
+                                    )
+                                }
                             >
                                 <PackageCheck className="h-5 w-5" />
                                 Solo productos en Stock
@@ -258,17 +344,20 @@ export default function Index({ productos, categorias = [], marcas = [], filters
                     {/* Main Content */}
                     <div className="flex-1">
                         {productos.data.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-24 bg-muted/20 rounded-[3rem] border-4 border-dashed border-muted">
-                                <div className="bg-background p-8 rounded-full shadow-xl mb-8">
+                            <div className="flex flex-col items-center justify-center rounded-[3rem] border-4 border-dashed border-muted bg-muted/20 py-24">
+                                <div className="mb-8 rounded-full bg-background p-8 shadow-xl">
                                     <SearchX className="h-16 w-16 text-muted-foreground/30" />
                                 </div>
-                                <h2 className="text-3xl font-black mb-4">Sin resultados</h2>
-                                <p className="text-muted-foreground text-center max-w-sm font-medium">
-                                    No encontramos productos con esos filtros. Intenta resetear la búsqueda.
+                                <h2 className="mb-4 text-3xl font-black">
+                                    Sin resultados
+                                </h2>
+                                <p className="max-w-sm text-center font-medium text-muted-foreground">
+                                    No encontramos productos con esos filtros.
+                                    Intenta resetear la búsqueda.
                                 </p>
                                 <Button
                                     variant="outline"
-                                    className="mt-8 font-black h-14 px-8 rounded-2xl border-2"
+                                    className="mt-8 h-14 rounded-2xl border-2 px-8 font-black"
                                     onClick={() => router.get('/tienda')}
                                 >
                                     Limpiar Filtros
@@ -276,30 +365,56 @@ export default function Index({ productos, categorias = [], marcas = [], filters
                             </div>
                         ) : (
                             <>
-                                <div ref={gridRef} className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+                                <div
+                                    ref={gridRef}
+                                    className="grid grid-cols-2 gap-3 md:grid-cols-2 md:gap-6 lg:grid-cols-3"
+                                >
                                     {productos.data.map((producto) => (
-                                        <ProductCard key={producto.id} producto={producto} />
+                                        <ProductCard
+                                            key={producto.id}
+                                            producto={producto}
+                                        />
                                     ))}
                                 </div>
 
                                 {/* Pagination */}
                                 {productos.last_page > 1 && (
-                                    <div className="mt-20 flex justify-center items-center gap-2">
+                                    <div className="mt-20 flex items-center justify-center gap-2">
                                         {productos.links.map((link, i) => {
-                                            if (link.label === '&laquo; Previous') return null;
-                                            if (link.label === 'Next &raquo;') return null;
+                                            if (
+                                                link.label ===
+                                                '&laquo; Previous'
+                                            )
+                                                return null;
+                                            if (link.label === 'Next &raquo;')
+                                                return null;
 
                                             const isActive = link.active;
-                                            const label = link.label.replace('&laquo; ', '').replace(' &raquo;', '');
+                                            const label = link.label
+                                                .replace('&laquo; ', '')
+                                                .replace(' &raquo;', '');
 
                                             return (
                                                 <Button
                                                     key={i}
-                                                    variant={isActive ? 'default' : 'outline'}
+                                                    variant={
+                                                        isActive
+                                                            ? 'default'
+                                                            : 'outline'
+                                                    }
                                                     size="icon"
-                                                    className={`h-12 w-12 rounded-xl font-black transition-all border-2 ${isActive ? 'scale-110' : 'hover:scale-105'}`}
+                                                    className={`h-12 w-12 rounded-xl border-2 font-black transition-all ${isActive ? 'scale-110' : 'hover:scale-105'}`}
                                                     disabled={!link.url}
-                                                    onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}
+                                                    onClick={() =>
+                                                        link.url &&
+                                                        router.get(
+                                                            link.url,
+                                                            {},
+                                                            {
+                                                                preserveScroll: true,
+                                                            },
+                                                        )
+                                                    }
                                                 >
                                                     {label}
                                                 </Button>
