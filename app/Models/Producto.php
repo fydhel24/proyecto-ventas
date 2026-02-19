@@ -20,12 +20,9 @@ class Producto extends Model
         'caracteristicas',
         'laboratorio_id',
         'categoria_id',
-        'lote',
-        'fecha_vencimiento',
-        'registro_sanitario',
         'stock_minimo',
         'precio_compra',
-        'precio_1',
+        'precio_venta',
         'precio_2',
         'precio_3',
         'estado',
@@ -34,7 +31,7 @@ class Producto extends Model
 
     protected $casts = [
         'precio_compra' => 'decimal:2',
-        'precio_1' => 'decimal:2',
+        'precio_venta' => 'decimal:2',
         'precio_2' => 'decimal:2',
         'precio_3' => 'decimal:2',
         'stock_minimo' => 'integer',

@@ -26,10 +26,10 @@ class ProductoRequest extends FormRequest
             'lote' => 'nullable|string|max:255',
             'fecha_vencimiento' => 'nullable|date',
             'registro_sanitario' => 'nullable|string|max:255',
-            'estado' => 'required|boolean',
+            'estado' => 'required', // Quitado boolean para permitir 'activo'/'inactivo'
             'fecha' => 'required|date',
             'precio_compra' => 'required|numeric|min:0',
-            'precio_1' => 'required|numeric|min:0',
+            'precio_venta' => 'required|numeric|min:0',
             'precio_2' => 'nullable|numeric|min:0',
             'precio_3' => 'nullable|numeric|min:0',
             'fotos.*' => 'image',

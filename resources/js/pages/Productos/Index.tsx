@@ -42,7 +42,7 @@ interface Producto {
     principio_activo: string | null;
     lote: string | null;
     fecha_vencimiento: string | null;
-    precio_1: string;
+    precio_venta: string;
     laboratorio: { nombre_lab: string } | null;
     categoria: { nombre_cat: string } | null;
 }
@@ -264,7 +264,7 @@ export default function Index({ productos, filters }: Props) {
                                                         <TableCell className="text-xs font-medium text-muted-foreground">{p.categoria?.nombre_cat || '—'}</TableCell>
                                                         <TableCell className="text-center">
                                                             <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-xl bg-primary/5 border border-primary/20 text-primary font-black text-sm shadow-sm">
-                                                                <span className="text-[10px] mr-1 opacity-70">Bs</span> {Number(p.precio_1).toLocaleString('es-BO', { minimumFractionDigits: 2 })}
+                                                                <span className="text-[10px] mr-1 opacity-70">Bs</span> {Number(p.precio_venta).toLocaleString('es-BO', { minimumFractionDigits: 2 })}
                                                             </div>
                                                         </TableCell>
                                                         <TableCell className="text-right py-4 px-6">

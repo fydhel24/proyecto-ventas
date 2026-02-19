@@ -124,11 +124,6 @@ const mainNavItems: NavItem[] = [
                 href: '/compras',
                 icon: List,
             },
-            {
-                title: 'Proveedores',
-                href: '/proveedores',
-                icon: Users,
-            },
         ],
     },
     {

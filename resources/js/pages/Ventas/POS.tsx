@@ -141,8 +141,8 @@ export default function POS({ clientes, categorias, sucursales, user_sucursal_id
         setCart(prev => prev.filter(item => item.id !== id));
     };
 
-    const total = useMemo(() => cart.reduce((acc, item) => acc + item.subtotal, 0), [cart]);
-    const cambio = useMemo(() => Math.max(0, pagado - total), [pagado, total]);
+    const total = useMemo(() => cart.reduce((acc, item) => acc + (Number(item.subtotal) || 0), 0), [cart]);
+    const cambio = useMemo(() => Math.max(0, (Number(pagado) || 0) - total), [pagado, total]);
 
     const handleCheckout = async () => {
         if (cart.length === 0) return;
@@ -354,7 +354,7 @@ export default function POS({ clientes, categorias, sucursales, user_sucursal_id
                                         </div>
                                         <div className="w-24 text-right">
                                             <span className="text-lg font-black text-slate-900 dark:text-white leading-none">
-                                                {item.subtotal.toFixed(2)}
+                                                {(Number(item.subtotal) || 0).toFixed(2)}
                                             </span>
                                             <p className="text-[10px] font-bold text-slate-400">BOB</p>
                                         </div>
@@ -379,7 +379,7 @@ export default function POS({ clientes, categorias, sucursales, user_sucursal_id
                                     <div className="flex justify-between items-center text-sm">
                                         <span className="font-bold text-slate-500 uppercase tracking-[0.1em]">Resumen de Venta</span>
                                         <span className="font-black text-slate-600 dark:text-slate-400">
-                                            {total.toFixed(2)} BOB
+                                            {(Number(total) || 0).toFixed(2)} BOB
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-6 rounded-[30px] border border-primary/20 shadow-xl shadow-primary/5">
@@ -387,7 +387,7 @@ export default function POS({ clientes, categorias, sucursales, user_sucursal_id
                                             <span className="text-xs font-black text-primary uppercase tracking-widest">Total Autorizado</span>
                                             <div className="flex items-baseline gap-2">
                                                 <span className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter">
-                                                    {total.toFixed(2)}
+                                                    {(Number(total) || 0).toFixed(2)}
                                                 </span>
                                                 <span className="text-lg font-bold text-slate-400">BOB</span>
                                             </div>
@@ -501,7 +501,7 @@ export default function POS({ clientes, categorias, sucursales, user_sucursal_id
                                 <div>
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Importe Total</p>
                                     <p className="text-4xl font-black text-slate-900 dark:text-white leading-none tracking-tighter">
-                                        {total.toFixed(2)} BOB
+                                        {(Number(total) || 0).toFixed(2)} BOB
                                     </p>
                                 </div>
                             </div>
@@ -532,7 +532,7 @@ export default function POS({ clientes, categorias, sucursales, user_sucursal_id
                                             "text-4xl font-black tracking-tighter",
                                             cambio > 0 ? "text-primary" : "text-slate-300"
                                         )}>
-                                            {cambio.toFixed(2)} <span className="text-xl">BOB</span>
+                                            {(Number(cambio) || 0).toFixed(2)} <span className="text-xl">BOB</span>
                                         </span>
                                     </div>
                                 </div>

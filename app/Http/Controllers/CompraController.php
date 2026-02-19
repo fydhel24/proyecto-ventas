@@ -50,8 +50,8 @@ class CompraController extends Controller
 
             $compra = Compra::create([
                 'proveedor_id' => $validated['proveedor_id'],
-                'usuario_id' => auth()->id(),
-                'monto_total' => $validated['monto_total'],
+                'user_id' => auth()->id(),
+                'total' => $validated['monto_total'],
                 'fecha' => now(),
                 'estado' => 'completada'
             ]);
@@ -63,7 +63,8 @@ class CompraController extends Controller
                     'numero_lote' => $item['numero_lote'],
                     'fecha_vencimiento' => $item['fecha_vencimiento'],
                     'stock' => $item['cantidad'],
-                    'activo' => true
+                    'activo' => true,
+                    'sucursal_id' => auth()->user()->sucursal_id ?? 1,
                 ]);
 
                 // 2. Registrar Detalle
@@ -79,10 +80,10 @@ class CompraController extends Controller
                 $producto = Producto::find($item['producto_id']);
                 $producto->increment('stock', $item['cantidad']);
                 
-                // Actualizar precio de compra
+                // Actualizar precio de compra y venta
                 $producto->update([
                     'precio_compra' => $item['precio_compra'],
-                    // Si el usuario enviara un nuevo precio de venta en la compra podríamos actualizarlo aquí
+                    'precio_venta' => $item['precio_compra'] * 1.3, // Ejemplo: Margen del 30% si se desea automatizar
                 ]);
             }
 

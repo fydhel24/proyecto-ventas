@@ -92,8 +92,26 @@ class ProductoController extends Controller
         try {
             DB::beginTransaction();
 
+            $data = $request->validated();
+            
+            // Conversión de estado boolean a string
+            if (isset($data['estado'])) {
+                $data['estado'] = $data['estado'] ? 'activo' : 'inactivo';
+            }
+
             // Crear producto
-            $producto = Producto::create($request->validated());
+            $producto = Producto::create($data);
+
+            // Crear lote inicial si se proporcionan datos
+            if ($request->input('lote') || $request->input('fecha_vencimiento')) {
+                $producto->lotes()->create([
+                    'numero_lote' => $request->input('lote') ?? 'S/L',
+                    'fecha_vencimiento' => $request->input('fecha_vencimiento') ?? now()->addYear(),
+                    'stock' => 0, // El stock se debe cargar vía Compras o Ajuste
+                    'activo' => true,
+                    'sucursal_id' => auth()->user()->sucursal_id ?? 1,
+                ]);
+            }
 
             // Procesar y guardar fotos
             if ($request->hasFile('fotos')) {
@@ -104,16 +122,14 @@ class ProductoController extends Controller
 
             return redirect()
                 ->route('productos.index')
-                ->with('success', 'Producto creado correctamente');
+                ->with('success', 'Medicamento creado correctamente');
 
         } catch (\Exception $e) {
             DB::rollBack();
-
             \Log::error('Error al crear producto: ' . $e->getMessage());
-
             return back()
                 ->withInput()
-                ->with('error', 'Error al crear el producto. Por favor, intente nuevamente.');
+                ->with('error', 'Error al crear el producto: ' . $e->getMessage());
         }
     }
 
@@ -122,7 +138,7 @@ class ProductoController extends Controller
      */
     public function show(Producto $producto)
     {
-        $producto->load(['marca', 'categoria', 'fotos']);
+        $producto->load(['laboratorio', 'categoria', 'fotos']);
 
         return Inertia::render('Productos/Show', [
             'producto' => $producto,
@@ -152,8 +168,15 @@ class ProductoController extends Controller
         try {
             DB::beginTransaction();
 
+            $data = $request->validated();
+            
+            // Conversión de estado boolean a string
+            if (isset($data['estado'])) {
+                $data['estado'] = $data['estado'] ? 'activo' : 'inactivo';
+            }
+
             // Actualizar datos del producto
-            $producto->update($request->validated());
+            $producto->update($data);
 
             // Eliminar fotos seleccionadas
             if ($request->has('fotos_eliminar') && is_array($request->fotos_eliminar)) {
@@ -169,16 +192,14 @@ class ProductoController extends Controller
 
             return redirect()
                 ->route('productos.index')
-                ->with('success', 'Producto actualizado correctamente');
+                ->with('success', 'Medicamento actualizado correctamente');
 
         } catch (\Exception $e) {
             DB::rollBack();
-
             \Log::error('Error al actualizar producto: ' . $e->getMessage());
-
             return back()
                 ->withInput()
-                ->with('error', 'Error al actualizar el producto. Por favor, intente nuevamente.');
+                ->with('error', 'Error al actualizar el producto: ' . $e->getMessage());
         }
     }
 

@@ -68,7 +68,7 @@ export function useCart() {
                 {
                     id: product.id,
                     nombre: product.nombre,
-                    precio: Number(product.precio_1),
+                    precio: Number(product.precio_venta || product.precio_1 || 0),
                     cantidad,
                     foto: product.fotos?.[0]?.url,
                 },
