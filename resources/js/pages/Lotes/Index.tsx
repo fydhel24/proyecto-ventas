@@ -100,7 +100,7 @@ export default function LotesIndex({ lotes, filters }: any) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {lotes.data.map((lote: any) => (
+                                {lotes?.data?.map((lote: any) => (
                                     <TableRow key={lote.id} className={new Date(lote.fecha_vencimiento) <= new Date() ? 'bg-red-50/30' : ''}>
                                         <TableCell className="font-bold text-slate-800">{lote.producto?.nombre}</TableCell>
                                         <TableCell className="font-mono text-xs">{lote.numero_lote}</TableCell>
@@ -118,7 +118,7 @@ export default function LotesIndex({ lotes, filters }: any) {
                                         </TableCell>
                                     </TableRow>
                                 ))}
-                                {lotes.data.length === 0 && (
+                                {(!lotes?.data || lotes.data.length === 0) && (
                                     <TableRow>
                                         <TableCell colSpan={6} className="text-center py-12 text-slate-400">
                                             No se encontraron lotes con los criterios activos.

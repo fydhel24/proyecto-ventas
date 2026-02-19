@@ -70,10 +70,15 @@ export default function POS({ clientes, categorias }: any) {
     const [isLoading, setIsLoading] = useState(false);
     const [activeCategory, setActiveCategory] = useState('0');
 
-    // Debounced Search
+    // Initial & Debounced Search
     useEffect(() => {
+        // Carga inicial de productos (últimos 10)
+        if (query.length === 0 && activeCategory === '0') {
+            searchProducts();
+        }
+
         const delayDebounceFn = setTimeout(() => {
-            if (query.length > 2 || activeCategory !== '0') {
+            if (query.length > 2 || (activeCategory !== '0' && query.length === 0)) {
                 searchProducts();
             }
         }, 300);
@@ -322,7 +327,9 @@ export default function POS({ clientes, categorias }: any) {
                                             </Button>
                                         </div>
                                         <div className="w-24 text-right">
-                                            <span className="text-lg font-black text-slate-900 dark:text-white leading-none">{item.subtotal.toFixed(2)}</span>
+                                            <span className="text-lg font-black text-slate-900 dark:text-white leading-none">
+                                                {typeof item.subtotal === 'number' ? item.subtotal.toFixed(2) : Number(item.subtotal).toFixed(2)}
+                                            </span>
                                             <p className="text-[10px] font-bold text-slate-400">BOB</p>
                                         </div>
                                     </div>
@@ -345,13 +352,17 @@ export default function POS({ clientes, categorias }: any) {
                                 <div className="w-full space-y-4">
                                     <div className="flex justify-between items-center text-sm">
                                         <span className="font-bold text-slate-500 uppercase tracking-[0.1em]">Resumen de Venta</span>
-                                        <span className="font-black text-slate-600 dark:text-slate-400">{total.toFixed(2)} BOB</span>
+                                        <span className="font-black text-slate-600 dark:text-slate-400">
+                                            {typeof total === 'number' ? total.toFixed(2) : Number(total).toFixed(2)} BOB
+                                        </span>
                                     </div>
                                     <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-6 rounded-[30px] border border-emerald-500/10 shadow-xl shadow-emerald-500/5">
                                         <div className="flex flex-col">
                                             <span className="text-xs font-black text-emerald-500 uppercase tracking-widest">Total Autorizado</span>
                                             <div className="flex items-baseline gap-2">
-                                                <span className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter">{total.toFixed(2)}</span>
+                                                <span className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter">
+                                                    {typeof total === 'number' ? total.toFixed(2) : Number(total).toFixed(2)}
+                                                </span>
                                                 <span className="text-lg font-bold text-slate-400">BOB</span>
                                             </div>
                                         </div>
@@ -449,7 +460,9 @@ export default function POS({ clientes, categorias }: any) {
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Importe Total</p>
-                                    <p className="text-4xl font-black text-slate-900 dark:text-white leading-none tracking-tighter">{total.toFixed(2)} BOB</p>
+                                    <p className="text-4xl font-black text-slate-900 dark:text-white leading-none tracking-tighter">
+                                        {typeof total === 'number' ? total.toFixed(2) : Number(total).toFixed(2)} BOB
+                                    </p>
                                 </div>
                             </div>
                             <div className="w-px h-12 bg-slate-200 dark:bg-slate-800" />
@@ -479,7 +492,7 @@ export default function POS({ clientes, categorias }: any) {
                                             "text-4xl font-black tracking-tighter",
                                             cambio > 0 ? "text-emerald-600" : "text-slate-300"
                                         )}>
-                                            {cambio.toFixed(2)} <span className="text-xl">BOB</span>
+                                            {typeof cambio === 'number' ? cambio.toFixed(2) : Number(cambio).toFixed(2)} <span className="text-xl">BOB</span>
                                         </span>
                                     </div>
                                 </div>

@@ -79,8 +79,11 @@ class CompraController extends Controller
                 $producto = Producto::find($item['producto_id']);
                 $producto->increment('stock', $item['cantidad']);
                 
-                // Actualizar precio de compra si cambió
-                $producto->update(['precio_compra' => $item['precio_compra']]);
+                // Actualizar precio de compra
+                $producto->update([
+                    'precio_compra' => $item['precio_compra'],
+                    // Si el usuario enviara un nuevo precio de venta en la compra podríamos actualizarlo aquí
+                ]);
             }
 
             DB::commit();

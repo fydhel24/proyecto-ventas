@@ -28,6 +28,7 @@ class ProductoController extends Controller
     public function index(Request $request)
     {
         $query = Producto::with(['laboratorio', 'categoria', 'fotos'])
+            ->withSum('lotes', 'stock')
             ->withCount('fotos');
 
         // Filtro de búsqueda

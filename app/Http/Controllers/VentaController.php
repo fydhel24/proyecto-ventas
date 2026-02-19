@@ -70,14 +70,17 @@ class VentaController extends Controller
             }, 'laboratorio', 'categoria'])
             ->activos()
             ->when($query, function($q) use ($query) {
-                $q->where('nombre', 'like', "%{$query}%")
-                  ->orWhere('principio_activo', 'like', "%{$query}%")
-                  ->orWhere('codigo_barras', 'like', "%{$query}%");
+                $q->where(function($sub) use ($query) {
+                    $sub->where('nombre', 'like', "%{$query}%")
+                        ->orWhere('principio_activo', 'like', "%{$query}%")
+                        ->orWhere('codigo_barras', 'like', "%{$query}%");
+                });
             })
             ->when($categoria_id, function($q) use ($categoria_id) {
                 $q->where('categoria_id', $categoria_id);
             })
-            ->take(20)
+            ->latest()
+            ->take(10)
             ->get()
             ->map(function($p) {
                 return [
@@ -85,7 +88,7 @@ class VentaController extends Controller
                     'nombre' => $p->nombre,
                     'principio_activo' => $p->principio_activo,
                     'concentracion' => $p->concentracion,
-                    'precio' => $p->precio_venta,
+                    'precio' => $p->precio_1,
                     'stock' => $p->stock_total,
                     'categoria' => $p->categoria->nombre_cat ?? 'S/C',
                     'laboratorio' => $p->laboratorio->nombre_lab ?? 'S/L',
