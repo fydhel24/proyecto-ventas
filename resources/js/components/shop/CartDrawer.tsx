@@ -137,7 +137,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                         </div>
                         <SheetFooter className="mt-4 flex-col gap-2 sm:flex-col">
                             <Button size="lg" className="w-full text-lg font-bold" asChild onClick={() => onOpenChange(false)}>
-                                <Link href="/checkout">Finalizar Pedido</Link>
+                                <Link href="/tienda/checkout">Finalizar Pedido</Link>
                             </Button>
                             <Button
                                 variant="outline"

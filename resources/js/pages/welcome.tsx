@@ -13,28 +13,23 @@ import { useCart } from '@/hooks/use-cart';
 import { CartDrawer } from '@/components/shop/CartDrawer';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { toast } from 'sonner';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function Welcome({ productos, categorias, laboratorios }: any) {
     const { auth } = usePage().props as any;
-    const { addToCart, itemCount } = useCart();
+    const { itemCount } = useCart();
 
     // State
     const [isCartOpen, setIsCartOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-    const [filteredProducts, setFilteredProducts] = useState(productos || []);
 
     // Refs for animations
     const heroRef = useRef(null);
-    const storeRef = useRef(null);
     const floatiesRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         let ctx = gsap.context(() => {
-            // Intro Bouncy Animation - Very playful!
+            // Intro Bouncy Animation
             gsap.from(".hero-bouncy > *", {
                 y: 150,
                 opacity: 0,
@@ -77,71 +72,14 @@ export default function Welcome({ productos, categorias, laboratorios }: any) {
                     ease: "elastic.out(1, 0.5)"
                 });
             });
-
-            // Product Cards stagger
-            gsap.from(".prod-card", {
-                scrollTrigger: {
-                    trigger: ".prod-grid",
-                    start: "top 80%",
-                },
-                y: 50,
-                scale: 0.8,
-                opacity: 0,
-                duration: 0.8,
-                stagger: 0.1,
-                ease: "back.out(1.7)"
-            });
-
         });
 
         return () => ctx.revert();
     }, []);
 
-    // Filter Logic
-    useEffect(() => {
-        let result = productos || [];
-
-        if (selectedCategory) {
-            result = result.filter((p: any) => p.categoria_id === selectedCategory);
-        }
-
-        if (searchQuery.trim() !== "") {
-            const query = searchQuery.toLowerCase();
-            result = result.filter((p: any) =>
-                p.nombre.toLowerCase().includes(query) ||
-                (p.principio_activo && p.principio_activo.toLowerCase().includes(query))
-            );
-        }
-
-        setFilteredProducts(result);
-    }, [searchQuery, selectedCategory, productos]);
-
-    const handleAddToCart = (product: any, e: React.MouseEvent) => {
-        e.stopPropagation();
-        addToCart({
-            id: product.id,
-            nombre: product.nombre,
-            precio_venta: product.precio_venta,
-            fotos: product.fotos
-        });
-
-        // Fun mini animation on click
-        const target = e.currentTarget as HTMLElement;
-        gsap.timeline()
-            .to(target, { scale: 1.2, duration: 0.1 })
-            .to(target, { scale: 1, duration: 0.3, ease: "bounce.out" });
-
-        toast.success(`¡${product.nombre} añadido a tu bolsita! ✨`, {
-            style: { background: '#10b981', color: 'white', borderRadius: '20px', fontWeight: 'bold' }
-        });
-    };
-
     const handleWhatsApp = (message = "¡Hola Familia Nexus! Quisiera consultar algo.") => {
         window.open(`https://wa.me/59122441122?text=${encodeURIComponent(message)}`, "_blank");
     };
-
-    // Derived distinct categories for quick filters
-    const quickCategories = categorias?.slice(0, 6) || [];
 
     return (
         <div className="min-h-screen bg-[#F0FDF4] dark:bg-[#022C22] text-foreground transition-colors duration-500 font-sans overflow-x-hidden selection:bg-emerald-300">
@@ -161,11 +99,11 @@ export default function Welcome({ productos, categorias, laboratorios }: any) {
                     </div>
 
                     <nav className="hidden md:flex items-center gap-6">
-                        {['Nosotros', 'Medicamentos', 'Ayuda'].map(item => (
-                            <a key={item} href={`#${item.toLowerCase()}`} className="text-base font-black text-slate-500 hover:text-emerald-500 hover:-translate-y-1 transition-all">
-                                {item}
-                            </a>
-                        ))}
+                        <a href="#nosotros" className="text-base font-black text-slate-500 hover:text-emerald-500 hover:-translate-y-1 transition-all">Nosotros</a>
+                        <Link href="/medicamentos" className="text-base font-black text-slate-500 hover:text-emerald-500 hover:-translate-y-1 transition-all">
+                            Medicamentos
+                        </Link>
+                        <a href="#ayuda" className="text-base font-black text-slate-500 hover:text-emerald-500 hover:-translate-y-1 transition-all">Ayuda</a>
                     </nav>
 
                     <div className="flex items-center gap-3">
@@ -231,13 +169,14 @@ export default function Welcome({ productos, categorias, laboratorios }: any) {
                                 </p>
 
                                 <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mt-4">
-                                    <Button
-                                        className="h-16 px-10 text-xl rounded-[2rem] bg-orange-500 hover:bg-orange-600 text-white font-black shadow-[0_8px_0_rgb(194,65,12)] hover:shadow-[0_4px_0_rgb(194,65,12)] hover:translate-y-1 active:shadow-none active:translate-y-2 transition-all w-full sm:w-auto flex items-center justify-center gap-3"
-                                        onClick={() => document.getElementById('medicamentos')?.scrollIntoView({ behavior: 'smooth' })}
-                                    >
-                                        <ShoppingCart className="size-6" />
-                                        Ir a Comprar
-                                    </Button>
+                                    <Link href="/medicamentos" className="w-full sm:w-auto">
+                                        <Button
+                                            className="h-16 px-10 text-xl rounded-[2rem] bg-orange-500 hover:bg-orange-600 text-white font-black shadow-[0_8px_0_rgb(194,65,12)] hover:shadow-[0_4px_0_rgb(194,65,12)] hover:translate-y-1 active:shadow-none active:translate-y-2 transition-all w-full flex items-center justify-center gap-3"
+                                        >
+                                            <ShoppingCart className="size-6" />
+                                            Ir a Comprar
+                                        </Button>
+                                    </Link>
                                     <Button
                                         variant="outline"
                                         className="h-16 px-10 text-xl rounded-[2rem] border-4 border-white bg-white/50 dark:bg-slate-800/50 hover:bg-white text-slate-700 font-black shadow-lg hover:scale-105 active:scale-95 transition-transform w-full sm:w-auto"
@@ -278,111 +217,6 @@ export default function Welcome({ productos, categorias, laboratorios }: any) {
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* E-COMMERCE SECTION - "MEDICAMENTOS" */}
-                <section id="medicamentos" ref={storeRef} className="py-20 mt-10 scroll-bounce relative z-20">
-                    <div className="container mx-auto px-4 max-w-7xl">
-
-                        {/* Section Header */}
-                        <div className="bg-emerald-500 dark:bg-emerald-800 rounded-[3rem] p-8 md:p-12 shadow-2xl mb-12 relative overflow-hidden text-white border-4 border-emerald-400 dark:border-emerald-600">
-                            <div className="absolute right-0 top-0 opacity-10">
-                                <Pill className="size-[300px] -rotate-45 translate-x-10 -translate-y-10" />
-                            </div>
-                            <div className="relative z-10 flex flex-col items-center text-center space-y-6">
-                                <h2 className="text-5xl md:text-6xl font-black tracking-tight">¡Lleva tu Botiquín! 🛍️</h2>
-                                <p className="text-lg md:text-xl font-bold opacity-90 max-w-2xl">
-                                    Encuentra rápida y fácilmente todo lo que tu familia necesita. Agrega, revisa y nosotros te lo llevamos a la velocidad de la luz.
-                                </p>
-
-                                {/* Big Playful Search Bar */}
-                                <div className="w-full max-w-2xl relative mt-6">
-                                    <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none text-slate-400">
-                                        <Search className="size-8" />
-                                    </div>
-                                    <Input
-                                        type="text"
-                                        placeholder="Busca vitaminas, jarabes, pañales..."
-                                        className="h-20 pl-20 pr-6 text-xl rounded-full bg-white dark:bg-slate-900 border-4 border-emerald-300 dark:border-emerald-600 shadow-xl text-slate-800 dark:text-white placeholder:text-slate-400 font-bold focus-visible:ring-emerald-400"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Category Filters - Fun Pills */}
-                        <div className="flex flex-wrap justify-center gap-4 mb-12 scroll-bounce">
-                            <Button
-                                variant={selectedCategory === null ? "default" : "outline"}
-                                className={`h-14 rounded-full px-8 text-lg font-black border-4 transition-all hover:scale-105 active:scale-95 ${selectedCategory === null ? 'bg-orange-500 hover:bg-orange-600 border-orange-500 text-white shadow-xl' : 'bg-white border-slate-200 text-slate-600 shadow-md'}`}
-                                onClick={() => setSelectedCategory(null)}
-                            >
-                                <Sparkles className="size-5 mr-2" />
-                                ¡Todo!
-                            </Button>
-
-                            {quickCategories.map((cat: any) => (
-                                <Button
-                                    key={cat.id}
-                                    variant={selectedCategory === cat.id ? "default" : "outline"}
-                                    className={`h-14 rounded-full px-6 text-lg font-black border-4 transition-all hover:scale-105 active:scale-95 ${selectedCategory === cat.id ? 'bg-emerald-500 hover:bg-emerald-600 border-emerald-500 text-white shadow-xl' : 'bg-white border-slate-200 text-slate-600 shadow-md'}`}
-                                    onClick={() => setSelectedCategory(cat.id)}
-                                >
-                                    {/* Random icon based on ID for fun */}
-                                    {cat.id % 2 === 0 ? <Baby className="size-5 mr-2" /> : <Stethoscope className="size-5 mr-2" />}
-                                    {cat.nombre_cat}
-                                </Button>
-                            ))}
-                        </div>
-
-                        {/* Product Grid - E-commerce */}
-                        <div className="prod-grid grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            {filteredProducts.length > 0 ? (
-                                filteredProducts.map((prod: any) => (
-                                    <div key={prod.id} className="prod-card bg-white dark:bg-slate-800 rounded-[2.5rem] p-6 border-4 border-emerald-50 dark:border-slate-700 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group flex flex-col relative">
-                                        {/* Tag */}
-                                        <div className="absolute top-4 left-4 z-10">
-                                            <span className="bg-yellow-400 text-slate-900 text-xs font-black px-3 py-1 rounded-full shadow-sm uppercase">Nuevo</span>
-                                        </div>
-
-                                        <div className="bg-slate-50 dark:bg-slate-900 rounded-[1.5rem] aspect-square p-4 mb-6 relative overflow-hidden flex items-center justify-center">
-                                            <img
-                                                src={prod.fotos?.length > 0 ? `/storage/${prod.fotos[0].url}` : `https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400`}
-                                                alt={prod.nombre}
-                                                className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-110 transition-transform duration-500 drop-shadow-md"
-                                            />
-                                        </div>
-
-                                        <div className="flex-1 flex flex-col text-center px-2">
-                                            <p className="text-[10px] uppercase font-black tracking-widest text-emerald-500 mb-1 line-clamp-1">{prod.laboratorio?.nombre_lab || 'LABORATORIO TOP'}</p>
-                                            <h3 className="font-black text-xl text-slate-800 dark:text-white leading-tight mb-2 line-clamp-2" title={prod.nombre}>{prod.nombre}</h3>
-                                            <p className="text-sm font-bold text-slate-400 line-clamp-1 mb-4">{prod.principio_activo || "Sano y seguro"}</p>
-
-                                            <div className="mt-auto flex items-center justify-between gap-2 pt-4 border-t-2 border-slate-100 dark:border-slate-700">
-                                                <span className="text-2xl font-black text-slate-900 dark:text-white">{Number(prod.precio_venta).toFixed(1)} <span className="text-sm text-slate-500">Bs</span></span>
-                                                <Button
-                                                    size="icon"
-                                                    className="size-12 rounded-[1rem] bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/30 hover:scale-110 active:scale-95 transition-transform shrink-0"
-                                                    onClick={(e) => handleAddToCart(prod, e)}
-                                                >
-                                                    <ShoppingCart className="size-6" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="col-span-1 sm:col-span-2 lg:col-span-4 text-center py-20 bg-white dark:bg-slate-800 rounded-[3rem] border-4 border-dashed border-slate-200 dark:border-slate-700">
-                                    <div className="size-24 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Search className="size-10 text-slate-400" />
-                                    </div>
-                                    <h3 className="text-2xl font-black text-slate-700 dark:text-slate-300">¡Ups! No encontramos eso.</h3>
-                                    <p className="text-slate-500 font-bold mt-2">Intenta buscar con otra palabra.</p>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </section>

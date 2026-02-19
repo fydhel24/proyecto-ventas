@@ -25,6 +25,13 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::get('/medicamentos', function () {
+    return Inertia::render('Medicamentos', [
+        'productos' => App\Models\Producto::with(['laboratorio', 'fotos', 'categoria'])->where('estado', 'activo')->latest()->get(),
+        'categorias' => App\Models\Categoria::all(),
+    ]);
+})->name('medicamentos.index');
+
 Route::get('/pedido', [CuadernoController::class, 'createPedido'])->name('pedido.create');
 Route::get('/qr', [CuadernoController::class, 'qrDetails'])->name('qr.details');
 
