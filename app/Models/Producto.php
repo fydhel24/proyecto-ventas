@@ -2,32 +2,39 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Carbon\Carbon;
 
 class Producto extends Model
 {
     use SoftDeletes;
 
     protected $fillable = [
+        'codigo_barras',
         'nombre',
         'principio_activo',
         'concentracion',
         'caracteristicas',
         'laboratorio_id',
         'categoria_id',
-        'lote',
-        'fecha_vencimiento',
         'registro_sanitario',
-        'estado',
-        'fecha',
+        'stock_minimo',
         'precio_compra',
-        'precio_1',
-        'precio_2',
-        'precio_3',
+        'precio_venta',
+        'estado',
+        'color_id',
     ];
 
+    protected $casts = [
+        'precio_compra' => 'decimal:2',
+        'precio_venta' => 'decimal:2',
+        'stock_minimo' => 'integer',
+    ];
+
+    // Relaciones
     public function laboratorio()
     {
         return $this->belongsTo(Laboratorio::class);
@@ -38,26 +45,44 @@ class Producto extends Model
         return $this->belongsTo(Categoria::class);
     }
 
-    public function color()
+    public function lotes()
     {
-        return $this->belongsTo(Color::class);
+        return $this->hasMany(Lote::class);
     }
+
     public function fotos()
     {
         return $this->belongsToMany(Foto::class, 'foto_producto')
-            ->withTimestamps()
-            ->withPivot('deleted_at');
+            ->withTimestamps();
     }
 
-    public function cuadernos(): BelongsToMany
+    // Scopes solicitados
+    public function scopeActivos(Builder $query)
     {
-        return $this->belongsToMany(Cuaderno::class, 'cuaderno_producto')
-                    ->withPivot('cantidad', 'precio_venta')
-                    ->withTimestamps();
+        return $query->where('estado', 'activo');
     }
 
-    public function inventarios()
+    public function scopeBajoStock(Builder $query)
     {
-        return $this->hasMany(Inventario::class);
+        return $query->whereHas('lotes', function($q) {
+            $q->selectRaw('SUM(stock) as total_stock')
+              ->groupBy('producto_id')
+              ->havingRaw('total_stock <= productos.stock_minimo');
+        });
+    }
+
+    public function scopeProximosAVencer(Builder $query, int $days = 30)
+    {
+        return $query->whereHas('lotes', function($q) use ($days) {
+            $q->where('fecha_vencimiento', '<=', Carbon::now()->addDays($days))
+              ->where('fecha_vencimiento', '>', Carbon::now())
+              ->where('stock', '>', 0);
+        });
+    }
+
+    // Helpers
+    public function getStockTotalAttribute()
+    {
+        return $this->lotes()->sum('stock');
     }
 }

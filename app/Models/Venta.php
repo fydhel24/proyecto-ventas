@@ -8,24 +8,36 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Venta extends Model
 {
-    //
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'cliente',
-        'ci',
-        'tipo_pago',
-        'qr',
-        'efectivo',
-        'pagado',
-        'cambio',
-        'monto_total',
-        'estado',
+        'cliente_id',
         'user_vendedor_id',
         'sucursal_id',
+        'tipo_pago',
+        'monto_total',
+        'descuento',
+        'impuesto',
+        'pagado',
+        'cambio',
+        'qr',
+        'efectivo',
+        'estado',
     ];
 
-    // Relaciones
+    protected $casts = [
+        'monto_total' => 'decimal:2',
+        'descuento' => 'decimal:2',
+        'impuesto' => 'decimal:2',
+        'pagado' => 'decimal:2',
+        'cambio' => 'decimal:2',
+    ];
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class);
+    }
+
     public function vendedor()
     {
         return $this->belongsTo(User::class, 'user_vendedor_id');
@@ -38,6 +50,6 @@ class Venta extends Model
 
     public function detalles()
     {
-        return $this->hasMany(InventarioVenta::class);
+        return $this->hasMany(DetalleVenta::class);
     }
 }

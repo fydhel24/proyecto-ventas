@@ -13,17 +13,35 @@ import { dashboard } from '@/routes';
 import productos from '@/routes/productos';
 import usuarios from '@/routes/usuarios';
 import roles from '@/routes/roles';
-import ventas from '@/routes/ventas';
-import cuadernos from '@/routes/cuadernos';
 import sucursales from '@/routes/sucursales';
 import inventarios from '@/routes/inventarios';
-import solicitudes from '@/routes/solicitudes';
 import envios from '@/routes/envios';
 import cajas from '@/routes/cajas';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 
-import { BarChart3, BookOpenText, Boxes, Building, CheckCircle2, Clock, LayoutGrid, List, MapPin, MessageCircle, Package, Plus, Send, ShieldCheck, ShoppingCart, Truck, Users, Wallet, Pill } from 'lucide-react';
+import {
+    LayoutGrid,
+    Pill,
+    ShoppingCart,
+    Truck,
+    Users,
+    Building,
+    ShieldCheck,
+    BarChart3,
+    MessageCircle,
+    Wallet,
+    Plus,
+    List,
+    Boxes,
+    FileText,
+    CalendarClock,
+    Factory,
+    Package,
+    ShoppingBag,
+    Clock,
+    Palette
+} from 'lucide-react';
 import AppLogo from './app-logo';
 import { usePermissions } from '@/hooks/use-permissions';
 
@@ -35,84 +53,99 @@ const mainNavItems: NavItem[] = [
         permission: 'ver dashboard',
     },
     {
-        title: 'Medicamentos',
-        href: productos.index().url,
-        icon: Pill,
-        permission: 'ver productos',
-    },
-    {
-        title: 'Ventas',
-        href: '/ventas',
+        title: 'Ventas (POS)',
+        href: '/ventas/create',
         icon: ShoppingCart,
         permission: 'ver ventas',
         items: [
             {
-                title: 'Nueva Venta',
+                title: 'Punto de Venta',
                 href: '/ventas/create',
                 icon: Plus,
             },
             {
-                title: 'Historial',
+                title: 'Historial de Ventas',
                 href: '/ventas/historial',
                 icon: List,
             },
+            {
+                title: 'Reservas',
+                href: '/reservas',
+                icon: CalendarClock,
+            }
         ],
     },
     {
-        title: 'Cuadernos',
-        href: cuadernos.index().url,
-        icon: BookOpenText,
-        permission: 'ver ventas',
+        title: 'Inventario',
+        href: productos.index().url,
+        icon: Pill,
+        permission: 'ver productos',
         items: [
             {
-                title: 'Todos',
-                href: cuadernos.index().url,
-                icon: List,
+                title: 'Medicamentos',
+                href: productos.index().url,
+                icon: Pill,
             },
             {
-                title: 'La Paz',
-                href: cuadernos.index({ filter: 'la_paz' }).url,
-                icon: MapPin,
-            },
-            {
-                title: 'Enviado',
-                href: cuadernos.index({ filter: 'enviado' }).url,
-                icon: Send,
-            },
-            {
-                title: 'Listo',
-                href: cuadernos.index({ filter: 'p_listo' }).url,
-                icon: CheckCircle2,
-            },
-            {
-                title: 'Pendiente',
-                href: cuadernos.index({ filter: 'p_pendiente' }).url,
+                title: 'Lotes y Vencimientos',
+                href: '/lotes',
                 icon: Clock,
             },
-        ],
-    },
-    {
-        title: 'Inventarios',
-        href: inventarios.index().url,
-        icon: Boxes,
-        permission: 'ver inventarios',
-        items: [
             {
                 title: 'Administrar Stock',
                 href: inventarios.index().url,
                 icon: Boxes,
             },
             {
-                title: 'Solicitudes',
-                href: solicitudes.index().url,
-                icon: Send,
-                permission: 'ver solicitudes',
+                title: 'Categorías',
+                href: '/categorias',
+                icon: List,
             },
             {
-                title: 'Envíos',
-                href: envios.index().url,
-                icon: Truck,
-                permission: 'ver envios',
+                title: 'Laboratorios',
+                href: '/laboratorios',
+                icon: Factory,
+            },
+        ],
+    },
+    {
+        title: 'Compras',
+        href: '/compras',
+        icon: ShoppingBag,
+        permission: 'ver ventas',
+        items: [
+            {
+                title: 'Nueva Compra',
+                href: '/compras/create',
+                icon: Plus,
+            },
+            {
+                title: 'Historial Compras',
+                href: '/compras',
+                icon: List,
+            },
+            {
+                title: 'Proveedores',
+                href: '/proveedores',
+                icon: Users,
+            },
+        ],
+    },
+    {
+        title: 'Entidades',
+        href: '/clientes',
+        icon: Users,
+        permission: 'ver ventas',
+        items: [
+            {
+                title: 'Clientes',
+                href: '/clientes',
+                icon: Users,
+            },
+            {
+                title: 'Proveedores',
+                href: '/proveedores',
+                icon: Building,
             },
         ],
     },
@@ -123,7 +156,25 @@ const mainNavItems: NavItem[] = [
         permission: 'ver sucursales',
     },
     {
-        title: 'Administración',
+        title: 'Finanzas',
+        href: cajas.index().url,
+        icon: Wallet,
+        permission: 'ver cajas',
+        items: [
+            {
+                title: 'Control de Cajas',
+                href: cajas.index().url,
+                icon: Wallet,
+            },
+            {
+                title: 'Reportes de Ventas',
+                href: '/reportes/ventas',
+                icon: BarChart3,
+            }
+        ]
+    },
+    {
+        title: 'Configuraciones',
         href: '#',
         icon: ShieldCheck,
         permission: 'ver usuarios',
@@ -135,47 +186,23 @@ const mainNavItems: NavItem[] = [
                 permission: 'ver usuarios',
             },
             {
-                title: 'Roles',
+                title: 'Roles y Permisos',
                 href: roles.index().url,
                 icon: ShieldCheck,
                 permission: 'ver roles',
             },
-        ],
-    },
-    {
-        title: 'Reportes',
-        href: '/reportes/ventas',
-        icon: BarChart3,
-        permission: 'ver reportes',
-        items: [
             {
-                title: 'Ventas',
-                href: '/reportes/ventas',
-                icon: BarChart3,
-            },
-            {
-                title: 'Pedidos',
-                href: '/reports/orders',
-                icon: CheckCircle2,
-            },
-            {
-                title: 'Medicamentos',
-                href: '/reports/products',
-                icon: Pill,
+                title: 'Ajustes de Farmacia',
+                href: '/settings',
+                icon: Palette,
             },
         ],
     },
     {
-        title: 'Nexus WhatsApp Bot',
+        title: 'WhatsApp Bot',
         href: '/whatsapp-bot',
         icon: MessageCircle,
         permission: 'ver whatsapp',
-    },
-    {
-        title: 'Cajas',
-        href: cajas.index().url,
-        icon: Wallet,
-        permission: 'ver cajas',
     },
 ];
 

@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cuaderno;
+use App\Models\Venta;
 use App\Models\Producto;
+use App\Models\Lote;
+use App\Models\Reserva;
 use App\Models\Categoria;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
@@ -15,60 +16,51 @@ class DashboardController extends Controller
     public function index()
     {
         // 1. Métricas Rápidas
-        $totalProductos = Producto::count();
-        $totalPedidos = Cuaderno::count();
-        $pedidosHoy = Cuaderno::whereDate('created_at', Carbon::today())->count();
+        $ventasHoy = Venta::whereDate('created_at', Carbon::today())->sum('monto_total');
+        $ventasMes = Venta::whereMonth('created_at', Carbon::now()->month)->sum('monto_total');
+        
+        $productosBajoStock = Producto::bajoStock()->count();
+        $proximosAVencer = Producto::proximosAVencer(30)->count();
+        $reservasActivas = Reserva::where('estado', 'pendiente')->count();
 
-        // 2. Pedidos por Estado (Cuadernos Status Distribution)
-        $statusDistribution = [
-            ['status' => 'La Paz', 'count' => Cuaderno::where('la_paz', true)->count(), 'fill' => 'var(--color-la_paz)'],
-            ['status' => 'Enviado', 'count' => Cuaderno::where('enviado', true)->count(), 'fill' => 'var(--color-enviado)'],
-            ['status' => 'Listo', 'count' => Cuaderno::where('p_listo', true)->count(), 'fill' => 'var(--color-listo)'],
-            ['status' => 'Pendiente', 'count' => Cuaderno::where('p_pendiente', true)->count(), 'fill' => 'var(--color-pendiente)'],
-        ];
-
-        // 3. Pedidos en los últimos 90 días
-        $last90Days = collect(range(89, 0))->map(function($days) {
+        // 2. Ventas de la semana (Gráfica)
+        $ventasSemana = collect(range(6, 0))->map(function($days) {
             $date = Carbon::today()->subDays($days);
             return [
-                'date' => $date->format('Y-m-d'),
-                'count' => Cuaderno::whereDate('created_at', $date)->count(),
+                'day' => $date->translatedFormat('D'),
+                'total' => Venta::whereDate('created_at', $date)->sum('monto_total'),
             ];
         });
 
-        // 4. Productos por Categoría
-        $productsByCategory = Categoria::withCount('productos')
+        // 3. Distribución por Categoría
+        $categoriasDistribution = Categoria::withCount('productos')
             ->get()
-            ->map(function($categoria) {
+            ->map(function($cat) {
                 return [
-                    'category' => $categoria->nombre_cat,
-                    'count' => $categoria->productos_count,
+                    'category' => $cat->nombre_cat,
+                    'count' => $cat->productos_count,
                 ];
             });
 
-        // 5. WhatsApp Status Placeholder (In a real scenario, this would come from an API or DB)
-        // Since we don't have a clear way to track historical WhatsApp data in the DB yet,
-        // we'll provide some mock data for the chart to show potential interactivity.
-        $whatsappStats = [
-            ['day' => 'Lun', 'enviados' => 12, 'fallidos' => 2],
-            ['day' => 'Mar', 'enviados' => 18, 'fallidos' => 1],
-            ['day' => 'Mie', 'enviados' => 25, 'fallidos' => 3],
-            ['day' => 'Jue', 'enviados' => 15, 'fallidos' => 0],
-            ['day' => 'Vie', 'enviados' => 30, 'fallidos' => 5],
-            ['day' => 'Sab', 'enviados' => 22, 'fallidos' => 1],
-            ['day' => 'Dom', 'enviados' => 10, 'fallidos' => 0],
-        ];
+        // 4. Últimas Ventas
+        $ultimasVentas = Venta::with('cliente', 'vendedor')
+            ->latest()
+            ->take(5)
+            ->get();
 
         return Inertia::render('dashboard', [
-            'stats' => [
-                'totalProductos' => $totalProductos,
-                'totalPedidos' => $totalPedidos,
-                'pedidosHoy' => $pedidosHoy,
-                'statusDistribution' => $statusDistribution,
-                'ordersOverTime' => $last90Days,
-                'productsByCategory' => $productsByCategory,
-                'whatsappStats' => $whatsappStats,
-            ]
+            'metrics' => [
+                'ventasHoy' => $ventasHoy,
+                'ventasMes' => $ventasMes,
+                'bajoStock' => $productosBajoStock,
+                'vencimientos' => $proximosAVencer,
+                'reservas' => $reservasActivas,
+            ],
+            'charts' => [
+                'ventasSemana' => $ventasSemana,
+                'categorias' => $categoriasDistribution,
+            ],
+            'recentSales' => $ultimasVentas,
         ]);
     }
 }

@@ -156,6 +156,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/', [App\Http\Controllers\VentaController::class, 'index'])->name('index');
             Route::get('/historial', [App\Http\Controllers\VentaController::class, 'historial'])->name('historial');
             Route::get('/search-productos', [App\Http\Controllers\VentaController::class, 'searchProductos'])->name('search-productos');
+            Route::get('/ticket/{id}', [App\Http\Controllers\VentaController::class, 'ticket'])->name('ticket');
         });
 
         Route::middleware('can:crear ventas')->group(function () {
