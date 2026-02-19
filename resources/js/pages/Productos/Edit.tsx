@@ -56,7 +56,7 @@ export default function Edit({
   fotos: any[];
 }) {
   // ✅ Usa `post` y añade `_method: 'PUT'`
-  const { data, setData, post, processing } = useForm({
+  const { data, setData, post, processing, errors } = useForm({
     nombre: producto.nombre || '',
     principio_activo: producto.principio_activo || '',
     concentracion: producto.concentracion || '',
@@ -225,8 +225,9 @@ export default function Edit({
                 placeholder="Ej. Paracetamol Bagó"
                 value={data.nombre}
                 onChange={(e) => setData('nombre', e.target.value)}
-                className="h-11"
+                className={`h-11 ${errors.nombre ? 'border-red-500' : ''}`}
               />
+              {errors.nombre && <p className="text-xs text-red-500">{errors.nombre}</p>}
             </div>
 
             {/* Características */}
@@ -317,6 +318,7 @@ export default function Edit({
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
+              {errors.laboratorio_id && <p className="text-xs text-red-500">{errors.laboratorio_id}</p>}
             </div>
 
             {/* Categoría */}
@@ -378,6 +380,7 @@ export default function Edit({
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
+              {errors.categoria_id && <p className="text-xs text-red-500">{errors.categoria_id}</p>}
             </div>
 
             {/* Precio de compra */}
@@ -394,8 +397,9 @@ export default function Edit({
                 placeholder="0.00"
                 value={data.precio_compra}
                 onChange={(e) => setData('precio_compra', e.target.value)}
-                className="h-11"
+                className={`h-11 ${errors.precio_compra ? 'border-red-500' : ''}`}
               />
+              {errors.precio_compra && <p className="text-xs text-red-500">{errors.precio_compra}</p>}
             </div>
 
             {/* Lote */}
@@ -457,8 +461,9 @@ export default function Edit({
                 placeholder="0.00"
                 value={data.precio_1}
                 onChange={(e) => setData('precio_1', e.target.value)}
-                className="h-11"
+                className={`h-11 ${errors.precio_1 ? 'border-red-500' : ''}`}
               />
+              {errors.precio_1 && <p className="text-xs text-red-500">{errors.precio_1}</p>}
             </div>
 
             {/* Stock field removed */}

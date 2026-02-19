@@ -41,7 +41,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                     className={cn(
                                         "h-10 transition-all duration-300 relative group/btn rounded-lg overflow-hidden",
                                         isActive
-                                            ? "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 font-bold"
+                                            ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary font-bold"
                                             : "hover:bg-sidebar-accent/80 text-muted-foreground hover:text-foreground"
                                     )}
                                 >
@@ -50,13 +50,13 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                             <item.icon
                                                 className={cn(
                                                     "transition-all duration-300 size-5",
-                                                    isActive ? "text-emerald-500 scale-110 drop-shadow-[0_0_5px_rgba(16,185,129,0.3)]" : "opacity-70 group-hover/btn:opacity-100"
+                                                    isActive ? "text-primary scale-110 drop-shadow-[0_0_5px_rgba(var(--primary-rgb),0.3)]" : "opacity-70 group-hover/btn:opacity-100"
                                                 )}
                                             />
                                         )}
                                         <span className="ml-2">{item.title}</span>
                                         {isActive && (
-                                            <div className="absolute right-0 top-2 bottom-2 w-1 rounded-l-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                                            <div className="absolute right-0 top-2 bottom-2 w-1 rounded-l-full bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]" />
                                         )}
                                     </Link>
                                 </SidebarMenuButton>
@@ -73,7 +73,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                         className={cn(
                                             "h-10 transition-all duration-300 rounded-lg",
                                             isActive
-                                                ? "bg-emerald-500/5 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 font-bold"
+                                                ? "bg-primary/5 text-primary dark:bg-primary/10 dark:text-primary font-bold"
                                                 : "text-muted-foreground hover:bg-sidebar-accent/80 hover:text-foreground"
                                         )}
                                     >
@@ -81,7 +81,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                             <item.icon
                                                 className={cn(
                                                     "transition-all duration-300 size-5",
-                                                    isActive ? "text-emerald-500" : "opacity-70"
+                                                    isActive ? "text-primary" : "opacity-70"
                                                 )}
                                             />
                                         )}
@@ -90,7 +90,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                     </SidebarMenuButton>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent className="px-2">
-                                    <SidebarMenuSub className="mt-1 border-l-2 border-emerald-500/20 ml-4 py-1 gap-1">
+                                    <SidebarMenuSub className="mt-1 border-l-2 border-primary/20 ml-4 py-1 gap-1">
                                         {item.items?.map((subItem) => {
                                             const isSubActive = page.url === resolveUrl(subItem.href);
                                             return (
@@ -101,8 +101,8 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                                         className={cn(
                                                             "h-8 transition-all duration-300 rounded-md px-3",
                                                             isSubActive
-                                                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold"
-                                                                : "text-muted-foreground/80 hover:text-foreground hover:bg-emerald-500/5"
+                                                                ? "bg-primary/10 text-primary dark:text-primary font-bold"
+                                                                : "text-muted-foreground/80 hover:text-foreground hover:bg-primary/5"
                                                         )}
                                                     >
                                                         <Link href={subItem.href}>

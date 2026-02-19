@@ -23,9 +23,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
-export default function LotesIndex({ lotes, filters }: any) {
-    const [search, setSearch] = useState(filters.search || '');
-    const [activeFilter, setActiveFilter] = useState(filters.filter || '');
+export default function LotesIndex({ lotes = { data: [] }, filters }: any) {
+    const currentFilters = filters && !Array.isArray(filters) ? filters : {};
+    const [search, setSearch] = useState(currentFilters.search || '');
+    const [activeFilter, setActiveFilter] = useState(currentFilters.filter || '');
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();

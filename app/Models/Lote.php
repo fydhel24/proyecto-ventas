@@ -12,6 +12,7 @@ class Lote extends Model
 
     protected $fillable = [
         'producto_id',
+        'sucursal_id',
         'numero_lote',
         'fecha_vencimiento',
         'stock',

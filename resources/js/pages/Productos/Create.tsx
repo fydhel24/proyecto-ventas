@@ -53,7 +53,7 @@ export default function Create({
   laboratorios: any[];
   categorias: any[];
 }) {
-  const { data, setData, post, processing } = useForm({
+  const { data, setData, post, processing, errors } = useForm({
     nombre: '',
     principio_activo: '',
     concentracion: '',
@@ -221,8 +221,9 @@ export default function Create({
                 placeholder="Ej. Paracetamol Bagó"
                 value={data.nombre}
                 onChange={(e) => setData('nombre', e.target.value)}
-                className="h-11"
+                className={`h-11 ${errors.nombre ? 'border-red-500' : ''}`}
               />
+              {errors.nombre && <p className="text-xs text-red-500">{errors.nombre}</p>}
             </div>
 
             {/* Características */}
@@ -313,6 +314,7 @@ export default function Create({
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
+              {errors.laboratorio_id && <p className="text-xs text-red-500">{errors.laboratorio_id}</p>}
             </div>
 
             {/* Categoría */}
@@ -374,6 +376,7 @@ export default function Create({
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
+              {errors.categoria_id && <p className="text-xs text-red-500">{errors.categoria_id}</p>}
             </div>
 
             {/* Precio de compra */}
@@ -384,10 +387,14 @@ export default function Create({
               </Label>
               <Input
                 id="precio_compra"
+                type="number"
+                step="0.01"
                 placeholder="0.00"
+                value={data.precio_compra}
                 onChange={(e) => setData('precio_compra', e.target.value)}
-                className="h-11"
+                className={`h-11 ${errors.precio_compra ? 'border-red-500' : ''}`}
               />
+              {errors.precio_compra && <p className="text-xs text-red-500">{errors.precio_compra}</p>}
             </div>
 
             {/* Stock Inicial */}
@@ -466,8 +473,9 @@ export default function Create({
                 placeholder="0.00"
                 value={data.precio_1}
                 onChange={(e) => setData('precio_1', e.target.value)}
-                className="h-11"
+                className={`h-11 ${errors.precio_1 ? 'border-red-500' : ''}`}
               />
+              {errors.precio_1 && <p className="text-xs text-red-500">{errors.precio_1}</p>}
             </div>
 
 

@@ -18,9 +18,20 @@ class PharmacyService
     public function procesarVenta(array $data)
     {
         return DB::transaction(function () use ($data) {
-            // 1. Crear la venta
+            // 1. Gestionar Cliente (Buscar o Crear)
+            $clienteNombre = $data['cliente_nombre'] ?? 'Consumidor Final';
+            $clienteCI = $data['cliente_ci'] ?? '0000000';
+
+            $cliente = \App\Models\Cliente::firstOrCreate(
+                ['nit_ci' => $clienteCI],
+                ['nombre' => $clienteNombre]
+            );
+
+            // 2. Crear la venta
             $venta = Venta::create([
-                'cliente_id' => $data['cliente_id'],
+                'cliente_id' => $cliente->id,
+                'cliente' => $cliente->nombre,
+                'ci' => $cliente->nit_ci,
                 'user_vendedor_id' => auth()->id() ?? $data['user_id'],
                 'sucursal_id' => $data['sucursal_id'] ?? 1,
                 'tipo_pago' => $data['tipo_pago'],
@@ -41,7 +52,10 @@ class PharmacyService
                 // Descontar de lotes (FEFO: First Expired, First Out)
                 $cantidadPendiente = $item['cantidad'];
                 
+                $venta_sucursal_id = $venta->sucursal_id;
+                
                 $lotes = Lote::where('producto_id', $producto->id)
+                    ->where('sucursal_id', $venta_sucursal_id)
                     ->where('stock', '>', 0)
                     ->where('fecha_vencimiento', '>', now())
                     ->orderBy('fecha_vencimiento', 'asc')

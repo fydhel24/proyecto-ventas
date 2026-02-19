@@ -25,16 +25,24 @@ class VentaController extends Controller
 
     public function create()
     {
+        $user = auth()->user();
+        $is_admin = $user->hasRole('admin');
+        
         return Inertia::render('Ventas/POS', [
             'clientes' => Cliente::all(),
             'categorias' => Categoria::all(),
+            'sucursales' => $is_admin ? \App\Models\Sucursale::all() : [],
+            'user_sucursal_id' => $user->sucursal_id,
+            'is_admin' => $is_admin,
         ]);
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'cliente_id' => 'required|exists:clientes,id',
+            'cliente_nombre' => 'nullable|string|max:255',
+            'cliente_ci' => 'nullable|string|max:20',
+            'sucursal_id' => 'nullable|exists:sucursales,id',
             'tipo_pago' => 'required|string|in:efectivo,qr',
             'monto_total' => 'required|numeric|min:0',
             'descuento' => 'nullable|numeric|min:0',
@@ -46,6 +54,10 @@ class VentaController extends Controller
             'items.*.cantidad' => 'required|integer|min:1',
             'items.*.precio_unitario' => 'required|numeric|min:0',
         ]);
+
+        if (!isset($data['sucursal_id'])) {
+            $data['sucursal_id'] = auth()->user()->sucursal_id;
+        }
 
         try {
             $venta = $this->pharmacyService->procesarVenta($data);
@@ -62,25 +74,29 @@ class VentaController extends Controller
 
     public function searchProductos(Request $request)
     {
-        $query = $request->input('query');
+        $query_text = $request->input('query');
         $categoria_id = $request->input('categoria_id');
+        $sucursal_id = $request->input('sucursal_id') ?? auth()->user()->sucursal_id;
 
-        $productos = Producto::with(['lotes' => function($q) {
-                $q->where('stock', '>', 0)->where('fecha_vencimiento', '>', now());
-            }, 'laboratorio', 'categoria'])
+        $productos = Producto::with(['laboratorio', 'categoria'])
+            ->withSum(['lotes' => function($q) use ($sucursal_id) {
+                $q->where('sucursal_id', $sucursal_id)
+                  ->where('stock', '>', 0)
+                  ->where('fecha_vencimiento', '>', now());
+            }], 'stock')
             ->activos()
-            ->when($query, function($q) use ($query) {
-                $q->where(function($sub) use ($query) {
-                    $sub->where('nombre', 'like', "%{$query}%")
-                        ->orWhere('principio_activo', 'like', "%{$query}%")
-                        ->orWhere('codigo_barras', 'like', "%{$query}%");
+            ->when($query_text, function($q) use ($query_text) {
+                $q->where(function($sub) use ($query_text) {
+                    $sub->where('nombre', 'like', "%{$query_text}%")
+                        ->orWhere('principio_activo', 'like', "%{$query_text}%")
+                        ->orWhere('codigo_barras', 'like', "%{$query_text}%");
                 });
             })
             ->when($categoria_id, function($q) use ($categoria_id) {
                 $q->where('categoria_id', $categoria_id);
             })
             ->latest()
-            ->take(10)
+            ->take(20)
             ->get()
             ->map(function($p) {
                 return [
@@ -89,7 +105,7 @@ class VentaController extends Controller
                     'principio_activo' => $p->principio_activo,
                     'concentracion' => $p->concentracion,
                     'precio' => $p->precio_1,
-                    'stock' => (int) $p->lotes_sum_stock ?? 0,
+                    'stock' => (int) ($p->lotes_sum_stock ?? 0),
                     'categoria' => $p->categoria->nombre_cat ?? 'S/C',
                     'laboratorio' => $p->laboratorio->nombre_lab ?? 'S/L',
                 ];
