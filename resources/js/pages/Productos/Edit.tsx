@@ -359,29 +359,11 @@ export default function Edit({
               </div>
             </div>
 
-            {/* Precio de compra */}
-            <div className="space-y-2">
-              <Label htmlFor="precio_compra" className="flex items-center gap-1.5 text-sm font-medium">
-                <DollarSign className="h-4 w-4" />
-                Precio de compra
-              </Label>
-              <Input
-                id="precio_compra"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                value={data.precio_compra}
-                onChange={(e) => setData('precio_compra', e.target.value)}
-                className="h-11"
-              />
-            </div>
-
             {/* Precio por unidad */}
             <div className="space-y-2">
               <Label htmlFor="precio_1" className="flex items-center gap-1.5 text-sm font-medium">
                 <Tag className="h-4 w-4" />
-                Precio por unidad
+                Precio
               </Label>
               <Input
                 id="precio_1"
@@ -394,72 +376,11 @@ export default function Edit({
                 className="h-11"
               />
             </div>
-
-            {/* Stock field removed */}
-
-            {/* Botón precios adicionales */}
-            <div className="md:col-span-2 flex items-center">
-              <Button
-                type="button"
-                variant={mostrarMasPrecios ? 'secondary' : 'outline'}
-                size="sm"
-                className="h-9 px-3"
-                onClick={() => setMostrarMasPrecios(!mostrarMasPrecios)}
-              >
-                {mostrarMasPrecios ? (
-                  <Check className="mr-2 h-3.5 w-3.5" />
-                ) : (
-                  <X className="mr-2 h-3.5 w-3.5" />
-                )}
-                {mostrarMasPrecios
-                  ? 'Ocultar precios adicionales'
-                  : 'Asignar más precios'}
-              </Button>
-            </div>
-
-            {/* Precios adicionales */}
-            {mostrarMasPrecios && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="precio_2" className="flex items-center gap-1.5 text-sm font-medium">
-                    <Tag className="h-4 w-4" />
-                    Precio por docena
-                  </Label>
-                  <Input
-                    id="precio_2"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    value={data.precio_2}
-                    onChange={(e) => setData('precio_2', e.target.value)}
-                    className="h-11"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="precio_3" className="flex items-center gap-1.5 text-sm font-medium">
-                    <Tag className="h-4 w-4" />
-                    Precio por mayor
-                  </Label>
-                  <Input
-                    id="precio_3"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    value={data.precio_3}
-                    onChange={(e) => setData('precio_3', e.target.value)}
-                    className="h-11"
-                  />
-                </div>
-              </>
-            )}
-
             {/* Fotos */}
             <div className="md:col-span-2">
               <Label className="mb-2 flex items-center gap-1.5 text-sm font-medium">
                 <ImageIcon className="h-4 w-4" />
-                Imágenes del producto
+                Imágenes 
               </Label>
               <div
                 className={`cursor-pointer rounded-lg border-2 border-dashed p-5 text-center transition-colors ${data.fotos.length > 0

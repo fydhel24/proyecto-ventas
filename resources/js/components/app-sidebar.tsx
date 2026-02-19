@@ -66,7 +66,7 @@ const mainNavItems: NavItem[] = [
         permission: 'ver ventas',
         items: [
             {
-                title: 'Terminal POS',
+                title: 'Venta Rápida',
                 href: '/ventas/create',
                 icon: Plus,
             },

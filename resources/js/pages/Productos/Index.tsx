@@ -177,7 +177,7 @@ export default function Index({ productos, filters }: Props) {
                                 Inventario de <span className="text-primary italic">Productos</span>
                             </h1>
                             <p className="text-muted-foreground text-sm font-medium">
-                                Control total sobre el stock, precios y categorías de tu catálogo.
+                                Control total sobre todos tu platillos.
                             </p>
                         </div>
                         <Link href={productosRoutes.create()}>
