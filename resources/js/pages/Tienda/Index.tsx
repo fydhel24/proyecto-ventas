@@ -128,7 +128,7 @@ export default function Index({
                         </span>
                         <div className="h-px w-8 bg-[var(--theme-primary)]" />
                     </div>
-                    <h1 className="text-5xl leading-none font-black tracking-tighter text-white uppercase italic md:text-8xl">
+                    <h1 className="text-3xl leading-none font-black tracking-tighter text-white uppercase italic md:text-7xl">
                         Nuestra{' '}
                         <span className="text-[var(--theme-primary)]">
                             Carta

@@ -28,7 +28,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="flex w-full flex-col sm:max-w-md">
+            <SheetContent className="flex w-full flex-col sm:max-w-md px-4 py-4">
                 <SheetHeader className="px-1">
                     <SheetTitle className="flex items-center gap-2 text-2xl font-bold">
                         <ShoppingCart className="h-6 w-6" />

@@ -155,7 +155,7 @@ export default function Welcome({
                                 <Star className="size-4 fill-[var(--theme-primary)] text-[var(--theme-primary)]" />
                                 <span>La mejor experiencia de la ciudad</span>
                             </div>
-                            <h1 className="hero-text mb-8 text-6xl leading-none font-black tracking-tighter italic md:text-8xl lg:text-9xl">
+                            <h1 className="hero-text mb-8 text-6xl leading-none font-black tracking-tighter italic md:text-6xl lg:text-8xl">
                                 ARTE EN <br />
                                 <span className="text-[var(--theme-primary)]">
                                     CADA PLATO
@@ -172,7 +172,7 @@ export default function Welcome({
                                     className="h-16 rounded-2xl bg-[var(--theme-primary)] px-10 text-xl font-black shadow-[var(--theme-primary)]/20 shadow-2xl transition-transform hover:scale-105"
                                     asChild
                                 >
-                                    <Link href="/tienda">EXPLORAR MENÚ</Link>
+                                    <Link href="/tienda">EXPLORAR PLATOS</Link>
                                 </Button>
                                 <Button
                                     size="lg"
@@ -315,8 +315,8 @@ export default function Welcome({
                             <span className="text-sm font-black tracking-widest text-[var(--theme-primary)] uppercase">
                                 Encuéntranos
                             </span>
-                            <h2 className="mb-12 text-5xl font-black tracking-tighter uppercase italic md:text-7xl">
-                                Nuestras Casas
+                            <h2 className="mb-12 text-3xl font-black tracking-tighter uppercase italic md:text-5xl">
+                                Nuestras Sucursales
                             </h2>
 
                             <div className="space-y-8">
@@ -359,33 +359,19 @@ export default function Welcome({
                                         <MapPinned className="size-16 text-primary" />
                                     </div>
                                     <h3 className="mb-4 text-3xl font-black">
-                                        MAPA INTERACTIVO
+                                        MAPA SUCURSAL CENTRAL
                                     </h3>
                                     <p className="mb-8 font-medium text-muted-foreground">
                                         Estamos en el centro neurálgico del
                                         sabor. Haz clic para obtener
                                         direcciones.
                                     </p>
-                                    <Button className="h-14 rounded-full px-8 text-lg font-black">
-                                        ABRIR EN GOOGLE MAPS
-                                    </Button>
                                 </div>
                                 <img
                                     src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=2070&auto=format&fit=crop"
                                     className="h-full w-full object-cover opacity-30 grayscale"
                                     alt="Map placeholder"
                                 />
-                            </div>
-
-                            {/* Floating Badge */}
-                            <div className="absolute -bottom-10 -left-10 animate-bounce rounded-[3rem] border-2 bg-white p-10 shadow-2xl duration-[5000ms] dark:bg-card">
-                                <Calendar className="mb-4 size-10 text-[var(--theme-primary)]" />
-                                <h4 className="text-xl font-black uppercase italic">
-                                    RESERVAR
-                                </h4>
-                                <p className="text-sm text-muted-foreground">
-                                    Asegura tu mesa hoy
-                                </p>
                             </div>
                         </div>
                     </div>
