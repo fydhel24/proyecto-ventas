@@ -6,13 +6,11 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
-    ArrowRight,
     Calendar,
     ChevronRight,
     Clock,
     MapPin,
     MapPinned,
-    Percent,
     Phone,
     ShoppingBag,
     Star,
@@ -39,8 +37,27 @@ export default function Welcome({
     const { formatPrice } = useCart();
 
     // Refs para animaciones GSAP
+
     const heroRef = useRef<HTMLDivElement>(null);
     const sectionsRef = useRef<HTMLDivElement>(null);
+    const carouselRef = useRef<HTMLDivElement>(null);
+
+    const scrollCarousel = (direction: 'left' | 'right') => {
+        if (!carouselRef.current) return;
+
+        const scrollAmount = 300;
+        const currentScroll = carouselRef.current.scrollLeft;
+        const targetScroll =
+            direction === 'left'
+                ? currentScroll - scrollAmount
+                : currentScroll + scrollAmount;
+
+        gsap.to(carouselRef.current, {
+            scrollLeft: targetScroll,
+            duration: 0.8,
+            ease: 'power2.out',
+        });
+    };
 
     useEffect(() => {
         const ctx = gsap.context(() => {
@@ -117,7 +134,7 @@ export default function Welcome({
             <Head title={`${name} | Experiencia Gastronómica Premium`} />
 
             <main
-                className="bg-background flex-1 overflow-hidden"
+                className="flex-1 overflow-hidden bg-background"
                 ref={heroRef}
             >
                 {/* MODERN PREMIUM HERO SECTION */}
@@ -129,22 +146,22 @@ export default function Welcome({
                             alt="Premium Dish"
                         />
                         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent" />
-                        <div className="from-background absolute inset-0 bg-gradient-to-t via-transparent to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
                     </div>
 
-                    <div className="container relative z-10 mx-auto grid items-center gap-12 px-6 lg:grid-cols-2">
+                    <div className="relative z-10 container mx-auto grid items-center gap-12 px-6 lg:grid-cols-2">
                         <div className="text-white">
-                            <div className="hero-text mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-widest backdrop-blur-md">
+                            <div className="hero-text mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold tracking-widest uppercase backdrop-blur-md">
                                 <Star className="size-4 fill-[var(--theme-primary)] text-[var(--theme-primary)]" />
                                 <span>La mejor experiencia de la ciudad</span>
                             </div>
-                            <h1 className="hero-text mb-8 text-6xl font-black italic leading-none tracking-tighter md:text-8xl lg:text-9xl">
+                            <h1 className="hero-text mb-8 text-6xl leading-none font-black tracking-tighter italic md:text-8xl lg:text-9xl">
                                 ARTE EN <br />
                                 <span className="text-[var(--theme-primary)]">
                                     CADA PLATO
                                 </span>
                             </h1>
-                            <p className="hero-text mb-12 max-w-xl text-xl font-medium leading-relaxed text-white/80 md:text-2xl">
+                            <p className="hero-text mb-12 max-w-xl text-xl leading-relaxed font-medium text-white/80 md:text-2xl">
                                 Redescubre los sabores tradicionales con un
                                 toque de innovación contemporánea. Ingredientes
                                 frescos, pasión infinita.
@@ -152,7 +169,7 @@ export default function Welcome({
                             <div className="hero-text flex flex-wrap gap-4">
                                 <Button
                                     size="lg"
-                                    className="shadow-[var(--theme-primary)]/20 h-16 rounded-2xl bg-[var(--theme-primary)] px-10 text-xl font-black shadow-2xl transition-transform hover:scale-105"
+                                    className="h-16 rounded-2xl bg-[var(--theme-primary)] px-10 text-xl font-black shadow-[var(--theme-primary)]/20 shadow-2xl transition-transform hover:scale-105"
                                     asChild
                                 >
                                     <Link href="/tienda">EXPLORAR MENÚ</Link>
@@ -178,7 +195,7 @@ export default function Welcome({
 
                         <div className="hidden justify-end pr-12 lg:flex">
                             <div className="hero-image group relative">
-                                <div className="bg-[var(--theme-primary)]/20 absolute inset-0 scale-150 animate-pulse rounded-full blur-3xl" />
+                                <div className="absolute inset-0 scale-150 animate-pulse rounded-full bg-[var(--theme-primary)]/20 blur-3xl" />
                                 <div className="relative aspect-[3/4] w-80 overflow-hidden rounded-[4rem] border-4 border-white/10 shadow-2xl transition-transform duration-700 group-hover:rotate-2">
                                     <img
                                         src="https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=2069&auto=format&fit=crop"
@@ -186,7 +203,7 @@ export default function Welcome({
                                         alt="Featured dish"
                                     />
                                     <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 to-transparent p-8">
-                                        <p className="mb-1 text-sm font-black uppercase italic tracking-widest text-[var(--theme-primary)]">
+                                        <p className="mb-1 text-sm font-black tracking-widest text-[var(--theme-primary)] uppercase italic">
                                             Plato del Mes
                                         </p>
                                         <h3 className="text-2xl font-black text-white">
@@ -199,112 +216,85 @@ export default function Welcome({
                     </div>
                 </section>
 
-                 {/* PROMOCIONES SECTION */}
-                <section className="animate-on-scroll container mx-auto px-6 py-24">
-                    <div className="mb-16 flex flex-col items-center justify-between gap-6 md:flex-row">
-                        <div>
-                            <span className="text-sm font-black tracking-widest text-[var(--theme-primary)] uppercase">
-                                Especiales
-                            </span>
-                            <h2 className="text-5xl font-black tracking-tighter uppercase italic md:text-7xl">
-                                Promociones
-                            </h2>
-                        </div>
-                        <div className="mx-12 hidden h-px flex-1 bg-border/50 md:block" />
-                        <div className="flex items-center gap-2">
-                            <div className="group flex size-12 cursor-pointer items-center justify-center rounded-full border text-primary transition-colors hover:bg-primary">
-                                <Percent className="size-6 transition-transform group-hover:rotate-12" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-                        {promociones.map((promo, i) => (
-                            <div
-                                key={i}
-                                className={`group relative h-80 overflow-hidden rounded-[3rem] ${promo.color} flex cursor-pointer flex-col justify-between p-10 shadow-xl transition-transform hover:-translate-y-2`}
-                            >
-                                <div className="absolute top-0 right-0 p-10 opacity-10 transition-transform duration-500 group-hover:scale-125">
-                                    <Utensils className="size-40" />
-                                </div>
-                                <div className="relative z-10">
-                                    <div className="mb-6 flex size-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md">
-                                        <Percent className="text-white" />
-                                    </div>
-                                    <h3 className="mb-2 text-3xl leading-tight font-black text-white uppercase italic">
-                                        {promo.title}
-                                    </h3>
-                                    <p className="font-medium text-white/80">
-                                        {promo.desc}
-                                    </p>
-                                </div>
-                                <Link
-                                    href="/tienda"
-                                    className="group relative z-10 inline-flex items-center gap-2 font-bold text-white"
-                                >
-                                    APROVECHAR{' '}
-                                    <ArrowRight className="size-5 transition-transform group-hover:translate-x-2" />
-                                </Link>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                {/* SUGERENCIAS DEL CHEF (CIRCULAR CARDS CAROUSEL) */}
+                {/* SUGERENCIAS DEL CHEF*/}
                 <section className="animate-on-scroll py-24">
                     <div className="container mx-auto mb-16 px-6 text-center">
-                        <span className="text-sm font-black uppercase tracking-[0.3em] text-[var(--theme-primary)]">
+                        <span className="text-sm font-black tracking-[0.3em] text-[var(--theme-primary)] uppercase">
                             Selección Gourmet
                         </span>
-                        <h2 className="mb-6 font-serif text-5xl font-black uppercase italic tracking-tighter md:text-7xl">
+                        <h2 className="mb-6 font-serif text-5xl font-black tracking-tighter uppercase italic md:text-7xl">
                             Sugerencias Chef
                         </h2>
                         <div className="mx-auto h-1.5 w-24 rounded-full bg-[var(--theme-primary)]" />
                     </div>
 
-                    <div className="carousel-container flex gap-6 px-6 md:grid md:grid-cols-4 md:gap-12 md:px-12">
-                        {productos.slice(0, 8).map((prod) => (
-                            <div
-                                key={prod.id}
-                                className="carousel-item circular-card w-[45%] md:w-full"
-                            >
-                                <Link
-                                    href={`/tienda/${prod.id}`}
-                                    className="group block"
+                    <div className="group/carousel relative">
+                        <div ref={carouselRef} className="carousel-container">
+                            {productos.slice(0, 8).map((prod) => (
+                                <div
+                                    key={prod.id}
+                                    className="carousel-item circular-card"
                                 >
-                                    <div className="circular-image-container relative">
-                                        {prod.fotos?.[0]?.url ? (
-                                            <img
-                                                src={`/storage/${prod.fotos[0].url}`}
-                                                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                alt={prod.nombre}
-                                            />
-                                        ) : (
-                                            <div className="bg-muted flex h-full w-full items-center justify-center">
-                                                <Utensils className="text-muted-foreground/30 size-12" />
-                                            </div>
-                                        )}
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                                            <div className="scale-0 rounded-full bg-white p-3 text-black transition-transform duration-500 group-hover:scale-100">
-                                                <ShoppingBag className="size-6" />
+                                    <Link
+                                        href={`/tienda/${prod.id}`}
+                                        className="group block"
+                                    >
+                                        <div className="circular-image-container relative">
+                                            {prod.fotos?.[0]?.url ? (
+                                                <img
+                                                    src={`/storage/${prod.fotos[0].url}`}
+                                                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                    alt={prod.nombre}
+                                                />
+                                            ) : (
+                                                <div className="flex h-full w-full items-center justify-center bg-muted">
+                                                    <Utensils className="size-12 text-muted-foreground/30" />
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                                                <div className="scale-0 rounded-full bg-white p-3 text-black transition-transform duration-500 group-hover:scale-100">
+                                                    <ShoppingBag className="size-6" />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <h3 className="mb-1 line-clamp-1 text-lg font-black uppercase">
-                                        {prod.nombre}
-                                    </h3>
-                                    <p className="text-xl font-black italic text-[var(--theme-primary)]">
-                                        {formatPrice(Number(prod.precio_1))}
-                                    </p>
-                                </Link>
-                            </div>
-                        ))}
+                                        <h3 className="mb-1 line-clamp-1 text-lg font-black uppercase">
+                                            {prod.nombre}
+                                        </h3>
+                                        <p className="text-xl font-black text-[var(--theme-primary)] italic">
+                                            {formatPrice(Number(prod.precio_1))}
+                                        </p>
+                                    </Link>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Carousel Navigation Buttons */}
+                        <div className="absolute top-1/2 left-4 z-10 hidden -translate-y-1/2 opacity-0 transition-opacity group-hover/carousel:opacity-100 md:block">
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="size-12 rounded-full border-2 bg-background/80 backdrop-blur-sm"
+                                onClick={() => scrollCarousel('left')}
+                            >
+                                <ChevronRight className="size-6 rotate-180" />
+                            </Button>
+                        </div>
+                        <div className="absolute top-1/2 right-4 z-10 hidden -translate-y-1/2 opacity-0 transition-opacity group-hover/carousel:opacity-100 md:block">
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="size-12 rounded-full border-2 bg-background/80 backdrop-blur-sm"
+                                onClick={() => scrollCarousel('right')}
+                            >
+                                <ChevronRight className="size-6" />
+                            </Button>
+                        </div>
                     </div>
 
                     <div className="mt-20 flex justify-center">
                         <Button
                             variant="outline"
-                            className="hover:bg-primary h-16 rounded-[2rem] border-2 px-12 text-lg font-black uppercase tracking-widest transition-all hover:text-white"
+                            className="h-16 rounded-[2rem] border-2 px-12 text-lg font-black tracking-widest uppercase transition-all hover:bg-primary hover:text-white"
                             asChild
                         >
                             <Link
@@ -322,10 +312,10 @@ export default function Welcome({
                 <section className="animate-on-scroll container mx-auto px-6 py-32">
                     <div className="grid items-center gap-20 lg:grid-cols-2">
                         <div>
-                            <span className="text-sm font-black uppercase tracking-widest text-[var(--theme-primary)]">
+                            <span className="text-sm font-black tracking-widest text-[var(--theme-primary)] uppercase">
                                 Encuéntranos
                             </span>
-                            <h2 className="mb-12 text-5xl font-black uppercase italic tracking-tighter md:text-7xl">
+                            <h2 className="mb-12 text-5xl font-black tracking-tighter uppercase italic md:text-7xl">
                                 Nuestras Casas
                             </h2>
 
@@ -333,16 +323,16 @@ export default function Welcome({
                                 {sucursales.map((suc, i) => (
                                     <div
                                         key={i}
-                                        className="bg-card group flex cursor-pointer items-start gap-6 rounded-[2.5rem] border-2 p-8 transition-all hover:border-[var(--theme-primary)]"
+                                        className="group flex cursor-pointer items-start gap-6 rounded-[2.5rem] border-2 bg-card p-8 transition-all hover:border-[var(--theme-primary)]"
                                     >
-                                        <div className="bg-[var(--theme-primary)]/10 flex size-16 flex-shrink-0 items-center justify-center rounded-2xl text-[var(--theme-primary)] transition-transform group-hover:scale-110">
+                                        <div className="flex size-16 flex-shrink-0 items-center justify-center rounded-2xl bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] transition-transform group-hover:scale-110">
                                             <MapPin className="size-8" />
                                         </div>
                                         <div className="flex-1">
                                             <h3 className="mb-2 text-2xl font-black italic">
                                                 {suc.nombre}
                                             </h3>
-                                            <p className="text-muted-foreground mb-4 flex items-center gap-2 font-medium">
+                                            <p className="mb-4 flex items-center gap-2 font-medium text-muted-foreground">
                                                 <MapPinned className="size-4" />{' '}
                                                 {suc.direccion}
                                             </p>
@@ -364,14 +354,14 @@ export default function Welcome({
 
                         <div className="relative">
                             <div className="aspect-square w-full overflow-hidden rounded-[4rem] border-8 border-white shadow-2xl dark:border-white/10">
-                                <div className="bg-muted absolute inset-0 flex flex-col items-center justify-center p-12 text-center">
-                                    <div className="bg-primary/10 mb-8 flex size-32 items-center justify-center rounded-full">
-                                        <MapPinned className="text-primary size-16" />
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted p-12 text-center">
+                                    <div className="mb-8 flex size-32 items-center justify-center rounded-full bg-primary/10">
+                                        <MapPinned className="size-16 text-primary" />
                                     </div>
                                     <h3 className="mb-4 text-3xl font-black">
                                         MAPA INTERACTIVO
                                     </h3>
-                                    <p className="text-muted-foreground mb-8 font-medium">
+                                    <p className="mb-8 font-medium text-muted-foreground">
                                         Estamos en el centro neurálgico del
                                         sabor. Haz clic para obtener
                                         direcciones.
@@ -388,12 +378,12 @@ export default function Welcome({
                             </div>
 
                             {/* Floating Badge */}
-                            <div className="dark:bg-card absolute -bottom-10 -left-10 animate-bounce rounded-[3rem] border-2 bg-white p-10 shadow-2xl duration-[5000ms]">
+                            <div className="absolute -bottom-10 -left-10 animate-bounce rounded-[3rem] border-2 bg-white p-10 shadow-2xl duration-[5000ms] dark:bg-card">
                                 <Calendar className="mb-4 size-10 text-[var(--theme-primary)]" />
                                 <h4 className="text-xl font-black uppercase italic">
                                     RESERVAR
                                 </h4>
-                                <p className="text-muted-foreground text-sm">
+                                <p className="text-sm text-muted-foreground">
                                     Asegura tu mesa hoy
                                 </p>
                             </div>
@@ -402,7 +392,7 @@ export default function Welcome({
                 </section>
 
                 {/* EXPERIENCE CTA */}
-                <section className="animate-on-scroll container relative mx-auto mb-24 flex h-[500px] items-center justify-center overflow-hidden rounded-[5rem] px-6">
+                <section className="animate-on-scroll relative container mx-auto mb-24 flex h-[500px] items-center justify-center overflow-hidden rounded-[5rem] px-6">
                     <img
                         src="https://images.unsplash.com/photo-1473093226795-af9932fe5856?q=80&w=1994&auto=format&fit=crop"
                         className="absolute inset-0 h-full w-full scale-110 object-cover"
@@ -412,7 +402,7 @@ export default function Welcome({
 
                     <div className="relative z-10 max-w-2xl px-6 text-center text-white">
                         <ShoppingBag className="mx-auto mb-8 size-16 text-[var(--theme-primary)]" />
-                        <h2 className="mb-6 text-5xl font-black uppercase italic tracking-tighter md:text-7xl">
+                        <h2 className="mb-6 text-5xl font-black tracking-tighter uppercase italic md:text-7xl">
                             EL SABOR EN TU CASA
                         </h2>
                         <p className="mb-12 text-xl font-medium text-white/80 md:text-2xl">
@@ -420,7 +410,7 @@ export default function Welcome({
                             comodidad de tu hogar? Haz tu pedido online ahora.
                         </p>
                         <Button
-                            className="shadow-[var(--theme-primary)]/40 h-20 rounded-[2rem] bg-[var(--theme-primary)] px-12 text-2xl font-black shadow-2xl transition-transform hover:scale-105"
+                            className="h-20 rounded-[2rem] bg-[var(--theme-primary)] px-12 text-2xl font-black shadow-[var(--theme-primary)]/40 shadow-2xl transition-transform hover:scale-105"
                             asChild
                         >
                             <Link href="/tienda">ORDENAR AHORA</Link>

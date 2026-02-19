@@ -151,37 +151,6 @@ export default function Index({
                             className="h-16 w-full rounded-2xl border-2 bg-card text-lg shadow-sm"
                         />
                     </div>
-
-                    <div className="flex w-full items-center gap-4 lg:w-auto">
-                        <Select
-                            value={filters?.sort || 'latest'}
-                            onValueChange={(v) => handleFilterChange('sort', v)}
-                        >
-                            <SelectTrigger className="h-16 flex-1 rounded-2xl border-2 bg-card text-sm font-black uppercase shadow-sm lg:w-[240px]">
-                                <SelectValue placeholder="Ordenar por" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-2xl border-2">
-                                <SelectItem value="latest">
-                                    Novedades
-                                </SelectItem>
-                                <SelectItem value="price_asc">
-                                    Menor Precio
-                                </SelectItem>
-                                <SelectItem value="price_desc">
-                                    Mayor Precio
-                                </SelectItem>
-                                <SelectItem value="name_asc">A - Z</SelectItem>
-                            </SelectContent>
-                        </Select>
-
-                        <Button
-                            variant="outline"
-                            className="h-16 w-16 flex-shrink-0 rounded-2xl border-2 shadow-sm lg:hidden"
-                            onClick={() => setIsFilterOpen(!isFilterOpen)}
-                        >
-                            <SlidersHorizontal className="h-6 w-6" />
-                        </Button>
-                    </div>
                 </div>
 
                 <div className="flex flex-col gap-12 lg:flex-row">
@@ -203,7 +172,7 @@ export default function Index({
                                             ? 'secondary'
                                             : 'ghost'
                                     }
-                                    className="h-14 justify-start rounded-2xl px-6 text-base font-black tracking-tight uppercase"
+                                    className="category-pill h-14 justify-start rounded-2xl px-6 text-sm font-black tracking-tight uppercase"
                                     onClick={() =>
                                         handleFilterChange('categoria', null)
                                     }
@@ -219,7 +188,7 @@ export default function Index({
                                                 ? 'secondary'
                                                 : 'ghost'
                                         }
-                                        className="h-14 justify-start rounded-2xl px-6 text-base font-black tracking-tight uppercase transition-all hover:translate-x-2"
+                                        className="category-pill h-14 justify-start rounded-2xl px-6 text-sm font-black tracking-tight uppercase"
                                         onClick={() =>
                                             handleFilterChange(
                                                 'categoria',
@@ -255,7 +224,7 @@ export default function Index({
                                             priceRange,
                                         )
                                     }
-                                    className="h-3 w-full cursor-pointer appearance-none rounded-full bg-muted accent-[var(--theme-primary)]"
+                                    className="price-range-input h-3 w-full cursor-pointer appearance-none rounded-full bg-muted accent-[var(--theme-primary)]"
                                 />
                                 <div className="mt-4 flex justify-between font-black">
                                     <span className="text-xs text-muted-foreground uppercase">
@@ -314,12 +283,12 @@ export default function Index({
                             <>
                                 <div
                                     ref={gridRef}
-                                    className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
+                                    className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-8 lg:grid-cols-3 xl:grid-cols-4"
                                 >
                                     {productos.data.map((producto) => (
                                         <div
                                             key={producto.id}
-                                            className="transition-all hover:scale-[1.02]"
+                                            className="transition-all"
                                         >
                                             <ProductCard producto={producto} />
                                         </div>

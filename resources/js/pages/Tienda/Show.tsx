@@ -1,24 +1,20 @@
-import { Head, router, usePage } from '@inertiajs/react';
-import PublicLayout from '@/layouts/public-layout';
+import { ProductCard } from '@/components/shop/ProductCard';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
-import { ProductCard } from '@/components/shop/ProductCard';
+import PublicLayout from '@/layouts/public-layout';
+import { type SharedData } from '@/types';
+import { Head, usePage } from '@inertiajs/react';
+import gsap from 'gsap';
 import {
     ChevronLeft,
-    ShoppingCart,
-    ShieldCheck,
-    Truck,
-    RotateCcw,
-    Plus,
     Minus,
-    Check
+    Plus,
+    ShieldCheck,
+    ShoppingCart,
+    Truck,
 } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
-import gsap from 'gsap';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { type SharedData } from '@/types';
 
 interface Props {
     producto: any;
@@ -36,18 +32,18 @@ export default function Show({ producto, sugerencias }: Props) {
 
     useEffect(() => {
         const ctx = gsap.context(() => {
-            gsap.from(".animate-in", {
+            gsap.from('.animate-in', {
                 x: 40,
                 opacity: 0,
                 stagger: 0.1,
                 duration: 0.8,
-                ease: "power3.out"
+                ease: 'power3.out',
             });
             gsap.from(imageRef.current, {
                 scale: 0.9,
                 opacity: 0,
                 duration: 1,
-                ease: "expo.out"
+                ease: 'expo.out',
             });
         }, contentRef);
         return () => ctx.revert();
@@ -56,60 +52,64 @@ export default function Show({ producto, sugerencias }: Props) {
     const handleAddToCart = () => {
         addToCart(producto, cantidad);
         toast.success(`${producto.nombre} agregado`, {
-            description: `${cantidad} unidad(es) añadidas al carrito.`
+            description: `${cantidad} unidad(es) añadidas al carrito.`,
         });
     };
 
-    const images = producto.fotos?.length > 0
-        ? producto.fotos.map((f: any) => `${app_url}/storage/${f.url}`)
-        : ['/images/placeholder.png'];
+    const images =
+        producto.fotos?.length > 0
+            ? producto.fotos.map((f: any) => `${app_url}/storage/${f.url}`)
+            : ['/images/placeholder.png'];
 
     return (
         <PublicLayout>
             <Head title={`${producto.nombre} | Miracode Shop`} />
 
-            <div className="container mx-auto px-4 py-8 md:py-16" ref={contentRef}>
+            <div
+                className="container mx-auto px-4 py-8"
+                ref={contentRef}
+            >
                 {/* Back Button */}
                 <Button
                     variant="ghost"
-                    className="mb-8 font-black gap-2 hover:bg-transparent hover:text-primary transition-all p-0 text-lg group leading-none"
+                    className="group mb-8 gap-2 p-0 text-sm leading-none font-black tracking-widest uppercase transition-all hover:bg-transparent hover:text-[var(--theme-primary)] md:text-lg"
                     onClick={() => window.history.back()}
                 >
-                    <ChevronLeft className="h-6 w-6 transition-transform group-hover:-translate-x-1" />
-                    Volver al catálogo
+                    <ChevronLeft className="h-5 w-5 transition-transform group-hover:-translate-x-1" />
+                    Regresar
                 </Button>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
-
-                    {/* Gallery */}
-                    <div className="lg:col-span-7 space-y-6">
+                <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-20">
+                    {/* Gallery - Circular Style for Restaurant feel */}
+                    <div className="space-y-6 lg:col-span-6">
                         <div
                             ref={imageRef}
-                            className="relative aspect-square md:aspect-[4/3] rounded-[3rem] overflow-hidden bg-muted border-4 border-border/50 shadow-2xl"
+                            className="relative aspect-square overflow-hidden rounded-[3rem] border-8 border-white bg-white shadow-2xl md:rounded-[5rem] dark:border-border/50 dark:bg-card"
                         >
                             <img
                                 src={images[activeImg]}
                                 alt={producto.nombre}
-                                className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                                className="h-full w-full object-cover transition-transform duration-700 hover:scale-110"
                             />
-
-                            {producto.stock <= 5 && (
-                                <div className="absolute top-8 left-8 bg-red-500 text-white px-6 py-2 rounded-full font-black text-xs uppercase shadow-2xl">
-                                    ¡Quedan pocas unidades! ({producto.stock})
-                                </div>
-                            )}
                         </div>
 
                         {images.length > 1 && (
-                            <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
+                            <div className="scrollbar-hide flex justify-center gap-3 overflow-x-auto py-4">
                                 {images.map((img: string, i: number) => (
                                     <button
                                         key={i}
-                                        className={`relative h-28 w-28 flex-shrink-0 rounded-[1.5rem] overflow-hidden border-4 transition-all ${activeImg === i ? 'border-primary ring-4 ring-primary/20' : 'border-transparent opacity-60 hover:opacity-100 hover:scale-105'
-                                            }`}
+                                        className={`relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-4 transition-all md:h-24 md:w-24 ${
+                                            activeImg === i
+                                                ? 'scale-110 border-[var(--theme-primary)] shadow-lg'
+                                                : 'border-white opacity-60 hover:opacity-100 dark:border-border/50'
+                                        }`}
                                         onClick={() => setActiveImg(i)}
                                     >
-                                        <img src={img} alt="" className="w-full h-full object-cover" />
+                                        <img
+                                            src={img}
+                                            alt=""
+                                            className="h-full w-full object-cover"
+                                        />
                                     </button>
                                 ))}
                             </div>
@@ -117,55 +117,60 @@ export default function Show({ producto, sugerencias }: Props) {
                     </div>
 
                     {/* Info */}
-                    <div className="lg:col-span-5 space-y-10">
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-3 animate-in">
-                                <Badge className="rounded-xl font-black uppercase tracking-tighter text-xs px-4 py-1.5 bg-primary/10 text-primary border-none">
+                    <div className="space-y-8 md:space-y-12 lg:col-span-6">
+                        <div className="space-y-4 md:space-y-6">
+                            <div className="flex animate-in items-center gap-3">
+                                <span className="text-[10px] font-black tracking-[0.3em] text-[var(--theme-primary)] uppercase md:text-xs">
                                     {producto.categoria?.nombre_cat}
-                                </Badge>
-                                <div className="h-1.5 w-1.5 rounded-full bg-border" />
-                                <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">
-                                    {producto.marca?.nombre_marca}
                                 </span>
                             </div>
 
-                            <h1 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[0.9] animate-in">
+                            <h1 className="animate-in text-4xl leading-none font-black tracking-tighter uppercase italic md:text-4xl lg:text-5xl">
                                 {producto.nombre}
                             </h1>
 
-                            <div className="flex items-center gap-6 animate-in">
-                                <p className="text-5xl font-black text-primary">
+                            <div className="flex animate-in items-center gap-6">
+                                <p className="text-2xl font-black text-[var(--theme-primary)] italic md:text-4xl">
                                     {formatPrice(producto.precio_1)}
                                 </p>
-                                <div className="flex items-center gap-2 text-green-600 bg-green-50 px-4 py-2 rounded-2xl font-black text-sm">
-                                    <Check className="h-4 w-4" /> En Stock
-                                </div>
                             </div>
                         </div>
 
-                        <p className="text-muted-foreground leading-relaxed text-xl animate-in font-medium">
-                            {producto.caracteristicas || 'Este producto representa la excelencia en nuestra curaduría de tecnología de alto standing.'}
+                        <p className="max-w-xl animate-in text-lg leading-relaxed font-medium text-muted-foreground md:text-2xl">
+                            {producto.caracteristicas ||
+                                'Una explosión de sabores cuidadosamente seleccionados para brindarte una experiencia gastronómica inigualable.'}
                         </p>
 
-                        <Separator className="animate-in h-1 bg-border/50 rounded-full" />
-
-                        <div className="space-y-8 animate-in">
-                            <div className="flex items-center gap-6">
-                                <div className="flex items-center gap-2 bg-muted rounded-[2rem] p-3 border-2 border-border shadow-inner">
+                        <div className="animate-in space-y-8">
+                            <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
+                                <div className="flex items-center justify-between gap-4 rounded-full border-2 border-border bg-muted/50 p-2 shadow-inner">
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-12 w-12 rounded-2xl hover:bg-background shadow-md transition-all active:scale-90"
-                                        onClick={() => setCantidad(Math.max(1, cantidad - 1))}
+                                        className="h-12 w-12 rounded-full shadow-sm transition-all hover:bg-white active:scale-90 dark:hover:bg-card"
+                                        onClick={() =>
+                                            setCantidad(
+                                                Math.max(1, cantidad - 1),
+                                            )
+                                        }
                                     >
                                         <Minus className="h-5 w-5" />
                                     </Button>
-                                    <span className="w-16 text-center text-2xl font-black">{cantidad}</span>
+                                    <span className="w-12 text-center text-xl font-black">
+                                        {cantidad}
+                                    </span>
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-12 w-12 rounded-2xl hover:bg-background shadow-md transition-all active:scale-90"
-                                        onClick={() => setCantidad(Math.min(producto.stock, cantidad + 1))}
+                                        className="h-12 w-12 rounded-full shadow-sm transition-all hover:bg-white active:scale-90 dark:hover:bg-card"
+                                        onClick={() =>
+                                            setCantidad(
+                                                Math.min(
+                                                    producto.stock,
+                                                    cantidad + 1,
+                                                ),
+                                            )
+                                        }
                                     >
                                         <Plus className="h-5 w-5" />
                                     </Button>
@@ -173,26 +178,41 @@ export default function Show({ producto, sugerencias }: Props) {
 
                                 <Button
                                     size="lg"
-                                    className="flex-1 h-20 rounded-[2rem] text-xl font-black gap-4 shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all active:scale-95 group"
+                                    className="group h-16 flex-1 gap-4 rounded-full bg-[var(--theme-primary)] text-lg font-black tracking-widest uppercase shadow-[var(--theme-primary)]/20 shadow-2xl transition-all hover:scale-[1.02] md:h-20 md:text-xl"
                                     onClick={handleAddToCart}
                                 >
-                                    <ShoppingCart className="h-7 w-7 transition-all group-hover:scale-110" />
-                                    Lo quiero ahora
+                                    <ShoppingCart className="h-6 w-6 transition-all group-hover:rotate-12" />
+                                    Añadir al Pedido
                                 </Button>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 {[
-                                    { icon: Truck, label: 'Envío Prioritario', sub: 'Llega en menos de 24h' },
-                                    { icon: ShieldCheck, label: 'Garantía Total', sub: 'Certificado oficial Miracode' },
+                                    {
+                                        icon: Truck,
+                                        label: 'Envios por delivery',
+                                        sub: 'Servicio prioritario',
+                                    },
+                                    {
+                                        icon: ShieldCheck,
+                                        label: 'Calidad',
+                                        sub: 'Ingredientes seleccionados',
+                                    },
                                 ].map((f, i) => (
-                                    <div key={i} className="flex gap-5 p-6 rounded-[2rem] bg-muted/50 border-2 border-border/50 hover:bg-muted transition-colors">
-                                        <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
-                                            <f.icon className="h-7 w-7" />
+                                    <div
+                                        key={i}
+                                        className="group flex items-center gap-4 rounded-[2rem] border-2 border-border/50 bg-card p-5 transition-all hover:border-[var(--theme-primary)]"
+                                    >
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] transition-transform group-hover:scale-110">
+                                            <f.icon className="h-6 w-6" />
                                         </div>
-                                        <div className="flex flex-col justify-center">
-                                            <p className="font-black text-base">{f.label}</p>
-                                            <p className="text-[11px] text-muted-foreground font-black uppercase tracking-tighter opacity-80">{f.sub}</p>
+                                        <div>
+                                            <p className="text-sm font-black tracking-tight uppercase">
+                                                {f.label}
+                                            </p>
+                                            <p className="text-[10px] font-bold tracking-tighter text-muted-foreground uppercase opacity-70">
+                                                {f.sub}
+                                            </p>
                                         </div>
                                     </div>
                                 ))}
@@ -203,13 +223,19 @@ export default function Show({ producto, sugerencias }: Props) {
 
                 {/* Suggestions */}
                 {sugerencias.length > 0 && (
-                    <div className="mt-32 space-y-12">
-                        <div className="flex items-center justify-between border-b-2 border-border/50 pb-8">
-                            <h2 className="text-4xl font-black tracking-tight">Vistos recientemente</h2>
-                            <Button variant="link" className="font-black text-primary text-xl" onClick={() => router.get('/tienda')}>Explorar más</Button>
+                    <div className="mt-32 space-y-16">
+                        <div className="space-y-4 text-center">
+                            <span className="text-xs font-black tracking-[0.4em] text-[var(--theme-primary)] uppercase">
+                                Continuar explorando
+                            </span>
+                            <h2 className="text-4xl font-black tracking-tighter uppercase italic md:text-6xl">
+                                Sugerencias de platos
+                            </h2>
+                            <div className="mx-auto h-1.5 w-24 rounded-full bg-[var(--theme-primary)]" />
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-                            {sugerencias.map((s) => (
+
+                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-8 lg:grid-cols-4">
+                            {sugerencias.slice(0, 4).map((s) => (
                                 <ProductCard key={s.id} producto={s} />
                             ))}
                         </div>
