@@ -6,7 +6,6 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
-    Calendar,
     ChevronRight,
     Clock,
     MapPin,
@@ -217,12 +216,12 @@ export default function Welcome({
                 </section>
 
                 {/* SUGERENCIAS DEL CHEF*/}
-                <section className="animate-on-scroll py-24">
+                <section className="animate-on-scroll py-6">
                     <div className="container mx-auto mb-16 px-6 text-center">
                         <span className="text-sm font-black tracking-[0.3em] text-[var(--theme-primary)] uppercase">
                             Selección Gourmet
                         </span>
-                        <h2 className="mb-6 font-serif text-5xl font-black tracking-tighter uppercase italic md:text-7xl">
+                        <h2 className="mb-6 font-serif text-3xl font-black tracking-tighter uppercase italic md:text-5xl">
                             Sugerencias Chef
                         </h2>
                         <div className="mx-auto h-1.5 w-24 rounded-full bg-[var(--theme-primary)]" />
@@ -305,6 +304,71 @@ export default function Welcome({
                                 <ChevronRight className="size-6" />
                             </Link>
                         </Button>
+                    </div>
+                </section>
+
+                {/* SECCIÓN DE BEBIDAS*/}
+                <section className="animate-on-scroll bg-muted/20 py-6">
+                    <div className="container mx-auto mb-16 px-6 text-center">
+                        <span className="text-sm font-black tracking-[0.3em] text-[var(--theme-primary)] uppercase">
+                            Para Acompañar
+                        </span>
+                        <h2 className="mb-6 font-serif text-3xl font-black tracking-tighter uppercase italic md:text-5xl">
+                            Una gran variedad de Bebidas
+                        </h2>
+                        <div className="mx-auto h-1.5 w-24 rounded-full bg-[var(--theme-primary)]" />
+                    </div>
+
+                    <div className="container mx-auto px-6">
+                        <div className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-5">
+                            {[
+                                {
+                                    name: 'Gaseosas',
+                                    desc: 'Coca-Cola, Pepsi, Fanta',
+                                    image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=2070&auto=format&fit=crop',
+                                },
+                                {
+                                    name: 'Jugos Naturales',
+                                    desc: 'Fruta de Estación',
+                                    image: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?q=80&w=2070&auto=format&fit=crop',
+                                },
+                                {
+                                    name: 'Jarras',
+                                    desc: 'Para Compartir',
+                                    image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?q=80&w=2070&auto=format&fit=crop',
+                                },
+                                {
+                                    name: 'Cervezas',
+                                    desc: 'Huari, Paceña',
+                                    image: 'https://images.unsplash.com/photo-1532635241-17e820acc59f?q=80&w=2070&auto=format&fit=crop',
+                                },
+                                {
+                                    name: 'Otras Bebidas',
+                                    desc: 'Refrescantes',
+                                    image: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=2070&auto=format&fit=crop',
+                                },
+                            ].map((bebida, index) => (
+                                <div
+                                    key={index}
+                                    className="group flex flex-col items-center"
+                                >
+                                    <div className="relative mb-6 aspect-square w-full overflow-hidden rounded-full border-4 border-white shadow-2xl transition-all duration-700 group-hover:scale-105 group-hover:border-[var(--theme-primary)] dark:border-white/10">
+                                        <img
+                                            src={bebida.image}
+                                            alt={bebida.name}
+                                            className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                                    </div>
+                                    <h3 className="mb-1 text-center text-lg font-black tracking-tight uppercase">
+                                        {bebida.name}
+                                    </h3>
+                                    <p className="text-center text-xs font-bold tracking-[0.2em] text-[var(--theme-primary)] uppercase">
+                                        {bebida.desc}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </section>
 
