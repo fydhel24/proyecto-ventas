@@ -35,16 +35,16 @@ class VentaController extends Controller
     {
         $data = $request->validate([
             'cliente_id' => 'required|exists:clientes,id',
-            'tipo_pago' => 'required|string',
-            'monto_total' => 'required|numeric',
-            'descuento' => 'nullable|numeric',
-            'impuesto' => 'nullable|numeric',
-            'pagado' => 'required|numeric',
-            'cambio' => 'required|numeric',
+            'tipo_pago' => 'required|string|in:efectivo,qr',
+            'monto_total' => 'required|numeric|min:0',
+            'descuento' => 'nullable|numeric|min:0',
+            'impuesto' => 'nullable|numeric|min:0',
+            'pagado' => 'required|numeric|min:0',
+            'cambio' => 'required|numeric|min:0',
             'items' => 'required|array|min:1',
             'items.*.producto_id' => 'required|exists:productos,id',
             'items.*.cantidad' => 'required|integer|min:1',
-            'items.*.precio_unitario' => 'required|numeric',
+            'items.*.precio_unitario' => 'required|numeric|min:0',
         ]);
 
         try {
@@ -89,7 +89,7 @@ class VentaController extends Controller
                     'principio_activo' => $p->principio_activo,
                     'concentracion' => $p->concentracion,
                     'precio' => $p->precio_1,
-                    'stock' => $p->stock_total,
+                    'stock' => (int) $p->lotes_sum_stock ?? 0,
                     'categoria' => $p->categoria->nombre_cat ?? 'S/C',
                     'laboratorio' => $p->laboratorio->nombre_lab ?? 'S/L',
                 ];

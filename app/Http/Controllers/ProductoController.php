@@ -311,7 +311,7 @@ private function processPhotos(Producto $producto, array $files): void
     {
         try {
             $producto->update([
-                'estado' => !$producto->estado
+                'estado' => $producto->estado === 'activo' ? 'inactivo' : 'activo'
             ]);
 
             return back()->with('success', 'Estado del producto actualizado correctamente');

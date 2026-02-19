@@ -32,7 +32,15 @@ class ClienteController extends Controller
             'direccion' => 'nullable|string|max:255',
         ]);
 
-        Cliente::create($validated);
+        $cliente = Cliente::create($validated);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'cliente' => $cliente,
+                'message' => 'Cliente registrado'
+            ]);
+        }
 
         return back()->with('success', 'Cliente registrado correctamente');
     }

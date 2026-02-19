@@ -31,6 +31,7 @@ import {
     DialogFooter,
     DialogDescription
 } from '@/components/ui/dialog';
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
     Select,
     SelectContent,
@@ -69,6 +70,16 @@ export default function POS({ clientes, categorias }: any) {
     const [pagado, setPagado] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [activeCategory, setActiveCategory] = useState('0');
+
+    // New Client State
+    const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
+    const [newClient, setNewClient] = useState({
+        nombre: '',
+        nit_ci: '',
+        telefono: '',
+        direccion: ''
+    });
+    const [clientList, setClientList] = useState(clientes);
 
     // Initial & Debounced Search
     useEffect(() => {
@@ -150,18 +161,21 @@ export default function POS({ clientes, categorias }: any) {
         setIsLoading(true);
 
         try {
-            const response = await axios.post('/ventas', {
+            const data = {
                 cliente_id: parseInt(clienteId),
                 tipo_pago: metodoPago,
-                monto_total: total,
-                pagado: pagado || total,
-                cambio: cambio,
+                monto_total: Number(total),
+                pagado: metodoPago === 'efectivo' ? Number(pagado) : Number(total),
+                cambio: metodoPago === 'efectivo' ? Number(cambio) : 0,
                 items: cart.map(item => ({
                     producto_id: item.id,
                     cantidad: item.cantidad,
-                    precio_unitario: item.precio
+                    precio_unitario: Number(item.precio),
+                    subtotal: Number(item.subtotal)
                 }))
-            });
+            };
+
+            const response = await axios.post('/ventas', data);
 
             if (response.data.success) {
                 toast.success("Venta autorizada y procesada");
@@ -173,9 +187,30 @@ export default function POS({ clientes, categorias }: any) {
                 window.open(`/ventas/ticket/${response.data.venta_id}`, '_blank');
             }
         } catch (error: any) {
-            toast.error(error.response?.data?.error || "Error crítico del sistema de ventas");
+            console.error("Error 422 Detection:", error.response?.data);
+            const messages = error.response?.data?.errors
+                ? Object.values(error.response.data.errors).flat().join(", ")
+                : error.response?.data?.error || "Error crítico del sistema de ventas";
+            toast.error(messages);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleCreateClient = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const response = await axios.post('/clientes', newClient);
+            if (response.data.success) {
+                const created = response.data.cliente;
+                setClientList([...clientList, created]);
+                setClienteId(created.id.toString());
+                setIsClientDialogOpen(false);
+                setNewClient({ nombre: '', nit_ci: '', telefono: '', direccion: '' });
+                toast.success("Cliente registrado y seleccionado");
+            }
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Error al registrar cliente");
         }
     };
 
@@ -389,6 +424,10 @@ export default function POS({ clientes, categorias }: any) {
             {/* Checkout Dialog Premium */}
             <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
                 <DialogContent className="sm:max-w-[600px] rounded-[40px] dark:bg-slate-950 border-slate-100 dark:border-slate-900 p-0 overflow-hidden shadow-3xl">
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>Finalización de Venta</DialogTitle>
+                        <DialogDescription>Gestione el método de pago y los detalles del cliente para autorizar el despacho.</DialogDescription>
+                    </DialogHeader>
                     <div className="bg-emerald-600 p-8 text-white relative overflow-hidden">
                         <div className="absolute top-0 right-0 size-40 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
                         <div className="relative z-10 flex items-center gap-6">
@@ -409,16 +448,27 @@ export default function POS({ clientes, categorias }: any) {
                                     <User className="size-3" />
                                     Información del Cliente
                                 </label>
-                                <Select value={clienteId} onValueChange={setClienteId}>
-                                    <SelectTrigger className="h-14 rounded-2xl border-slate-200 dark:border-slate-800 font-bold bg-slate-50 dark:bg-slate-900/50">
-                                        <SelectValue placeholder="Seleccionar cliente" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {clientes.map((c: any) => (
-                                            <SelectItem key={c.id} value={c.id.toString()}>{c.nombre} <span className="text-xs opacity-40 ml-2">ID: {c.nit_ci}</span></SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <div className="flex items-center justify-between gap-2">
+                                    <Select value={clienteId} onValueChange={setClienteId}>
+                                        <SelectTrigger className="h-14 rounded-2xl border-slate-200 dark:border-slate-800 font-bold bg-slate-50 dark:bg-slate-900/50 flex-1">
+                                            <SelectValue placeholder="Seleccionar cliente" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {clientList.map((c: any) => (
+                                                <SelectItem key={c.id} value={c.id.toString()}>{c.nombre} <span className="text-xs opacity-40 ml-2">ID: {c.nit_ci}</span></SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Button
+                                        type="button"
+                                        size="icon"
+                                        variant="outline"
+                                        className="h-14 w-14 rounded-2xl border-emerald-500/20 text-emerald-500 hover:bg-emerald-50/50"
+                                        onClick={() => setIsClientDialogOpen(true)}
+                                    >
+                                        <Plus className="size-6" />
+                                    </Button>
+                                </div>
                             </div>
 
                             <div className="space-y-3">
@@ -519,6 +569,62 @@ export default function POS({ clientes, categorias }: any) {
                             </Button>
                         </div>
                     </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Quick Create Client Dialog */}
+            <Dialog open={isClientDialogOpen} onOpenChange={setIsClientDialogOpen}>
+                <DialogContent className="sm:max-w-[425px] rounded-[30px] p-0 overflow-hidden border-none shadow-2xl">
+                    <DialogHeader className="p-8 bg-slate-900 text-white">
+                        <DialogTitle className="text-2xl font-black tracking-tight">Registro Rápido</DialogTitle>
+                        <DialogDescription className="text-slate-400">Ingrese los datos para autorizar un nuevo cliente en el sistema.</DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleCreateClient} className="p-8 space-y-4 bg-white dark:bg-slate-950">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nombre / Razon Social</label>
+                            <Input
+                                required
+                                value={newClient.nombre}
+                                onChange={e => setNewClient({ ...newClient, nombre: e.target.value })}
+                                className="h-12 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800"
+                                placeholder="Ej: Juan Perez"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">NIT / CI</label>
+                            <Input
+                                required
+                                value={newClient.nit_ci}
+                                onChange={e => setNewClient({ ...newClient, nit_ci: e.target.value })}
+                                className="h-12 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800"
+                                placeholder="Ej: 1234567"
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Teléfono</label>
+                                <Input
+                                    value={newClient.telefono}
+                                    onChange={e => setNewClient({ ...newClient, telefono: e.target.value })}
+                                    className="h-12 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800"
+                                    placeholder="Opcional"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Dirección</label>
+                                <Input
+                                    value={newClient.direccion}
+                                    onChange={e => setNewClient({ ...newClient, direccion: e.target.value })}
+                                    className="h-12 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800"
+                                    placeholder="Opcional"
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter className="pt-6">
+                            <Button type="button" variant="ghost" onClick={() => setIsClientDialogOpen(false)} className="rounded-xl font-bold">CANCELAR</Button>
+                            <Button type="submit" className="rounded-xl font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20">REGISTRAR CLIENTE</Button>
+                        </DialogFooter>
+                    </form>
                 </DialogContent>
             </Dialog>
         </AppLayout>
