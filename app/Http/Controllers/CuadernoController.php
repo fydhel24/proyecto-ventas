@@ -118,7 +118,7 @@ class CuadernoController extends Controller
                                     break;
                             }
                         })
-                        ->select('id', 'nombre', 'ci', 'celular', 'departamento', 'provincia', 'tipo', 'estado', 'detalle', 'la_paz', 'enviado', 'p_listo', 'p_pendiente', 'created_at')
+                        ->select('id', 'nombre', 'ci', 'celular', 'departamento', 'provincia', 'tipo', 'estado', 'detalle', 'la_paz', 'enviado', 'p_listo', 'p_pendiente', 'monto_total', 'created_at')
                         ->orderBy('created_at', 'desc');
 
                     // Ejecutar paginación dentro del try
@@ -383,7 +383,10 @@ public function storePublic(Request $request)
 {
     $request->validate([
         'nombre' => 'required|string|max:255',
+        'ci' => 'nullable|string|max:20',
         'celular' => 'required|string|max:20',
+        'departamento' => 'nullable|string|max:100',
+        'provincia' => 'nullable|string|max:100',
         'detalle' => 'nullable|string',
         'productos' => 'nullable|array',
         'delivery' => 'nullable|boolean',
@@ -394,12 +397,13 @@ public function storePublic(Request $request)
 
         $cuaderno = Cuaderno::create([
             'nombre' => $request->nombre,
+            'ci' => $request->ci,
             'celular' => $request->celular,
             'detalle' => $request->detalle,
             'tipo' => 'Reserva Web',
             'estado' => 'pendiente',
-            'departamento' => $request->delivery ? 'Delivery' : 'Tienda',
-            'provincia' => 'Reserva Online',
+            'departamento' => $request->departamento ?? ($request->delivery ? 'Delivery' : 'Tienda'),
+            'provincia' => $request->provincia ?? 'Reserva Online',
             'p_pendiente' => true,
         ]);
 
@@ -425,19 +429,36 @@ public function storePublic(Request $request)
 
         DB::commit();
 
-        return response()->json([
-            'success' => true,
-            'message' => '¡Reserva Registrada Exitosamente! Nos contactaremos contigo pronto. 💖',
-            'reserva_id' => $cuaderno->id
-        ]);
+        // Generar PDF para la reserva
+        try {
+            $pdfPath = $this->guardarPdfDePedido($cuaderno->id);
+            $pdfUrl = Storage::disk('public')->url($pdfPath);
+            
+            // Intentar WhatsApp si está conectado
+            $whatsappToken = $this->getWhatsAppTokenIfConnected();
+            $whatsappEnviado = false;
+            if ($whatsappToken) {
+                $whatsappEnviado = $this->enviarPdfPorNestApiConToken($cuaderno->id, $cuaderno->celular, $whatsappToken);
+            }
+
+            $responseParams = [
+                'success' => true,
+                'message' => '¡Reserva Registrada Exitosamente! Nos contactaremos contigo pronto. 💖',
+                'reserva_id' => $cuaderno->id,
+                'pdf_url' => $pdfUrl,
+                'whatsapp_enviado' => $whatsappEnviado
+            ];
+
+            return redirect()->back()->with($responseParams);
+        } catch (\Exception $pdfError) {
+            \Log::error('Error al generar PDF en reserva pública: ' . $pdfError->getMessage());
+            return redirect()->back()->with('success', '¡Reserva Registrada Exitosamente! Nos contactaremos contigo pronto. 💖');
+        }
 
     } catch (\Exception $e) {
         DB::rollBack();
         \Log::error('Error en storePublic: ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'Hubo un error al procesar tu reserva.'
-        ], 500);
+        return redirect()->back()->with('error', 'Hubo un error al procesar tu reserva.');
     }
 }
 

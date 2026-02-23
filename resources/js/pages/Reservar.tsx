@@ -3,7 +3,7 @@ import { Head, Link, usePage, router } from '@inertiajs/react';
 import {
     Smile, ShoppingBag, User, Phone, MapPin,
     Calendar, CheckCircle2, ChevronLeft, Truck, Package,
-    ArrowRight, MessageCircle, Heart
+    ArrowRight, MessageCircle, Heart, ShieldCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,10 @@ export default function Reservar() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         nombre: '',
+        ci: '',
         celular: '',
+        departamento: 'La Paz',
+        provincia: '',
         detalle: '',
         delivery: false
     });
@@ -42,41 +45,34 @@ export default function Reservar() {
         }
 
         setIsSubmitting(true);
-        try {
-            // Send reservation to backend
-            const response = await fetch('/cuadernos/reservas-publicas', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
-                },
-                body: JSON.stringify({
-                    ...formData,
-                    productos: items.map(i => ({
-                        id: i.id,
-                        cantidad: i.cantidad,
-                        precio_venta: i.precio
-                    }))
-                })
-            });
 
-            const data = await response.json();
-
-            if (data.success) {
-                toast.success(data.message);
+        router.post('/cuadernos/reservas-publicas', {
+            ...formData,
+            productos: items.map(i => ({
+                id: i.id,
+                cantidad: i.cantidad,
+                precio_venta: i.precio
+            }))
+        }, {
+            onSuccess: (page) => {
+                const flash = (page.props as any).flash;
+                if (flash?.success) {
+                    toast.success(flash.success);
+                } else {
+                    toast.success("¡Reserva Registrada Exitosamente! Nos contactaremos contigo pronto. 💖");
+                }
                 clearCart();
-                // Redirect to a success state or home
-                setTimeout(() => {
-                    router.visit('/');
-                }, 2000);
-            } else {
-                toast.error(data.message);
+                setTimeout(() => router.visit('/'), 2000);
+            },
+            onError: (errors) => {
+                const firstError = Object.values(errors)[0];
+                toast.error(typeof firstError === 'string' ? firstError : "Error al registrar la reserva.");
+                setIsSubmitting(false);
+            },
+            onFinish: () => {
+                // We keep submitting true if success to avoid re-clicks while redirecting
             }
-        } catch (error) {
-            toast.error("Error al registrar la reserva. Intenta de nuevo.");
-        } finally {
-            setIsSubmitting(false);
-        }
+        });
     };
 
     if (items.length === 0) {
@@ -197,34 +193,77 @@ export default function Reservar() {
                             </div>
 
                             <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">¿A nombre de quién?</label>
-                                    <div className="relative">
-                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-slate-300" />
-                                        <Input
-                                            placeholder="Tu nombre completo"
-                                            className="h-16 pl-12 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none font-bold text-lg focus-visible:ring-2 focus-visible:ring-emerald-400"
-                                            value={formData.nombre}
-                                            onChange={e => setFormData({ ...formData, nombre: e.target.value })}
-                                            required
-                                        />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">¿A nombre de quién?</label>
+                                        <div className="relative">
+                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-slate-300" />
+                                            <Input
+                                                placeholder="Tu nombre completo"
+                                                className="h-16 pl-12 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none font-bold text-lg focus-visible:ring-2 focus-visible:ring-emerald-400"
+                                                value={formData.nombre}
+                                                onChange={e => setFormData({ ...formData, nombre: e.target.value })}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">C.I. / Documento</label>
+                                        <div className="relative">
+                                            <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-slate-300" />
+                                            <Input
+                                                placeholder="Tu número de C.I."
+                                                className="h-16 pl-12 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none font-bold text-lg focus-visible:ring-2 focus-visible:ring-emerald-400"
+                                                value={formData.ci}
+                                                onChange={e => setFormData({ ...formData, ci: e.target.value })}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">WhatsApp de contacto</label>
-                                    <div className="relative">
-                                        <MessageCircle className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-emerald-400 fill-emerald-400/10" />
-                                        <Input
-                                            placeholder="Ej. 78945612"
-                                            className="h-16 pl-12 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none font-bold text-lg focus-visible:ring-2 focus-visible:ring-emerald-400"
-                                            value={formData.celular}
-                                            onChange={e => setFormData({ ...formData, celular: e.target.value })}
-                                            required
-                                        />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">WhatsApp de contacto</label>
+                                        <div className="relative">
+                                            <MessageCircle className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-emerald-400 fill-emerald-400/10" />
+                                            <Input
+                                                placeholder="Ej. 78945612"
+                                                className="h-16 pl-12 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none font-bold text-lg focus-visible:ring-2 focus-visible:ring-emerald-400"
+                                                value={formData.celular}
+                                                onChange={e => setFormData({ ...formData, celular: e.target.value })}
+                                                required
+                                            />
+                                        </div>
                                     </div>
-                                    <p className="text-[10px] text-slate-400 font-bold ml-2">Te escribiremos por aquí para confirmar tu pedido 📱</p>
+
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">Departamento / Ciudad</label>
+                                        <div className="relative">
+                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-rose-400" />
+                                            <Input
+                                                placeholder="Ej. La Paz"
+                                                className="h-16 pl-12 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none font-bold text-lg focus-visible:ring-2 focus-visible:ring-emerald-400"
+                                                value={formData.departamento}
+                                                onChange={e => setFormData({ ...formData, departamento: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">Ciudad / Provincia</label>
+                                        <div className="relative">
+                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-rose-400" />
+                                            <Input
+                                                placeholder="Ej. Murillo"
+                                                className="h-16 pl-12 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none font-bold text-lg focus-visible:ring-2 focus-visible:ring-emerald-400"
+                                                value={formData.provincia}
+                                                onChange={e => setFormData({ ...formData, provincia: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
+                                <p className="text-[10px] text-slate-400 font-bold ml-2 -mt-4">Te escribiremos por aquí para confirmar tu pedido 📱</p>
 
                                 <div className="space-y-2">
                                     <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">Instrucciones extra</label>

@@ -98,6 +98,7 @@ interface Cuaderno {
     enviado: boolean;
     p_listo: boolean;
     p_pendiente: boolean;
+    monto_total: string | number | null;
     created_at: string;
     productos: Producto[];
     imagenes?: Imagen[];
@@ -316,7 +317,20 @@ export default function CuadernosIndex({
                 id: 'id',
                 header: 'ID',
                 accessorFn: (row) => row.id,
-                cell: ({ getValue }) => <div className="font-medium text-muted-foreground text-xs">#{getValue<number>()}</div>,
+                cell: ({ row }) => {
+                    const item = row.original;
+                    return (
+                        <div className="flex flex-col gap-1">
+                            <div className="font-medium text-muted-foreground text-xs">#{item.id}</div>
+                            {item.tipo === 'Reserva Web' && (
+                                <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[9px] px-1 py-0 h-4 w-fit font-black uppercase">Web</Badge>
+                            )}
+                            {item.tipo === 'Pedido' && (
+                                <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[9px] px-1 py-0 h-4 w-fit font-black uppercase">Pedido</Badge>
+                            )}
+                        </div>
+                    );
+                },
             },
             {
                 id: 'flags',
@@ -425,6 +439,12 @@ export default function CuadernosIndex({
                                     onKeyDown={meta?.handleKeyDown}
                                 />
                             </div>
+                            {item.monto_total && (
+                                <div className="mt-1 px-2 py-1 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-between">
+                                    <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase">Total:</span>
+                                    <span className="text-xs font-black text-emerald-700 dark:text-emerald-300">{item.monto_total} Bs</span>
+                                </div>
+                            )}
                         </div>
                     );
                 },
