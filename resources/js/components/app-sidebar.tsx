@@ -69,11 +69,17 @@ const mainNavItems: NavItem[] = [
                 icon: List,
             },
             {
-                title: 'Reservas',
+                title: 'Ventas Especiales',
                 href: '/reservas',
                 icon: CalendarClock,
             }
         ],
+    },
+    {
+        title: 'Cuaderno',
+        href: '/cuadernos',
+        icon: FileText,
+        permission: 'ver ventas',
     },
     {
         title: 'Inventario',

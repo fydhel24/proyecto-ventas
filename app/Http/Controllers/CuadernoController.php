@@ -368,6 +368,64 @@ public function pedidos(Request $request)
     }
 }
 
+/**
+ * Almacena una reserva pública desde la página de inicio o medicamentos.
+ */
+public function storePublic(Request $request)
+{
+    $request->validate([
+        'nombre' => 'required|string|max:255',
+        'celular' => 'required|string|max:20',
+        'detalle' => 'nullable|string',
+        'productos' => 'nullable|array',
+        'delivery' => 'nullable|boolean',
+    ]);
+
+    try {
+        DB::beginTransaction();
+
+        $cuaderno = Cuaderno::create([
+            'nombre' => $request->nombre,
+            'celular' => $request->celular,
+            'detalle' => $request->detalle,
+            'tipo' => 'Reserva Web',
+            'estado' => 'pendiente',
+            'departamento' => $request->delivery ? 'Delivery' : 'Tienda',
+            'provincia' => 'Reserva Online',
+            'p_pendiente' => true,
+        ]);
+
+        if ($request->has('productos')) {
+            $productosData = [];
+            foreach ($request->productos as $item) {
+                // Para reservas web, no descontamos stock automáticamente hasta que sea confirmada
+                // pero capturamos el precio_venta actual si se provee
+                $productosData[$item['id']] = [
+                    'cantidad' => $item['cantidad'] ?? 1,
+                    'precio_venta' => $item['precio_venta'] ?? 0,
+                ];
+            }
+            $cuaderno->productos()->attach($productosData);
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => '¡Reserva recibida! Nos pondremos en contacto contigo pronto.',
+            'reserva_id' => $cuaderno->id
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Error en storePublic: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Hubo un error al procesar tu reserva.'
+        ], 500);
+    }
+}
+
     public function qrDetails(Request $request)
     {
         // If no parameters are provided, just render the component in "Scanner" mode

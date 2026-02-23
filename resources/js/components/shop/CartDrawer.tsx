@@ -135,17 +135,25 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                             <span>Total</span>
                             <span className="text-primary">{formatPrice(subtotal)}</span>
                         </div>
-                        <SheetFooter className="mt-4 flex-col gap-2 sm:flex-col">
-                            <Button size="lg" className="w-full text-lg font-bold" asChild onClick={() => onOpenChange(false)}>
-                                <Link href="/tienda/checkout">Finalizar Pedido</Link>
-                            </Button>
+                        <SheetFooter className="mt-4 flex-col gap-3 sm:flex-col">
                             <Button
-                                variant="outline"
                                 size="lg"
-                                className="w-full font-semibold"
+                                className="w-full text-xl h-16 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black shadow-[0_6px_0_rgb(5,150,105)] border-b-4 border-emerald-700 hover:translate-y-1 active:translate-y-1.5 transition-all"
+                                asChild
                                 onClick={() => onOpenChange(false)}
                             >
-                                Continuar Comprando
+                                <Link href={`/?reserva=${encodeURIComponent(items.map(i => `${i.cantidad}x ${i.nombre}`).join(', '))}#reservas`}>
+                                    FINALIZAR MI RESERVA 💖
+                                </Link>
+                            </Button>
+
+                            <Button
+                                variant="ghost"
+                                size="lg"
+                                className="w-full font-bold text-slate-400 hover:text-rose-500"
+                                onClick={() => onOpenChange(false)}
+                            >
+                                Seguir comprando...
                             </Button>
                         </SheetFooter>
                     </div>

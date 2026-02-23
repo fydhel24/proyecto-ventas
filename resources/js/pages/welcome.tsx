@@ -3,7 +3,8 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import {
     Activity, Clock, MapPin, MessageCircle, Pill,
     Search, ShieldCheck, HeartPulse, ShoppingCart,
-    CheckCircle2, Star, Sparkles, Smile, Baby, Stethoscope, Heart
+    CheckCircle2, Star, Sparkles, Smile, Baby, Stethoscope, Heart,
+    Truck, Store, Info, Phone, Calendar
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +12,9 @@ import { Input } from '@/components/ui/input';
 import { ColorThemeSelector } from '@/components/color-theme-selector';
 import { useCart } from '@/hooks/use-cart';
 import { CartDrawer } from '@/components/shop/CartDrawer';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
+import { router } from '@inertiajs/react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -22,6 +26,31 @@ export default function Welcome({ productos, categorias, laboratorios }: any) {
 
     // State
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [reservaForm, setReservaForm] = useState({
+        nombre: '',
+        celular: '',
+        detalle: '',
+        delivery: false
+    });
+
+    // Check for pre-filled reservation from query params
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const reservaProduct = params.get('reserva');
+        if (reservaProduct) {
+            setReservaForm(prev => ({
+                ...prev,
+                detalle: `Deseo reservar: ${reservaProduct}. `
+            }));
+
+            // Scroll to reservations section
+            const element = document.getElementById('reservas');
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    }, []);
 
     // Refs for animations
     const heroRef = useRef(null);
@@ -81,6 +110,38 @@ export default function Welcome({ productos, categorias, laboratorios }: any) {
         window.open(`https://wa.me/59122441122?text=${encodeURIComponent(message)}`, "_blank");
     };
 
+    const handleReserva = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!reservaForm.nombre || !reservaForm.celular) {
+            toast.error("Por favor completa tu nombre y celular para contactarte.");
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const response = await fetch('/cuadernos/reservas-publicas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+                },
+                body: JSON.stringify(reservaForm)
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                toast.success(data.message);
+                setReservaForm({ nombre: '', celular: '', detalle: '', delivery: false });
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            toast.error("Error al enviar la reserva.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-[#F0FDF4] dark:bg-[#022C22] text-foreground transition-colors duration-500 font-sans overflow-x-hidden selection:bg-emerald-300">
             <Head title="Nexus Farma - ¡Tu Farmacia Feliz!" />
@@ -103,7 +164,25 @@ export default function Welcome({ productos, categorias, laboratorios }: any) {
                         <Link href="/medicamentos" className="text-base font-black text-slate-500 hover:text-emerald-500 hover:-translate-y-1 transition-all">
                             Medicamentos
                         </Link>
-                        <a href="#ayuda" className="text-base font-black text-slate-500 hover:text-emerald-500 hover:-translate-y-1 transition-all">Ayuda</a>
+                        <a href="#reservas" className="text-base font-black text-slate-500 hover:text-emerald-500 hover:-translate-y-1 transition-all">Reservas</a>
+
+                        {auth.user ? (
+                            <Link
+                                href="/dashboard"
+                                className="text-sm font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-2 rounded-xl border border-emerald-100 dark:border-emerald-800 hover:scale-105 transition-all flex items-center gap-2"
+                            >
+                                <Activity className="size-4" />
+                                PANEL DE CONTROL
+                            </Link>
+                        ) : (
+                            <Link
+                                href="/login"
+                                className="text-sm font-black text-slate-500 hover:text-emerald-500 hover:-translate-y-1 transition-all flex items-center gap-2"
+                            >
+                                <ShieldCheck className="size-4" />
+                                INGRESAR
+                            </Link>
+                        )}
                     </nav>
 
                     <div className="flex items-center gap-3">
@@ -214,6 +293,141 @@ export default function Welcome({ productos, categorias, laboratorios }: any) {
                                             <p className="font-black text-sm leading-tight text-slate-800 dark:text-white">Amor & Cuidado</p>
                                             <p className="text-xs font-bold text-slate-500">24 horas</p>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* PHARMACY SERVICES MINI-BAR */}
+                <section className="container mx-auto px-6 -mt-10 relative z-20">
+                    <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {[
+                            { icon: <Clock className="size-6" />, label: "Abierto 24/7", desc: "Turno permanente", color: "bg-emerald-500" },
+                            { icon: <Truck className="size-6" />, label: "Envío Veloz", desc: "Toda la ciudad", color: "bg-orange-500" },
+                            { icon: <Store className="size-6" />, label: "3 Sucursales", desc: "Cerca de ti", color: "bg-blue-500" },
+                            { icon: <ShieldCheck className="size-6" />, label: "Certificados", desc: "Garantía total", color: "bg-rose-500" }
+                        ].map((srv, i) => (
+                            <div key={i} className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] shadow-xl border-4 border-slate-50 dark:border-slate-800 hover:-translate-y-2 transition-all group">
+                                <div className={`size-12 rounded-2xl ${srv.color} text-white flex items-center justify-center mb-4 group-hover:rotate-12 transition-transform shadow-lg`}>
+                                    {srv.icon}
+                                </div>
+                                <h4 className="font-black text-slate-800 dark:text-white leading-none mb-1">{srv.label}</h4>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{srv.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* RESERVATIONS & LOCATIONS */}
+                <section id="reservas" className="py-20 scroll-bounce">
+                    <div className="container mx-auto px-6 max-w-7xl">
+                        <div className="grid lg:grid-cols-5 gap-8">
+                            {/* RESERVATION FORM */}
+                            <div className="lg:col-span-3 bg-white dark:bg-slate-800 rounded-[3rem] p-8 md:p-12 shadow-2xl border-4 border-emerald-100 dark:border-emerald-900/30 relative overflow-hidden">
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-4 mb-8">
+                                        <div className="size-16 bg-emerald-100 dark:bg-emerald-950 rounded-[1.5rem] flex items-center justify-center text-emerald-600">
+                                            <Calendar className="size-8" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter">Reserva tu Medicamento</h3>
+                                            <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Asegura tu salud antes de que se agote</p>
+                                        </div>
+                                    </div>
+
+                                    <form onSubmit={handleReserva} className="space-y-6">
+                                        <div className="grid md:grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                                    <Info className="size-3" /> Tu Nombre Completo
+                                                </label>
+                                                <Input
+                                                    placeholder="Ej. Maria Lopez"
+                                                    className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-bold"
+                                                    value={reservaForm.nombre}
+                                                    onChange={e => setReservaForm({ ...reservaForm, nombre: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                                    <Phone className="size-3" /> WhatsApp de Contacto
+                                                </label>
+                                                <Input
+                                                    placeholder="Ej. 78945612"
+                                                    className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-bold"
+                                                    value={reservaForm.celular}
+                                                    onChange={e => setReservaForm({ ...reservaForm, celular: e.target.value })}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                                <Pill className="size-3" /> ¿Qué necesitas reservar?
+                                            </label>
+                                            <Textarea
+                                                placeholder="Escribe los nombres de los medicamentos y cualquier detalle especial (ej. 'lo recojo por la tarde')"
+                                                className="min-h-[120px] rounded-3xl bg-slate-50 dark:bg-slate-900 border-none font-bold p-6"
+                                                value={reservaForm.detalle}
+                                                onChange={e => setReservaForm({ ...reservaForm, detalle: e.target.value })}
+                                            />
+                                        </div>
+
+                                        <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl">
+                                            <input
+                                                type="checkbox"
+                                                id="delivery"
+                                                className="size-5 rounded-lg border-2 border-emerald-500"
+                                                checked={reservaForm.delivery}
+                                                onChange={e => setReservaForm({ ...reservaForm, delivery: e.target.checked })}
+                                            />
+                                            <label htmlFor="delivery" className="text-sm font-black text-slate-600 dark:text-slate-300">¡Necesito envío a domicilio (Delivery)! 🛵</label>
+                                        </div>
+
+                                        <Button
+                                            disabled={isSubmitting}
+                                            className="w-full h-16 rounded-[2rem] bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xl shadow-[0_8px_0_rgb(4,120,87)] border-b-4 border-emerald-700 hover:translate-y-1 active:translate-y-2 transition-all"
+                                        >
+                                            {isSubmitting ? 'PROCESANDO...' : 'RESERVAR AHORA 💖'}
+                                        </Button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            {/* BRANCHES LIST */}
+                            <div className="lg:col-span-2 space-y-6">
+                                <div className="bg-orange-500 rounded-[3rem] p-8 text-white relative overflow-hidden shadow-2xl h-full flex flex-col">
+                                    <div className="absolute -bottom-10 -right-10 size-40 bg-white/10 rounded-full blur-3xl" />
+                                    <div className="relative z-10 flex-1">
+                                        <div className="flex items-center gap-4 mb-8">
+                                            <div className="size-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                                                <MapPin className="size-8" />
+                                            </div>
+                                            <h3 className="text-2xl font-black italic tracking-tighter">Nuestras Casas</h3>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            {[
+                                                { name: "Nexus Central", addr: "Av. Principal esq. Calle 5, El Alto", time: "24 Horas" },
+                                                { name: "Nexus Norte", addr: "Calle Comercial Nro 45, La Paz", time: "08:00 - 22:00" },
+                                                { name: "Nexus Sur", addr: "Plaza Abaroa Edif. Salud, La Paz", time: "08:00 - 20:00" }
+                                            ].map((loc, i) => (
+                                                <div key={i} className="bg-white/10 backdrop-blur-sm p-5 rounded-2xl border border-white/20 hover:bg-white/20 cursor-pointer transition-all">
+                                                    <h5 className="font-black text-lg">{loc.name}</h5>
+                                                    <p className="text-[10px] font-bold opacity-80 uppercase mb-2">{loc.addr}</p>
+                                                    <div className="flex items-center justify-between">
+                                                        <Badge variant="outline" className="text-white border-white/30 text-[10px]">{loc.time}</Badge>
+                                                        <span className="text-[10px] font-black underline underline-offset-4">Ver en Mapa</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-8 pt-8 border-t border-white/20">
+                                        <p className="text-xs font-bold opacity-80 text-center uppercase tracking-[0.2em]">Más de 10 años cuidando de ti</p>
                                     </div>
                                 </div>
                             </div>

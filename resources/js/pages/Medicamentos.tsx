@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
 import {
     Activity, Clock, MapPin, MessageCircle, Pill,
     Search, ShieldCheck, HeartPulse, ShoppingCart,
@@ -29,13 +29,18 @@ export default function Medicamentos({ productos, categorias }: any) {
 
     useEffect(() => {
         let ctx = gsap.context(() => {
+            // First ensure everything is visible in case of previous stuck animations
+            gsap.set(".prod-card", { opacity: 1, y: 0, scale: 1 });
+
+            // Then animate in from a safe state
             gsap.from(".prod-card", {
-                y: 50,
-                scale: 0.8,
+                y: 30,
+                scale: 0.95,
                 opacity: 0,
-                duration: 0.8,
-                stagger: 0.1,
-                ease: "back.out(1.7)"
+                duration: 0.5,
+                stagger: 0.05,
+                ease: "power2.out",
+                clearProps: "all" // Important: clear properties after animation
             });
         });
 
@@ -84,6 +89,12 @@ export default function Medicamentos({ productos, categorias }: any) {
         window.open(`https://wa.me/59122441122?text=${encodeURIComponent(message)}`, "_blank");
     };
 
+    const handleReservaClick = (prod: any) => {
+        // Redirigir a la página principal a la sección de reservas con el producto pre-identificado
+        const url = `/?reserva=${encodeURIComponent(prod.nombre)}#reservas`;
+        router.visit(url);
+    };
+
     const quickCategories = categorias?.slice(0, 6) || [];
 
     return (
@@ -104,9 +115,29 @@ export default function Medicamentos({ productos, categorias }: any) {
                     </Link>
 
                     <nav className="hidden md:flex items-center gap-6">
+                        <Link href="/#nosotros" className="text-base font-black text-slate-500 hover:text-emerald-500 hover:-translate-y-1 transition-all">Nosotros</Link>
                         <Link href="/medicamentos" className="text-base font-black text-emerald-500 hover:-translate-y-1 transition-all">
                             Medicamentos
                         </Link>
+                        <Link href="/#reservas" className="text-base font-black text-slate-500 hover:text-emerald-500 hover:-translate-y-1 transition-all">Reservas</Link>
+
+                        {auth.user ? (
+                            <Link
+                                href="/dashboard"
+                                className="text-sm font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-2 rounded-xl border border-emerald-100 dark:border-emerald-800 hover:scale-105 transition-all flex items-center gap-2"
+                            >
+                                <Activity className="size-4" />
+                                PANEL DE CONTROL
+                            </Link>
+                        ) : (
+                            <Link
+                                href="/login"
+                                className="text-sm font-black text-slate-500 hover:text-emerald-500 hover:-translate-y-1 transition-all flex items-center gap-2"
+                            >
+                                <ShieldCheck className="size-4" />
+                                INGRESAR
+                            </Link>
+                        )}
                     </nav>
 
                     <div className="flex items-center gap-3">
@@ -217,7 +248,15 @@ export default function Medicamentos({ productos, categorias }: any) {
                                             <p className="text-sm font-bold text-slate-400 line-clamp-1 mb-4">{prod.principio_activo || "Sano y seguro"}</p>
 
                                             <div className="mt-auto flex items-center justify-between gap-2 pt-4 border-t-2 border-slate-100 dark:border-slate-700">
-                                                <span className="text-2xl font-black text-slate-900 dark:text-white">{Number(prod.precio_venta).toFixed(1)} <span className="text-sm text-slate-500">Bs</span></span>
+                                                <div className="flex flex-col items-start">
+                                                    <span className="text-2xl font-black text-slate-900 dark:text-white">{Number(prod.precio_venta).toFixed(1)} <span className="text-sm text-slate-500">Bs</span></span>
+                                                    <button
+                                                        onClick={() => handleReservaClick(prod)}
+                                                        className="text-[10px] font-black text-emerald-500 hover:underline uppercase tracking-widest mt-1"
+                                                    >
+                                                        O Reservar →
+                                                    </button>
+                                                </div>
                                                 <Button
                                                     size="icon"
                                                     className="size-12 rounded-[1rem] bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/30 hover:scale-110 active:scale-95 transition-transform shrink-0"

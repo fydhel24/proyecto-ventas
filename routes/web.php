@@ -44,6 +44,8 @@ Route::prefix('tienda')->group(function () {
 });
 
 Route::post('/cuadernos/pedidos', [CuadernoController::class, 'pedidos'])->name('cuadernos.pedidos');
+Route::get('/reservar', [CuadernoController::class, 'publicReservationPage'])->name('public.reservar');
+Route::post('/cuadernos/reservas-publicas', [CuadernoController::class, 'storePublic'])->name('cuadernos.storePublic');
 
 // ===========================
 // RUTAS AUTENTICADAS
