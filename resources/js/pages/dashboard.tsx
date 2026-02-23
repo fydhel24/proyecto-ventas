@@ -1,19 +1,51 @@
-"use client";
+'use client';
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, ChartStyle } from '@/components/ui/chart';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import AppLogo from '@/components/app-logo';
 import { ColorThemeSelector } from '@/components/color-theme-selector';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import {
+    ChartConfig,
+    ChartContainer,
+    ChartStyle,
+    ChartTooltip,
+    ChartTooltipContent,
+} from '@/components/ui/chart';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
-import { type BreadcrumbItem } from '@/types';
+import { SharedData, type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
-import { SharedData } from '@/types';
+import { AlertCircle, Package, ShoppingCart, TrendingUp } from 'lucide-react';
 import * as React from 'react';
-import AppLogo from '@/components/app-logo';
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Label, LabelList, Line, LineChart, Pie, PieChart, ResponsiveContainer, Sector, XAxis, YAxis } from 'recharts';
-import { type PieSectorDataItem } from "recharts/types/polar/Pie";
-import { Package, ShoppingCart, AlertCircle, MessageSquare, TrendingUp } from 'lucide-react';
+import {
+    Area,
+    AreaChart,
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Cell,
+    Label,
+    LabelList,
+    Pie,
+    PieChart,
+    Sector,
+    XAxis,
+    YAxis,
+} from 'recharts';
+import { type PieSectorDataItem } from 'recharts/types/polar/Pie';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -24,87 +56,70 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface DashboardProps {
     stats: {
+        ventasHoy: number;
+        mesasOcupadas: number;
+        comandasPendientes: number;
         totalProductos: number;
-        totalPedidos: number;
-        pedidosHoy: number;
-        stockBajo: number;
-        statusDistribution: Array<{ status: string; count: number; fill: string }>;
-        ordersOverTime: Array<{ date: string; count: number }>;
+        topPlatillos: Array<{ nombre_pro: string; total_vendido: number }>;
+        weeklyRevenue: Array<{ date: string; revenue: number }>;
+        statusDistribution: Array<{
+            status: string;
+            count: number;
+            fill: string;
+        }>;
         productsByCategory: Array<{ category: string; count: number }>;
-        whatsappStats: Array<{ day: string; enviados: number; fallidos: number }>;
     };
 }
 
 const statusChartConfig = {
     count: {
-        label: "Pedidos",
-    },
-    la_paz: {
-        label: "La Paz",
-        color: "var(--chart-1)",
-    },
-    enviado: {
-        label: "Enviado",
-        color: "var(--chart-2)",
-    },
-    listo: {
-        label: "Listo",
-        color: "var(--chart-3)",
+        label: 'Pedidos',
     },
     pendiente: {
-        label: "Pendiente",
-        color: "var(--chart-4)",
+        label: 'Pendiente',
+        color: 'var(--chart-4)',
+    },
+    en_cocina: {
+        label: 'En Cocina',
+        color: 'var(--chart-1)',
+    },
+    listo: {
+        label: 'Listo',
+        color: 'var(--chart-3)',
+    },
+    entregado: {
+        label: 'Entregado',
+        color: 'var(--chart-2)',
     },
 } satisfies ChartConfig;
 
-const categoryChartConfig = {
-    count: {
-        label: "Productos",
-    },
-    // We'll map these dynamically or use standard keys
-} as ChartConfig;
-
-const ordersChartConfig = {
-    count: {
-        label: "Pedidos",
-        color: "var(--chart-2)",
+const revenueChartConfig = {
+    revenue: {
+        label: 'Ingresos',
+        color: 'var(--chart-2)',
     },
 } satisfies ChartConfig;
 
-const whatsappChartConfig = {
-    enviados: {
-        label: "Enviados",
-        color: "var(--chart-1)",
-    },
-    fallidos: {
-        label: "Fallidos",
-        color: "var(--chart-5)",
+const topDishesChartConfig = {
+    total_vendido: {
+        label: 'Vendido',
+        color: 'var(--chart-1)',
     },
 } satisfies ChartConfig;
 
 export default function Dashboard({ stats }: DashboardProps) {
-    const [timeRange, setTimeRange] = React.useState("30d");
-    const [activeStatus, setActiveStatus] = React.useState(stats.statusDistribution[0]?.status || "");
-
-    const activeIndex = React.useMemo(
-        () => stats.statusDistribution.findIndex((item) => item.status === activeStatus),
-        [activeStatus, stats.statusDistribution]
+    const [timeRange, setTimeRange] = React.useState('7d');
+    const [activeStatus, setActiveStatus] = React.useState(
+        stats.statusDistribution[0]?.status || '',
     );
 
-    const filteredData = React.useMemo(() => {
-        const referenceDate = new Date();
-        let daysToSubtract = 30;
-        if (timeRange === "90d") daysToSubtract = 90;
-        else if (timeRange === "7d") daysToSubtract = 7;
-
-        const startDate = new Date();
-        startDate.setDate(referenceDate.getDate() - daysToSubtract);
-
-        return stats.ordersOverTime.filter((item) => {
-            const date = new Date(item.date);
-            return date >= startDate;
-        });
-    }, [timeRange, stats.ordersOverTime]);
+    const activeIndex = React.useMemo(
+        () =>
+            stats.statusDistribution.findIndex(
+                (item) => item.status === activeStatus,
+            ),
+        [activeStatus, stats.statusDistribution],
+    );
 
     const { auth } = usePage<SharedData>().props;
     const roles = auth.user.roles || [];
@@ -114,30 +129,40 @@ export default function Dashboard({ stats }: DashboardProps) {
         return (
             <AppLayout breadcrumbs={breadcrumbs}>
                 <Head title="Bienvenido" />
-                <div className="flex flex-1 flex-col gap-6 p-6 overflow-y-auto h-full">
+                <div className="flex h-full flex-1 flex-col gap-6 overflow-y-auto p-6">
                     {/* Header con selector de temas */}
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold tracking-tight">Bienvenido, {auth.user.name}</h1>
-                            <p className="text-muted-foreground mt-1">Panel de control</p>
+                            <h1 className="text-3xl font-bold tracking-tight">
+                                Bienvenido, {auth.user.name}
+                            </h1>
+                            <p className="mt-1 text-muted-foreground">
+                                Panel de control
+                            </p>
                         </div>
                         <ColorThemeSelector />
                     </div>
 
-                    <div className="flex flex-1 items-center justify-center min-h-[60vh]">
-                        <div className="text-center space-y-6 max-w-2xl px-4">
+                    <div className="flex min-h-[60vh] flex-1 items-center justify-center">
+                        <div className="max-w-2xl space-y-6 px-4 text-center">
                             <div className="relative flex flex-col items-center">
-                                <div className="mb-6 transform hover:scale-110 transition-transform duration-300">
+                                <div className="mb-6 transform transition-transform duration-300 hover:scale-110">
                                     <AppLogo />
                                 </div>
-                                <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-[var(--sidebar-primary)] to-[var(--sidebar-accent)] opacity-20 blur transition duration-1000 group-hover:opacity-100 animate-pulse"></div>
-                                <h2 className="relative text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[var(--sidebar-foreground)] to-[var(--sidebar-primary)]"
-                                    style={{ textShadow: '0 0 30px rgba(var(--sidebar-primary-rgb), 0.1)' }}>
-                                    "Empieza un día a comenzar tus ventas"
+                                <div className="absolute -inset-1 animate-pulse rounded-lg bg-gradient-to-r from-[var(--sidebar-primary)] to-[var(--sidebar-accent)] opacity-20 blur transition duration-1000 group-hover:opacity-100"></div>
+                                <h2
+                                    className="relative bg-gradient-to-r from-[var(--sidebar-foreground)] to-[var(--sidebar-primary)] bg-clip-text text-4xl font-extrabold tracking-tight text-transparent md:text-5xl"
+                                    style={{
+                                        textShadow:
+                                            '0 0 30px rgba(var(--sidebar-primary-rgb), 0.1)',
+                                    }}
+                                >
+                                    "Servir con pasión, gestionar con precisión"
                                 </h2>
                             </div>
                             <p className="text-xl text-muted-foreground">
-                                Tu sistema de gestión de ventas está listo para ayudarte a alcanzar tus metas de hoy.
+                                Tu sistema de restaurante está listo para un
+                                gran servicio hoy.
                             </p>
                         </div>
                     </div>
@@ -148,96 +173,147 @@ export default function Dashboard({ stats }: DashboardProps) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard" />
-            <div className="flex flex-1 flex-col gap-6 p-6 overflow-y-auto">
+            <Head title="Restaurant Dashboard" />
+            <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-6">
                 {/* Header con selector de temas */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-                        <p className="text-muted-foreground mt-1">Resumen de tu actividad y métricas clave</p>
+                        <h1 className="text-3xl font-bold tracking-tight">
+                            Dashboard Restaurante
+                        </h1>
+                        <p className="mt-1 text-muted-foreground">
+                            Monitoreo en tiempo real de ventas y cocina
+                        </p>
                     </div>
                     <ColorThemeSelector />
                 </div>
 
                 {/* Metrics Cards */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card className="border-none shadow-sm" style={{ backgroundColor: 'var(--accent-1-light)', borderLeft: '3px solid var(--accent-1)' }}>
+                    <Card
+                        className="border-none shadow-sm"
+                        style={{
+                            backgroundColor: 'var(--accent-1-light)',
+                            borderLeft: '4px solid var(--accent-1)',
+                        }}
+                    >
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Productos</CardTitle>
-                            <Package className="h-4 w-4" style={{ color: 'var(--accent-1)' }} />
+                            <CardTitle className="text-sm font-medium">
+                                Ventas Hoy
+                            </CardTitle>
+                            <TrendingUp className="h-4 w-4 text-green-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{stats.totalProductos}</div>
-                            <p className="text-xs text-muted-foreground mt-1">En el inventario</p>
+                            <div className="text-2xl font-bold">
+                                Bs. {stats.ventasHoy.toLocaleString()}
+                            </div>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                Ingresos acumulados hoy
+                            </p>
                         </CardContent>
                     </Card>
-                    <Card className="border-none shadow-sm" style={{ backgroundColor: 'var(--accent-2-light)', borderLeft: '3px solid var(--accent-2)' }}>
+                    <Card
+                        className="border-none shadow-sm"
+                        style={{
+                            backgroundColor: 'var(--accent-2-light)',
+                            borderLeft: '4px solid var(--accent-2)',
+                        }}
+                    >
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Pedidos</CardTitle>
-                            <ShoppingCart className="h-4 w-4" style={{ color: 'var(--accent-2)' }} />
+                            <CardTitle className="text-sm font-medium">
+                                Mesas Ocupadas
+                            </CardTitle>
+                            <Package
+                                className="h-4 w-4"
+                                style={{ color: 'var(--accent-2)' }}
+                            />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{stats.totalPedidos}</div>
-                            <p className="text-xs text-muted-foreground mt-1">Acumulados</p>
+                            <div className="text-2xl font-bold">
+                                {stats.mesasOcupadas}
+                            </div>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                Mesas en servicio actual
+                            </p>
                         </CardContent>
                     </Card>
-                    <Card className="border-none shadow-sm" style={{ backgroundColor: 'var(--accent-3-light)', borderLeft: '3px solid var(--accent-3)' }}>
+                    <Card
+                        className="border-none shadow-sm"
+                        style={{
+                            backgroundColor: 'var(--accent-3-light)',
+                            borderLeft: '4px solid var(--accent-3)',
+                        }}
+                    >
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Pedidos Hoy</CardTitle>
-                            <ShoppingCart className="h-4 w-4" style={{ color: 'var(--accent-3)' }} />
+                            <CardTitle className="text-sm font-medium">
+                                Comandas Pendientes
+                            </CardTitle>
+                            <AlertCircle
+                                className="h-4 w-4"
+                                style={{ color: 'var(--accent-3)' }}
+                            />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{stats.pedidosHoy}</div>
-                            <p className="text-xs text-muted-foreground mt-1">Nuevos pedidos</p>
+                            <div className="text-2xl font-bold">
+                                {stats.comandasPendientes}
+                            </div>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                Pedidos por preparar o entregar
+                            </p>
                         </CardContent>
                     </Card>
-                    <Card className="border-none shadow-sm" style={{ backgroundColor: 'var(--accent-4-light)', borderLeft: '3px solid var(--accent-4)' }}>
+                    <Card
+                        className="border-none shadow-sm"
+                        style={{
+                            backgroundColor: 'var(--accent-4-light)',
+                            borderLeft: '4px solid var(--accent-4)',
+                        }}
+                    >
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Stock Bajo</CardTitle>
-                            <AlertCircle className="h-4 w-4" style={{ color: 'var(--accent-4)' }} />
+                            <CardTitle className="text-sm font-medium">
+                                Top Platillo
+                            </CardTitle>
+                            <ShoppingCart
+                                className="h-4 w-4"
+                                style={{ color: 'var(--accent-4)' }}
+                            />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{stats.stockBajo}</div>
-                            <p className="text-xs text-muted-foreground mt-1">Menos de 5 unidades</p>
+                            <div className="truncate text-lg font-bold">
+                                {stats.topPlatillos[0]?.nombre_pro || '---'}
+                            </div>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                Más vendido del periodo
+                            </p>
                         </CardContent>
                     </Card>
                 </div>
 
                 <div className="grid gap-4 lg:grid-cols-7">
-                    {/* Orders Over Time Interactive Area Chart */}
-                    <Card className="md:col-span-1 lg:col-span-4 border-none shadow-sm pt-0">
+                    {/* Weekly Revenue Area Chart */}
+                    <Card className="border-none pt-0 shadow-sm md:col-span-1 lg:col-span-4">
                         <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
                             <div className="grid flex-1 gap-1">
-                                <CardTitle>Crecimiento de Pedidos</CardTitle>
+                                <CardTitle>Ingresos Semanales</CardTitle>
                                 <CardDescription>
-                                    Tendencia de registros en el tiempo
+                                    Tendencia de ventas de los últimos 7 días
                                 </CardDescription>
                             </div>
-                            <Select value={timeRange} onValueChange={setTimeRange}>
-                                <SelectTrigger
-                                    className="w-[160px] rounded-lg sm:ml-auto"
-                                    aria-label="Seleccionar rango"
-                                >
-                                    <SelectValue placeholder="Rango de tiempo" />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-xl">
-                                    <SelectItem value="90d" className="rounded-lg">
-                                        Últimos 3 meses
-                                    </SelectItem>
-                                    <SelectItem value="30d" className="rounded-lg">
-                                        Últimos 30 días
-                                    </SelectItem>
-                                    <SelectItem value="7d" className="rounded-lg">
-                                        Últimos 7 días
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
                         </CardHeader>
                         <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-                            <ChartContainer config={ordersChartConfig} className="aspect-auto h-[250px] w-full">
-                                <AreaChart data={filteredData}>
+                            <ChartContainer
+                                config={revenueChartConfig}
+                                className="aspect-auto h-[250px] w-full"
+                            >
+                                <AreaChart data={stats.weeklyRevenue}>
                                     <defs>
-                                        <linearGradient id="fillOrders" x1="0" y1="0" x2="0" y2="1">
+                                        <linearGradient
+                                            id="fillRevenue"
+                                            x1="0"
+                                            y1="0"
+                                            x2="0"
+                                            y2="1"
+                                        >
                                             <stop
                                                 offset="5%"
                                                 stopColor="var(--chart-2)"
@@ -256,85 +332,81 @@ export default function Dashboard({ stats }: DashboardProps) {
                                         tickLine={false}
                                         axisLine={false}
                                         tickMargin={8}
-                                        minTickGap={32}
                                         tickFormatter={(value) => {
                                             const date = new Date(value);
-                                            return date.toLocaleDateString("es-ES", {
-                                                month: "short",
-                                                day: "numeric",
-                                            });
+                                            return date.toLocaleDateString(
+                                                'es-ES',
+                                                { weekday: 'short' },
+                                            );
                                         }}
                                     />
                                     <ChartTooltip
                                         cursor={false}
                                         content={
-                                            <ChartTooltipContent
-                                                labelFormatter={(value) => {
-                                                    return new Date(value).toLocaleDateString("es-ES", {
-                                                        month: "long",
-                                                        day: "numeric",
-                                                        year: "numeric",
-                                                    });
-                                                }}
-                                                indicator="dot"
-                                            />
+                                            <ChartTooltipContent indicator="dot" />
                                         }
                                     />
                                     <Area
-                                        dataKey="count"
+                                        dataKey="revenue"
                                         type="natural"
-                                        fill="url(#fillOrders)"
+                                        fill="url(#fillRevenue)"
                                         stroke="var(--chart-2)"
                                         stackId="a"
                                     />
-                                    <ChartLegend content={<ChartLegendContent />} />
                                 </AreaChart>
                             </ChartContainer>
                         </CardContent>
                     </Card>
 
-                    {/* Status Distribution Interactive Pie Chart */}
-                    <Card data-chart="pie-interactive" className="md:col-span-1 lg:col-span-3 border-none shadow-sm flex flex-col pt-0">
-                        <ChartStyle id="pie-interactive" config={statusChartConfig} />
+                    {/* Order Status Distribution Pie Chart */}
+                    <Card
+                        data-chart="pie-interactive"
+                        className="flex flex-col border-none pt-0 shadow-sm md:col-span-1 lg:col-span-3"
+                    >
+                        <ChartStyle
+                            id="pie-interactive"
+                            config={statusChartConfig}
+                        />
                         <CardHeader className="flex-row items-start space-y-0 border-b py-5">
                             <div className="grid flex-1 gap-1">
-                                <CardTitle>Estado de Pedidos</CardTitle>
-                                <CardDescription>Distribución actual</CardDescription>
+                                <CardTitle>Estado de Comandas</CardTitle>
+                                <CardDescription>
+                                    Estado actual del servicio
+                                </CardDescription>
                             </div>
-                            <Select value={activeStatus} onValueChange={setActiveStatus}>
-                                <SelectTrigger
-                                    className="ml-auto h-7 w-[130px] rounded-lg pl-2.5"
-                                    aria-label="Seleccionar estado"
-                                >
+                            <Select
+                                value={activeStatus}
+                                onValueChange={setActiveStatus}
+                            >
+                                <SelectTrigger className="ml-auto h-7 w-[130px] rounded-lg pl-2.5">
                                     <SelectValue placeholder="Estado" />
                                 </SelectTrigger>
-                                <SelectContent align="end" className="rounded-xl">
-                                    {stats.statusDistribution.map((item) => {
-                                        const configKey = item.status.toLowerCase().replace(/\s+/g, '_');
-                                        const config = statusChartConfig[configKey as keyof typeof statusChartConfig];
-
-                                        return (
-                                            <SelectItem
-                                                key={item.status}
-                                                value={item.status}
-                                                className="rounded-lg [&_span]:flex"
-                                            >
-                                                <div className="flex items-center gap-2 text-xs">
-                                                    <span
-                                                        className="flex h-3 w-3 shrink-0 rounded-[2px]"
-                                                        style={{
-                                                            backgroundColor: item.fill,
-                                                        }}
-                                                    />
-                                                    {config?.label || item.status}
-                                                </div>
-                                            </SelectItem>
-                                        );
-                                    })}
+                                <SelectContent
+                                    align="end"
+                                    className="rounded-xl"
+                                >
+                                    {stats.statusDistribution.map((item) => (
+                                        <SelectItem
+                                            key={item.status}
+                                            value={item.status}
+                                            className="rounded-lg"
+                                        >
+                                            <div className="flex items-center gap-2 text-xs">
+                                                <span
+                                                    className="flex h-3 w-3 shrink-0 rounded-[2px]"
+                                                    style={{
+                                                        backgroundColor:
+                                                            item.fill,
+                                                    }}
+                                                />
+                                                {item.status}
+                                            </div>
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </CardHeader>
-                        <CardContent className="flex flex-1 justify-center pb-0 pt-4">
+                        <CardContent className="flex flex-1 justify-center pt-4 pb-0">
                             <ChartContainer
                                 id="pie-interactive"
                                 config={statusChartConfig}
@@ -343,7 +415,9 @@ export default function Dashboard({ stats }: DashboardProps) {
                                 <PieChart>
                                     <ChartTooltip
                                         cursor={false}
-                                        content={<ChartTooltipContent hideLabel />}
+                                        content={
+                                            <ChartTooltipContent hideLabel />
+                                        }
                                     />
                                     <Pie
                                         data={stats.statusDistribution}
@@ -357,25 +431,39 @@ export default function Dashboard({ stats }: DashboardProps) {
                                             ...props
                                         }: PieSectorDataItem) => (
                                             <g>
-                                                <Sector {...props} outerRadius={outerRadius + 10} />
                                                 <Sector
                                                     {...props}
-                                                    outerRadius={outerRadius + 20}
-                                                    innerRadius={outerRadius + 12}
+                                                    outerRadius={
+                                                        outerRadius + 10
+                                                    }
+                                                />
+                                                <Sector
+                                                    {...props}
+                                                    outerRadius={
+                                                        outerRadius + 20
+                                                    }
+                                                    innerRadius={
+                                                        outerRadius + 12
+                                                    }
                                                 />
                                             </g>
                                         )}
                                     >
-                                        {stats.statusDistribution.map((entry, index) => {
-                                            const configKey = entry.status.toLowerCase().replace(/\s+/g, '_');
-                                            // Fix: Use optional chaining correctly for config and check for color property
-                                            const config = statusChartConfig[configKey as keyof typeof statusChartConfig];
-                                            const color = (config && 'color' in config) ? config.color : entry.fill;
-                                            return <Cell key={`cell-${index}`} fill={color} />;
-                                        })}
+                                        {stats.statusDistribution.map(
+                                            (entry, index) => (
+                                                <Cell
+                                                    key={`cell-${index}`}
+                                                    fill={entry.fill}
+                                                />
+                                            ),
+                                        )}
                                         <Label
                                             content={({ viewBox }) => {
-                                                if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                                                if (
+                                                    viewBox &&
+                                                    'cx' in viewBox &&
+                                                    'cy' in viewBox
+                                                ) {
                                                     return (
                                                         <text
                                                             x={viewBox.cx}
@@ -388,14 +476,20 @@ export default function Dashboard({ stats }: DashboardProps) {
                                                                 y={viewBox.cy}
                                                                 className="fill-foreground text-3xl font-bold"
                                                             >
-                                                                {stats.statusDistribution[activeIndex].count.toLocaleString()}
+                                                                {stats.statusDistribution[
+                                                                    activeIndex
+                                                                ]?.count.toLocaleString() ||
+                                                                    0}
                                                             </tspan>
                                                             <tspan
                                                                 x={viewBox.cx}
-                                                                y={(viewBox.cy || 0) + 24}
+                                                                y={
+                                                                    (viewBox.cy ||
+                                                                        0) + 24
+                                                                }
                                                                 className="fill-muted-foreground text-xs"
                                                             >
-                                                                Pedidos
+                                                                Comandas
                                                             </tspan>
                                                         </text>
                                                     );
@@ -410,87 +504,106 @@ export default function Dashboard({ stats }: DashboardProps) {
                 </div>
 
                 <div className="grid gap-4 lg:grid-cols-7">
-                    {/* Products by Category Mixed Bar Chart */}
-                    <Card className="md:col-span-1 lg:col-span-4 border-none shadow-sm">
+                    {/* Top Platillos Mixed Bar Chart */}
+                    <Card className="border-none shadow-sm md:col-span-1 lg:col-span-4">
                         <CardHeader>
-                            <CardTitle>Productos por Categoría</CardTitle>
-                            <CardDescription>Stock por tipo</CardDescription>
+                            <CardTitle>Platillos más Vendidos</CardTitle>
+                            <CardDescription>
+                                Favoritos de los clientes
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <ChartContainer config={categoryChartConfig} className="min-h-[300px] w-full">
+                            <ChartContainer
+                                config={topDishesChartConfig}
+                                className="min-h-[300px] w-full"
+                            >
                                 <BarChart
                                     accessibilityLayer
-                                    data={stats.productsByCategory.map((item, index) => ({
-                                        ...item,
-                                        fill: `var(--chart-${(index % 5) + 1})`
-                                    }))}
+                                    data={stats.topPlatillos.map(
+                                        (item, index) => ({
+                                            ...item,
+                                            fill: `var(--chart-${(index % 5) + 1})`,
+                                        }),
+                                    )}
                                     layout="vertical"
-                                    margin={{ left: 0 }}
+                                    margin={{ left: 10, right: 20 }}
                                 >
                                     <YAxis
-                                        dataKey="category"
+                                        dataKey="nombre_pro"
                                         type="category"
                                         tickLine={false}
                                         tickMargin={10}
                                         axisLine={false}
-                                        tickFormatter={(value) => value}
+                                        width={120}
                                     />
-                                    <XAxis dataKey="count" type="number" hide />
+                                    <XAxis
+                                        dataKey="total_vendido"
+                                        type="number"
+                                        hide
+                                    />
                                     <ChartTooltip
                                         cursor={false}
-                                        content={<ChartTooltipContent hideLabel />}
+                                        content={
+                                            <ChartTooltipContent hideLabel />
+                                        }
                                     />
-                                    <Bar dataKey="count" layout="vertical" radius={5}>
-                                        <LabelList dataKey="count" position="right" offset={8} className="fill-foreground" fontSize={12} />
+                                    <Bar
+                                        dataKey="total_vendido"
+                                        layout="vertical"
+                                        radius={5}
+                                    >
+                                        <LabelList
+                                            dataKey="total_vendido"
+                                            position="right"
+                                            offset={8}
+                                            className="fill-foreground"
+                                            fontSize={12}
+                                        />
                                     </Bar>
                                 </BarChart>
                             </ChartContainer>
                         </CardContent>
-                        <CardFooter className="flex-col items-start gap-2 text-sm border-t pt-4">
-                            <div className="flex gap-2 leading-none font-medium">
-                                Tendencia al alza este mes <TrendingUp className="h-4 w-4" />
-                            </div>
-                            <div className="text-muted-foreground leading-none">
-                                Mostrando el total de productos por cada categoría disponible
-                            </div>
-                        </CardFooter>
                     </Card>
 
-                    {/* WhatsApp Bot Stats Bar Chart */}
-                    <Card className="md:col-span-1 lg:col-span-3 border-none shadow-sm">
+                    {/* Categorías Table/Info */}
+                    <Card className="border-none shadow-sm md:col-span-1 lg:col-span-3">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <MessageSquare className="h-5 w-5 text-green-500" />
-                                WhatsApp Bot
-                            </CardTitle>
-                            <CardDescription>Actividad semanal</CardDescription>
+                            <CardTitle>Menu por Categorías</CardTitle>
+                            <CardDescription>
+                                Resumen del menú actual
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <ChartContainer config={whatsappChartConfig} className="min-h-[250px] w-full">
-                                <BarChart data={stats.whatsappStats}>
-                                    <CartesianGrid vertical={false} />
-                                    <XAxis
-                                        dataKey="day"
-                                        tickLine={false}
-                                        tickMargin={10}
-                                        axisLine={false}
-                                    />
-                                    <ChartTooltip content={<ChartTooltipContent />} />
-                                    <Bar dataKey="enviados" fill="var(--color-enviados)" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="fallidos" fill="var(--color-fallidos)" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ChartContainer>
-                            <div className="flex items-center justify-center gap-4 mt-4 text-xs pb-2">
-                                <div className="flex items-center gap-1">
-                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'var(--chart-1)' }} />
-                                    <span>Enviados</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'var(--chart-5)' }} />
-                                    <span>Fallidos</span>
-                                </div>
+                            <div className="space-y-4">
+                                {stats.productsByCategory
+                                    .slice(0, 6)
+                                    .map((cat, i) => (
+                                        <div
+                                            key={i}
+                                            className="flex items-center justify-between"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <div
+                                                    className="h-2 w-2 rounded-full"
+                                                    style={{
+                                                        backgroundColor: `var(--chart-${(i % 5) + 1})`,
+                                                    }}
+                                                />
+                                                <span className="text-sm font-medium">
+                                                    {cat.category}
+                                                </span>
+                                            </div>
+                                            <span className="text-xs text-muted-foreground">
+                                                {cat.count} platillos
+                                            </span>
+                                        </div>
+                                    ))}
                             </div>
                         </CardContent>
+                        <CardFooter className="border-t pt-4 text-xs text-muted-foreground">
+                            Total de productos en el sistema:{' '}
+                            {stats.totalProductos}
+                        </CardFooter>
                     </Card>
                 </div>
             </div>

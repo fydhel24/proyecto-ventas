@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Cuaderno;
 use App\Models\Producto;
 use App\Models\Categoria;
+use App\Models\Venta;
+use App\Models\Mesa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -14,60 +16,67 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // 1. Métricas Rápidas
-        $totalProductos = Producto::count();
-        $totalPedidos = Cuaderno::count();
-        $pedidosHoy = Cuaderno::whereDate('created_at', Carbon::today())->count();
+        // 1. Métricas Rápidas (Específicas de Restaurante)
+        $today = Carbon::today();
 
-        // 2. Pedidos por Estado (Cuadernos Status Distribution)
-        $statusDistribution = [
-            ['status' => 'La Paz', 'count' => Cuaderno::where('la_paz', true)->count(), 'fill' => 'var(--color-la_paz)'],
-            ['status' => 'Enviado', 'count' => Cuaderno::where('enviado', true)->count(), 'fill' => 'var(--color-enviado)'],
-            ['status' => 'Listo', 'count' => Cuaderno::where('p_listo', true)->count(), 'fill' => 'var(--color-listo)'],
-            ['status' => 'Pendiente', 'count' => Cuaderno::where('p_pendiente', true)->count(), 'fill' => 'var(--color-pendiente)'],
-        ];
+        // Ventas del día
+        $ventasHoy = Venta::whereDate('created_at', $today)
+            ->where('estado', '!=', 'anulado')
+            ->sum('monto_total');
 
-        // 3. Pedidos en los últimos 90 días
-        $last90Days = collect(range(89, 0))->map(function($days) {
+        // Mesas ocupadas
+        $mesasOcupadas = Mesa::where('estado', 'ocupada')->count();
+
+        // Comandas pendientes o en cocina
+        $comandasPendientes = Venta::whereIn('estado_comanda', ['pendiente', 'en_cocina'])->count();
+
+        // 2. Top Platillos (Basado en ventas)
+        $topPlatillos = DB::table('inventario_ventas')
+            ->join('inventarios', 'inventario_ventas.inventario_id', '=', 'inventarios.id')
+            ->join('productos', 'inventarios.producto_id', '=', 'productos.id')
+            ->select('productos.nombre as nombre_pro', DB::raw('SUM(inventario_ventas.cantidad) as total_vendido'))
+            ->groupBy('productos.id', 'productos.nombre')
+            ->orderByDesc('total_vendido')
+            ->limit(5)
+            ->get();
+
+        // 3. Ingresos Semanales (Tendencia de 7 días)
+        $weeklyRevenue = collect(range(6, 0))->map(function ($days) {
             $date = Carbon::today()->subDays($days);
             return [
-                'date' => $date->format('Y-m-d'),
-                'count' => Cuaderno::whereDate('created_at', $date)->count(),
+            'date' => $date->format('Y-m-d'),
+            'revenue' => Venta::whereDate('created_at', $date)->where('estado', '!=', 'anulado')->sum('monto_total'),
             ];
         });
 
-        // 4. Productos por Categoría
+        // 4. Distribución de Estado de Comandas
+        $statusDistribution = [
+            ['status' => 'Pendiente', 'count' => Venta::where('estado_comanda', 'pendiente')->count(), 'fill' => 'var(--chart-4)'],
+            ['status' => 'En Cocina', 'count' => Venta::where('estado_comanda', 'en_cocina')->count(), 'fill' => 'var(--chart-1)'],
+            ['status' => 'Listo', 'count' => Venta::where('estado_comanda', 'listo')->count(), 'fill' => 'var(--chart-3)'],
+            ['status' => 'Entregado', 'count' => Venta::where('estado_comanda', 'entregado')->count(), 'fill' => 'var(--chart-2)'],
+        ];
+
+        // 5. Productos por Categoría (Se mantiene útil)
         $productsByCategory = Categoria::withCount('productos')
             ->get()
-            ->map(function($categoria) {
-                return [
-                    'category' => $categoria->nombre_cat,
-                    'count' => $categoria->productos_count,
-                ];
-            });
-
-        // 5. WhatsApp Status Placeholder (In a real scenario, this would come from an API or DB)
-        // Since we don't have a clear way to track historical WhatsApp data in the DB yet,
-        // we'll provide some mock data for the chart to show potential interactivity.
-        $whatsappStats = [
-            ['day' => 'Lun', 'enviados' => 12, 'fallidos' => 2],
-            ['day' => 'Mar', 'enviados' => 18, 'fallidos' => 1],
-            ['day' => 'Mie', 'enviados' => 25, 'fallidos' => 3],
-            ['day' => 'Jue', 'enviados' => 15, 'fallidos' => 0],
-            ['day' => 'Vie', 'enviados' => 30, 'fallidos' => 5],
-            ['day' => 'Sab', 'enviados' => 22, 'fallidos' => 1],
-            ['day' => 'Dom', 'enviados' => 10, 'fallidos' => 0],
-        ];
+            ->map(function ($categoria) {
+            return [
+            'category' => $categoria->nombre_cat,
+            'count' => $categoria->productos_count,
+            ];
+        });
 
         return Inertia::render('dashboard', [
             'stats' => [
-                'totalProductos' => $totalProductos,
-                'totalPedidos' => $totalPedidos,
-                'pedidosHoy' => $pedidosHoy,
+                'ventasHoy' => $ventasHoy,
+                'mesasOcupadas' => $mesasOcupadas,
+                'comandasPendientes' => $comandasPendientes,
+                'topPlatillos' => $topPlatillos,
+                'weeklyRevenue' => $weeklyRevenue,
                 'statusDistribution' => $statusDistribution,
-                'ordersOverTime' => $last90Days,
                 'productsByCategory' => $productsByCategory,
-                'whatsappStats' => $whatsappStats,
+                'totalProductos' => Producto::count(), // Para compatibilidad básica si se necesita
             ]
         ]);
     }
