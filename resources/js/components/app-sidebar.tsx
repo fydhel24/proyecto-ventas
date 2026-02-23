@@ -9,14 +9,12 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard, whatsappMiranda } from '@/routes';
+import { dashboard } from '@/routes';
 import cajas from '@/routes/cajas';
 import cuadernos from '@/routes/cuadernos';
-import envios from '@/routes/envios';
 import inventarios from '@/routes/inventarios';
 import productos from '@/routes/productos';
 import roles from '@/routes/roles';
-import solicitudes from '@/routes/solicitudes';
 import sucursales from '@/routes/sucursales';
 import usuarios from '@/routes/usuarios';
 import { type NavItem } from '@/types';
@@ -25,21 +23,15 @@ import { Link } from '@inertiajs/react';
 import { usePermissions } from '@/hooks/use-permissions';
 import {
     BarChart3,
-    BookOpenText,
     Boxes,
     Building,
-    CheckCircle2,
     Clock,
     LayoutGrid,
     List,
-    MapPin,
-    MessageCircle,
     Package,
     Plus,
-    Send,
     ShieldCheck,
     ShoppingCart,
-    Truck,
     Users,
     Utensils,
     Wallet,
@@ -83,13 +75,13 @@ const mainNavItems: NavItem[] = [
         ],
     },
     {
-        title: 'Cuadernos',
+        title: 'Reservas Llevar',
         href: cuadernos.index().url,
-        icon: BookOpenText,
+        icon: Clock,
         permission: 'ver ventas',
         items: [
             {
-                title: 'Todos',
+                title: 'Ver Todas',
                 href: cuadernos.index().url,
                 icon: List,
             },
@@ -145,12 +137,6 @@ const mainNavItems: NavItem[] = [
                 href: '/reportes/ventas',
                 icon: BarChart3,
             },
-            {
-                title: 'Pedidos',
-                href: '/reports/orders',
-                icon: CheckCircle2,
-            },
-           
         ],
     },
     {

@@ -129,7 +129,7 @@ class CuadernoController extends Controller
                         return collect(); // fallback vacío
                     }
                 } catch (\Exception $e) {
-                    \Log::error('Error cargando cuadernos: ' . $e->getMessage());
+                    \Log::error('Error cargando reservas: ' . $e->getMessage());
                     return collect(); // fallback vacío
                 }
             })(),
@@ -149,10 +149,13 @@ class CuadernoController extends Controller
             'nombre' => 'nullable|string|max:255',
             'ci' => 'nullable|string|max:20',
             'celular' => 'nullable|string|max:20',
-            'departamento' => 'nullable|string|max:50',
-            'provincia' => 'nullable|string|max:50',
+            'departamento' => 'nullable|string|max:100', // Reutilizado
+            'provincia' => 'nullable|string|max:100',    // Reutilizado
             'estado' => 'nullable|string|max:50',
         ]);
+
+        $oldEstado = $cuaderno->estado;
+        $newEstado = $request->estado;
 
         $cuaderno->update($request->only([
             'la_paz',
@@ -166,6 +169,58 @@ class CuadernoController extends Controller
             'provincia',
             'estado',
         ]));
+
+        // Si se confirma la reserva, generar venta y ticket
+        if ($newEstado === 'Confirmado' && $oldEstado !== 'Confirmado') {
+            try {
+                return DB::transaction(function () use ($cuaderno) {
+                    $almacen = Sucursale::where('nombre_sucursal', 'Almacen')->first();
+                    if (!$almacen) throw new \Exception("Almacén no encontrado.");
+
+                    // 1. Crear Venta
+                    $total = $cuaderno->productos->sum(function($p) {
+                        return $p->pivot->cantidad * $p->pivot->precio_venta;
+                    });
+
+                    $venta = \App\Models\Venta::create([
+                        'cliente' => $cuaderno->nombre,
+                        'ci' => $cuaderno->ci,
+                        'tipo_pago' => 'Efectivo', // Por defecto para reservas pagadas al retirar
+                        'monto_total' => $total,
+                        'pagado' => $total,
+                        'cambio' => 0,
+                        'efectivo' => $total,
+                        'qr' => 0,
+                        'user_vendedor_id' => auth()->id(),
+                        'sucursal_id' => $almacen->id,
+                        'estado_comanda' => 'pagado',
+                        'estado' => 'completado',
+                    ]);
+
+                    // 2. Crear detalles (sin descontar stock de nuevo, ya se hizo al reservar)
+                    foreach ($cuaderno->productos as $producto) {
+                        $inventario = Inventario::where('producto_id', $producto->id)
+                            ->where('sucursal_id', $almacen->id)
+                            ->first();
+
+                        if (!$inventario) continue;
+
+                        \App\Models\InventarioVenta::create([
+                            'venta_id' => $venta->id,
+                            'inventario_id' => $inventario->id,
+                            'cantidad' => $producto->pivot->cantidad,
+                            'precio_venta' => $producto->pivot->precio_venta,
+                            'subtotal' => $producto->pivot->cantidad * $producto->pivot->precio_venta,
+                        ]);
+                    }
+
+                    return back()->with('success', 'Reserva confirmada y venta generada.')
+                                 ->with('pdf_url', route('ventas.pdf', $venta->id));
+                });
+            } catch (\Exception $e) {
+                return back()->with('error', 'Error al procesar venta: ' . $e->getMessage());
+            }
+        }
 
         return back();
     }

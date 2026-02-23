@@ -75,7 +75,7 @@ class VentaController extends Controller
 
             DB::commit();
 
-            return back()->with('success', 'Venta anulada correctamente y stock restaurado.');
+            return back()->with('success', 'Venta anulada correctamente y platillos devueltos al inventario.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Error al anular la venta: ' . $e->getMessage());
@@ -207,7 +207,7 @@ class VentaController extends Controller
                 $inventario = Inventario::lockForUpdate()->find($item['inventario_id']);
 
                 if ($inventario->stock < $item['cantidad']) {
-                    throw new \Exception("Stock insuficiente para el producto: " . $inventario->producto->nombre);
+                    throw new \Exception("Cantidad insuficiente de platillos para: " . $inventario->producto->nombre);
                 }
 
                 $inventario->decrement('stock', $item['cantidad']);

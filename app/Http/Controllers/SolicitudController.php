@@ -63,7 +63,7 @@ class SolicitudController extends Controller
         }
 
         if ($sucursal_origen_id == $validated['sucursal_destino_id']) {
-            return redirect()->back()->with('error', 'No puedes solicitar productos a tu misma sucursal.');
+            return redirect()->back()->with('error', 'No puedes solicitar platillos a tu misma sucursal.');
         }
 
         DB::transaction(function () use ($validated, $sucursal_origen_id) {
@@ -129,8 +129,8 @@ class SolicitudController extends Controller
         foreach ($detalles as $detalle) {
             $invProv = $detalle->inventario;
             if ($invProv->stock < $detalle->cantidad_movimiento) {
-                $nombreProd = $invProv->producto->nombre ?? 'Producto ID: ' . $invProv->producto_id;
-                return redirect()->back()->with('error', "Stock insuficiente para {$nombreProd} en {$invProv->sucursal->nombre_sucursal}. Disponible: {$invProv->stock}");
+                $nombreProd = $invProv->producto->nombre ?? 'ID: ' . $invProv->producto_id;
+                return redirect()->back()->with('error', "Cantidad insuficiente de {$nombreProd} en {$invProv->sucursal->nombre_sucursal}. Disponible: {$invProv->stock}");
             }
         }
 
@@ -172,7 +172,7 @@ class SolicitudController extends Controller
         });
 
         // Abrir voucher automáticamente
-        return redirect()->back()->with('success', 'Solicitud confirmada: El stock ha sido transferido correctamente.')->with('pdf_url', route('solicitudes.voucher', $movimiento->id));
+        return redirect()->back()->with('success', 'Solicitud confirmada: Los platillos han sido repartidos correctamente.')->with('pdf_url', route('solicitudes.voucher', $movimiento->id));
     }
 
     public function downloadVoucher($id)
@@ -363,7 +363,7 @@ class SolicitudController extends Controller
                 ->first();
             
             if (!$invSolicitante || $invSolicitante->stock < $detalle->cantidad_movimiento) {
-                return redirect()->back()->with('error', 'La sucursal solicitante ya no tiene stock suficiente del producto ' . ($detalle->inventario->producto->nombre ?? '') . ' para revertir la operación.');
+                return redirect()->back()->with('error', 'La sucursal solicitante ya no tiene suficientes platillos del tipo ' . ($detalle->inventario->producto->nombre ?? '') . ' para revertir la operación.');
             }
         }
 
@@ -392,6 +392,6 @@ class SolicitudController extends Controller
             $movimiento->update(['estado' => 'PENDIENTE']);
         });
 
-        return redirect()->back()->with('success', 'Solicitud revertida correctamente. El stock ha sido devuelto.');
+        return redirect()->back()->with('success', 'Solicitud revertida correctamente. Los platillos han sido devueltos a la sucursal origen.');
     }
 }
