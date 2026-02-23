@@ -37,7 +37,7 @@ class ProductoController extends Controller
                 $q->where('nombre', 'like', "%{$search}%")
                     ->orWhere('principio_activo', 'like', "%{$search}%")
                     ->orWhere('registro_sanitario', 'like', "%{$search}%")
-                    ->orWhere('lote', 'like', "%{$search}%")
+                    ->orWhereHas('lotes', fn($q) => $q->where('numero_lote', 'like', "%{$search}%"))
                     ->orWhereHas('laboratorio', fn($q) => $q->where('nombre_lab', 'like', "%{$search}%"))
                     ->orWhereHas('categoria', fn($q) => $q->where('nombre_cat', 'like', "%{$search}%"));
             });
@@ -150,7 +150,7 @@ class ProductoController extends Controller
      */
     public function edit(Producto $producto)
     {
-        $producto->load(['fotos']);
+        $producto->load(['fotos', 'lotes']);
 
         return Inertia::render('Productos/Edit', [
             'producto' => $producto,
@@ -177,6 +177,25 @@ class ProductoController extends Controller
 
             // Actualizar datos del producto
             $producto->update($data);
+
+            // Sincronizar lote
+            if ($request->input('lote') || $request->input('fecha_vencimiento')) {
+                $lote = $producto->lotes()->first();
+                if ($lote) {
+                    $lote->update([
+                        'numero_lote' => $request->input('lote') ?? $lote->numero_lote,
+                        'fecha_vencimiento' => $request->input('fecha_vencimiento') ?? $lote->fecha_vencimiento,
+                    ]);
+                } else {
+                    $producto->lotes()->create([
+                        'numero_lote' => $request->input('lote') ?? 'S/L',
+                        'fecha_vencimiento' => $request->input('fecha_vencimiento') ?? now()->addYear(),
+                        'stock' => 0,
+                        'activo' => true,
+                        'sucursal_id' => auth()->user()->sucursal_id ?? 1,
+                    ]);
+                }
+            }
 
             // Eliminar fotos seleccionadas
             if ($request->has('fotos_eliminar') && is_array($request->fotos_eliminar)) {

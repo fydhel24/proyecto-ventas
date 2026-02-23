@@ -76,15 +76,15 @@ class CompraController extends Controller
                     'precio_compra' => $item['precio_compra']
                 ]);
 
-                // 3. Aumentar stock general del producto
+                // 3. Actualizar información de precios del producto (opcional, basado en la última compra)
                 $producto = Producto::find($item['producto_id']);
-                $producto->increment('stock', $item['cantidad']);
-                
-                // Actualizar precio de compra y venta
-                $producto->update([
-                    'precio_compra' => $item['precio_compra'],
-                    'precio_venta' => $item['precio_compra'] * 1.3, // Ejemplo: Margen del 30% si se desea automatizar
-                ]);
+                if ($producto) {
+                    $producto->update([
+                        'precio_compra' => $item['precio_compra'],
+                        // Mantenemos el precio de venta actual o lo sugerimos si es 0
+                        'precio_venta' => $producto->precio_venta > 0 ? $producto->precio_venta : ($item['precio_compra'] * 1.3),
+                    ]);
+                }
             }
 
             DB::commit();

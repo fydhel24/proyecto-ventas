@@ -14,7 +14,7 @@ export function AppTopbar({ breadcrumbs = [], className }: AppTopbarProps) {
     return (
         <header
             className={cn(
-                'flex h-16 shrink-0 items-center justify-between gap-4 border-b border-border/50 bg-background px-4 transition-[width,height] ease-linear md:px-6 relative',
+                'flex h-16 shrink-0 items-center justify-between gap-4 border-b border-border/50 bg-sidebar px-4 transition-[width,height] ease-linear md:px-6 relative',
                 className,
             )}
         >

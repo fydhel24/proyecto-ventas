@@ -23,17 +23,15 @@ class Producto extends Model
         'stock_minimo',
         'precio_compra',
         'precio_venta',
-        'precio_2',
-        'precio_3',
         'estado',
+        'fecha',
+        'registro_sanitario',
         'color_id',
     ];
 
     protected $casts = [
         'precio_compra' => 'decimal:2',
         'precio_venta' => 'decimal:2',
-        'precio_2' => 'decimal:2',
-        'precio_3' => 'decimal:2',
         'stock_minimo' => 'integer',
         'fecha_vencimiento' => 'date',
     ];

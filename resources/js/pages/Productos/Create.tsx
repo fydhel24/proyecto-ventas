@@ -25,6 +25,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { useForm, usePage } from '@inertiajs/react';
+import { toast } from 'sonner';
 import {
   Check,
   ChevronDown,
@@ -66,9 +67,7 @@ export default function Create({
     estado: true,
     fecha: today,
     precio_compra: '',
-    precio_1: '',
-    precio_2: '',
-    precio_3: '',
+    precio_venta: '',
     fotos: [] as File[],
   });
 
@@ -76,7 +75,6 @@ export default function Create({
   const [categorias, setCategorias] = useState(initialCategorias);
   const [modalLaboratorioOpen, setModalLaboratorioOpen] = useState(false);
   const [modalCategoriaOpen, setModalCategoriaOpen] = useState(false);
-  const [mostrarMasPrecios, setMostrarMasPrecios] = useState(false);
   const [laboratorioOpen, setLaboratorioOpen] = useState(false);
   const [categoriaOpen, setCategoriaOpen] = useState(false);
 
@@ -101,6 +99,9 @@ export default function Create({
       setLaboratorios((prev) => [...prev, json]);
       setNuevoLaboratorio('');
       setModalLaboratorioOpen(false);
+      toast.success('Laboratorio agregado correctamente');
+    } else {
+      toast.error('Error al agregar el laboratorio');
     }
   };
 
@@ -120,12 +121,17 @@ export default function Create({
       setCategorias((prev) => [...prev, json.categoria]);
       setNuevaCategoria('');
       setModalCategoriaOpen(false);
+      toast.success('Categoría agregada correctamente');
+    } else {
+      toast.error('Error al agregar la categoría');
     }
   };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    post('/productos', { forceFormData: true });
+    post('/productos', {
+      forceFormData: true,
+    });
   };
 
   return (
@@ -459,83 +465,24 @@ export default function Create({
               />
             </div>
 
-            {/* Precio por unidad */}
+            {/* Precio de Venta */}
             <div className="space-y-2">
-              <Label htmlFor="precio_1" className="flex items-center gap-1.5 text-sm font-medium">
+              <Label htmlFor="precio_venta" className="flex items-center gap-1.5 text-sm font-medium">
                 <Tag className="h-4 w-4" />
                 Precio de Venta (Unidad)
               </Label>
               <Input
-                id="precio_1"
+                id="precio_venta"
                 type="number"
                 step="0.01"
                 min="0"
                 placeholder="0.00"
-                value={data.precio_1}
-                onChange={(e) => setData('precio_1', e.target.value)}
-                className={`h-11 ${errors.precio_1 ? 'border-red-500' : ''}`}
+                value={data.precio_venta}
+                onChange={(e) => setData('precio_venta', e.target.value)}
+                className={`h-11 ${errors.precio_venta ? 'border-red-500' : ''}`}
               />
-              {errors.precio_1 && <p className="text-xs text-red-500">{errors.precio_1}</p>}
+              {errors.precio_venta && <p className="text-xs text-red-500">{errors.precio_venta}</p>}
             </div>
-
-
-            {/* Botón precios adicionales */}
-            <div className="md:col-span-2 flex items-center">
-              <Button
-                type="button"
-                variant={mostrarMasPrecios ? 'secondary' : 'outline'}
-                size="sm"
-                className="h-9 px-3"
-                onClick={() => setMostrarMasPrecios(!mostrarMasPrecios)}
-              >
-                {mostrarMasPrecios ? (
-                  <Check className="mr-2 h-3.5 w-3.5" />
-                ) : (
-                  <X className="mr-2 h-3.5 w-3.5" />
-                )}
-                {mostrarMasPrecios
-                  ? 'Ocultar precios adicionales'
-                  : 'Asignar más precios'}
-              </Button>
-            </div>
-
-            {/* Precios adicionales */}
-            {mostrarMasPrecios && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="precio_2" className="flex items-center gap-1.5 text-sm font-medium">
-                    <Tag className="h-4 w-4" />
-                    Precio por docena
-                  </Label>
-                  <Input
-                    id="precio_2"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    value={data.precio_2}
-                    onChange={(e) => setData('precio_2', e.target.value)}
-                    className="h-11"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="precio_3" className="flex items-center gap-1.5 text-sm font-medium">
-                    <Tag className="h-4 w-4" />
-                    Precio por mayor
-                  </Label>
-                  <Input
-                    id="precio_3"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    value={data.precio_3}
-                    onChange={(e) => setData('precio_3', e.target.value)}
-                    className="h-11"
-                  />
-                </div>
-              </>
-            )}
 
             {/* Fotos */}
             <div className="md:col-span-2">
@@ -621,6 +568,6 @@ export default function Create({
           </form>
         </CardContent>
       </Card>
-    </AppLayout>
+    </AppLayout >
   );
 }

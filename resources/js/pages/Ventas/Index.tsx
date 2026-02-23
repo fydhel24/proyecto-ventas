@@ -112,7 +112,9 @@ export default function Index({ ventas }: Props) {
                                                         year: 'numeric'
                                                     })}
                                                 </TableCell>
-                                                <TableCell className="font-bold text-slate-900 group-hover:text-primary transition-colors">{venta.cliente}</TableCell>
+                                                <TableCell className="font-bold text-slate-900 group-hover:text-primary transition-colors">
+                                                    {(venta.cliente as any)?.nombre || (typeof venta.cliente === 'string' ? venta.cliente : 'N/A')}
+                                                </TableCell>
                                                 <TableCell className="text-sm text-slate-600">{venta.vendedor?.name || 'N/A'}</TableCell>
                                                 <TableCell className="text-xs font-bold uppercase tracking-tight">
                                                     <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-700">

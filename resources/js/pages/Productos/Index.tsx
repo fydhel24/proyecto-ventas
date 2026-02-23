@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import productosRoutes from '@/routes/productos';
 import { Link, router, usePage } from '@inertiajs/react';
+import { toast } from 'sonner';
 import {
     PlusIcon,
     EditIcon,
@@ -78,7 +79,14 @@ export default function Index({ productos, filters }: Props) {
 
     const eliminar = (id: number) => {
         if (confirm('¿Eliminar este producto de forma permanente?')) {
-            router.delete(productosRoutes.destroy(id));
+            router.delete(productosRoutes.destroy(id), {
+                onSuccess: () => {
+                    toast.success('Producto eliminado correctamente');
+                },
+                onError: () => {
+                    toast.error('Error al eliminar el producto');
+                }
+            });
         }
     };
 

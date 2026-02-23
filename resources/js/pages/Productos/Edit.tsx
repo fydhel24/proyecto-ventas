@@ -25,6 +25,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { useForm, usePage } from '@inertiajs/react';
+import { toast } from 'sonner';
 import {
   Check,
   ChevronDown,
@@ -63,15 +64,13 @@ export default function Edit({
     caracteristicas: producto.caracteristicas || '',
     laboratorio_id: String(producto.laboratorio_id || producto.marca_id) || '',
     categoria_id: String(producto.categoria_id) || '',
-    lote: producto.lote || '',
-    fecha_vencimiento: producto.fecha_vencimiento || '',
+    lote: producto.lotes?.[0]?.numero_lote || '',
+    fecha_vencimiento: producto.lotes?.[0]?.fecha_vencimiento ? new Date(producto.lotes[0].fecha_vencimiento).toISOString().split('T')[0] : '',
     registro_sanitario: producto.registro_sanitario || '',
     estado: producto.estado ?? true,
     fecha: producto.fecha ? new Date(producto.fecha).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     precio_compra: String(producto.precio_compra) || '',
-    precio_1: String(producto.precio_1) || '',
-    precio_2: producto.precio_2 ? String(producto.precio_2) : '',
-    precio_3: producto.precio_3 ? String(producto.precio_3) : '',
+    precio_venta: String(producto.precio_venta) || '',
     fotos: [] as File[],
     _method: 'PUT',
   });
@@ -80,7 +79,6 @@ export default function Edit({
   const [categorias, setCategorias] = useState(initialCategorias);
   const [modalLaboratorioOpen, setModalLaboratorioOpen] = useState(false);
   const [modalCategoriaOpen, setModalCategoriaOpen] = useState(false);
-  const [mostrarMasPrecios, setMostrarMasPrecios] = useState(!!(producto.precio_2 || producto.precio_3));
   const [laboratorioOpen, setLaboratorioOpen] = useState(false);
   const [categoriaOpen, setCategoriaOpen] = useState(false);
   const [nuevoLaboratorio, setNuevoLaboratorio] = useState('');
@@ -104,6 +102,9 @@ export default function Edit({
       setLaboratorios((prev) => [...prev, json]);
       setNuevoLaboratorio('');
       setModalLaboratorioOpen(false);
+      toast.success('Laboratorio agregado correctamente');
+    } else {
+      toast.error('Error al agregar el laboratorio');
     }
   };
 
@@ -123,13 +124,18 @@ export default function Edit({
       setCategorias((prev) => [...prev, json.categoria]);
       setNuevaCategoria('');
       setModalCategoriaOpen(false);
+      toast.success('Categoría agregada correctamente');
+    } else {
+      toast.error('Error al agregar la categoría');
     }
   };
 
   // ✅ Usa `post` (igual que en Create)
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    post(`/productos/${producto.id}`, { forceFormData: true });
+    post(`/productos/${producto.id}`, {
+      forceFormData: true,
+    });
   };
 
   return (
@@ -447,84 +453,24 @@ export default function Edit({
               />
             </div>
 
-            {/* Precio por unidad */}
+            {/* Precio de Venta */}
             <div className="space-y-2">
-              <Label htmlFor="precio_1" className="flex items-center gap-1.5 text-sm font-medium">
+              <Label htmlFor="precio_venta" className="flex items-center gap-1.5 text-sm font-medium">
                 <Tag className="h-4 w-4" />
                 Precio de Venta (Unidad)
               </Label>
               <Input
-                id="precio_1"
+                id="precio_venta"
                 type="number"
                 step="0.01"
                 min="0"
                 placeholder="0.00"
-                value={data.precio_1}
-                onChange={(e) => setData('precio_1', e.target.value)}
-                className={`h-11 ${errors.precio_1 ? 'border-red-500' : ''}`}
+                value={data.precio_venta}
+                onChange={(e) => setData('precio_venta', e.target.value)}
+                className={`h-11 ${errors.precio_venta ? 'border-red-500' : ''}`}
               />
-              {errors.precio_1 && <p className="text-xs text-red-500">{errors.precio_1}</p>}
+              {errors.precio_venta && <p className="text-xs text-red-500">{errors.precio_venta}</p>}
             </div>
-
-            {/* Stock field removed */}
-
-            {/* Botón precios adicionales */}
-            <div className="md:col-span-2 flex items-center">
-              <Button
-                type="button"
-                variant={mostrarMasPrecios ? 'secondary' : 'outline'}
-                size="sm"
-                className="h-9 px-3"
-                onClick={() => setMostrarMasPrecios(!mostrarMasPrecios)}
-              >
-                {mostrarMasPrecios ? (
-                  <Check className="mr-2 h-3.5 w-3.5" />
-                ) : (
-                  <X className="mr-2 h-3.5 w-3.5" />
-                )}
-                {mostrarMasPrecios
-                  ? 'Ocultar precios adicionales'
-                  : 'Asignar más precios'}
-              </Button>
-            </div>
-
-            {/* Precios adicionales */}
-            {mostrarMasPrecios && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="precio_2" className="flex items-center gap-1.5 text-sm font-medium">
-                    <Tag className="h-4 w-4" />
-                    Precio por docena
-                  </Label>
-                  <Input
-                    id="precio_2"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    value={data.precio_2}
-                    onChange={(e) => setData('precio_2', e.target.value)}
-                    className="h-11"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="precio_3" className="flex items-center gap-1.5 text-sm font-medium">
-                    <Tag className="h-4 w-4" />
-                    Precio por mayor
-                  </Label>
-                  <Input
-                    id="precio_3"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    value={data.precio_3}
-                    onChange={(e) => setData('precio_3', e.target.value)}
-                    className="h-11"
-                  />
-                </div>
-              </>
-            )}
 
             {/* Fotos */}
             <div className="md:col-span-2">

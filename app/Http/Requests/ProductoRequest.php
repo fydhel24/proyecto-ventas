@@ -30,8 +30,6 @@ class ProductoRequest extends FormRequest
             'fecha' => 'required|date',
             'precio_compra' => 'required|numeric|min:0',
             'precio_venta' => 'required|numeric|min:0',
-            'precio_2' => 'nullable|numeric|min:0',
-            'precio_3' => 'nullable|numeric|min:0',
             'fotos.*' => 'image',
         ];
     }
