@@ -19,7 +19,7 @@ class ProductoRequest extends FormRequest
         return [
             'nombre' => 'required|string|max:255',
             'caracteristicas' => 'nullable|string',
-            'marca_id' => 'required|exists:marcas,id',
+            'marca_id' => 'nullable|exists:marcas,id',
             'categoria_id' => 'required|exists:categorias,id',
             // 'stock' removed as it's not in the model
             // el estado se guarda como string '1' o '0' (activo / inactivo)

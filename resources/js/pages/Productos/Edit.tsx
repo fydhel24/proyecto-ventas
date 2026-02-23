@@ -237,67 +237,6 @@ export default function Edit({
               />
             </div>
 
-            {/* Marca */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1.5 text-sm font-medium">
-                <Landmark className="h-4 w-4" />
-                Marca
-              </Label>
-              <div className="flex gap-2">
-                <Popover open={marcaOpen} onOpenChange={setMarcaOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={marcaOpen}
-                      className="h-11 flex-1 justify-between"
-                    >
-                      {data.marca_id
-                        ? marcas.find((m) => m.id === Number(data.marca_id))?.nombre_marca
-                        : 'Seleccionar marca'}
-                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0" align="start" sideOffset={6}>
-                    <Command>
-                      <CommandInput placeholder="Buscar marca..." className="h-10" />
-                      <CommandList className="max-h-60 overflow-y-auto">
-                        <CommandEmpty>No se encontró la marca.</CommandEmpty>
-                        <CommandGroup>
-                          {marcas.map((m) => (
-                            <CommandItem
-                              key={m.id}
-                              value={m.nombre_marca}
-                              onSelect={(currentValue) => {
-                                const selected = marcas.find(
-                                  (marca) => marca.nombre_marca === currentValue
-                                );
-                                if (selected) {
-                                  setData('marca_id', String(selected.id));
-                                }
-                                setMarcaOpen(false);
-                              }}
-                            >
-                              {m.nombre_marca}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="outline"
-                  className="h-11 w-11"
-                  onClick={() => setModalMarcaOpen(true)}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
             {/* Categoría */}
             <div className="space-y-2">
               <Label className="flex items-center gap-1.5 text-sm font-medium">
