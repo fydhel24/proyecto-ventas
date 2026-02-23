@@ -27,13 +27,24 @@ class VentaController extends Controller
     {
         $user = auth()->user();
         $is_admin = $user->hasRole('admin');
+        $sucursal_id = $user->sucursal_id;
+
+        // Validar si hay una caja abierta para esta sucursal
+        $cajaAbierta = \App\Models\Caja::where('sucursal_id', $sucursal_id)
+            ->whereNull('fecha_cierre')
+            ->first();
+
+        if (!$cajaAbierta && !$is_admin) {
+            return redirect()->route('cajas.index')->with('error', 'Debe abrir una caja antes de realizar ventas.');
+        }
         
         return Inertia::render('Ventas/POS', [
             'clientes' => Cliente::all(),
             'categorias' => Categoria::all(),
             'sucursales' => $is_admin ? \App\Models\Sucursale::all() : [],
-            'user_sucursal_id' => $user->sucursal_id,
+            'user_sucursal_id' => $sucursal_id,
             'is_admin' => $is_admin,
+            'caja_abierta' => $cajaAbierta,
         ]);
     }
 
@@ -59,6 +70,15 @@ class VentaController extends Controller
             $data['sucursal_id'] = auth()->user()->sucursal_id;
         }
 
+        // Validar si hay una caja abierta para esta sucursal
+        $cajaAbierta = \App\Models\Caja::where('sucursal_id', $data['sucursal_id'])
+            ->whereNull('fecha_cierre')
+            ->first();
+
+        if (!$cajaAbierta) {
+            return response()->json(['error' => 'No hay una caja abierta para esta sucursal. Por favor, abra una caja primero.'], 422);
+        }
+
         try {
             $venta = $this->pharmacyService->procesarVenta($data);
             
@@ -78,7 +98,7 @@ class VentaController extends Controller
         $categoria_id = $request->input('categoria_id');
         $sucursal_id = $request->input('sucursal_id') ?? auth()->user()->sucursal_id;
 
-        $productos = Producto::with(['laboratorio', 'categoria'])
+        $productos = Producto::with(['laboratorio', 'categoria', 'fotos'])
             ->withSum(['lotes' => function($q) use ($sucursal_id) {
                 $q->where('sucursal_id', $sucursal_id)
                   ->where('stock', '>', 0)
@@ -108,6 +128,9 @@ class VentaController extends Controller
                     'stock' => (int) ($p->lotes_sum_stock ?? 0),
                     'categoria' => $p->categoria->nombre_cat ?? 'S/C',
                     'laboratorio' => $p->laboratorio->nombre_lab ?? 'S/L',
+                    'fotos' => $p->fotos->map(function($f) {
+                        return ['url' => $f->url];
+                    }),
                 ];
             });
 
