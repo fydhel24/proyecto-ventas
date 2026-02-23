@@ -30,8 +30,8 @@ export default function Checkout() {
         nombre: '',
         ci: '',
         celular: '',
-        departamento: '',
-        provincia: '',
+        departamento: 'LA PAZ',
+        provincia: 'la paz',
         productos: items.map(item => ({
             producto_id: item.id,
             cantidad: item.cantidad,
@@ -96,9 +96,9 @@ export default function Checkout() {
                     <div className="h-32 w-32 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mb-10 animate-bounce">
                         <CheckCircle2 className="h-16 w-16" />
                     </div>
-                    <h1 className="text-5xl md:text-6xl font-black mb-6 tracking-tight">¡Pedido Confirmado!</h1>
+                    <h1 className="text-5xl md:text-6xl font-black mb-6 tracking-tight">¡Reserva Confirmada!</h1>
                     <p className="text-xl text-muted-foreground max-w-lg mb-12 font-medium leading-relaxed">
-                        Tu solicitud ha sido procesada con éxito. Un asesor de Miranda se pondrá en contacto contigo en breve para coordinar el envío.
+                        Tu solicitud ha sido procesada con éxito. Apersonate al restaurante para la entrega de tus platillos.
                     </p>
                     <Button size="lg" className="h-20 px-12 rounded-[2rem] text-xl font-black shadow-2xl hover:scale-105 transition-transform" asChild>
                         <a href="/tienda">Volver al Catálogo</a>
@@ -112,8 +112,8 @@ export default function Checkout() {
         <PublicLayout>
             <Head title="Checkout | Finalizar Pedido" />
 
-            <div className="container mx-auto px-4 py-8 md:py-16">
-                <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-12">Finalizar Pedido</h1>
+            <div className="container mx-auto px-4 py-8 md:py-10">
+                <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-12">Finalizar Reserva</h1>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
                     {/* Form */}
@@ -124,7 +124,7 @@ export default function Checkout() {
                                     <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
                                         <User className="h-6 w-6" />
                                     </div>
-                                    Tus Datos de Envío
+                                    Registra tus datos
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-8 pt-4">
@@ -166,37 +166,14 @@ export default function Checkout() {
                                         {errors.celular && <p className="text-sm text-red-500 font-bold ml-2">{errors.celular}</p>}
                                     </div>
 
-                                    <div className="space-y-3">
-                                        <Label htmlFor="departamento" className="text-sm font-black uppercase tracking-widest text-muted-foreground">Departamento</Label>
-                                        <Input
-                                            id="departamento"
-                                            value={data.departamento}
-                                            onChange={e => setData('departamento', e.target.value)}
-                                            placeholder="La Paz, SCZ..."
-                                            className="h-14 rounded-2xl border-2 text-lg px-6 font-medium"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        <Label htmlFor="provincia" className="text-sm font-black uppercase tracking-widest text-muted-foreground">Ciudad / Provincia</Label>
-                                        <Input
-                                            id="provincia"
-                                            value={data.provincia}
-                                            onChange={e => setData('provincia', e.target.value)}
-                                            placeholder="Localidad específica"
-                                            className="h-14 rounded-2xl border-2 text-lg px-6 font-medium"
-                                            required
-                                        />
-                                    </div>
                                 </form>
                             </CardContent>
                         </Card>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {[
-                                { icon: Truck, title: 'Entrega en 24h', desc: 'Dentro del área urbana' },
-                                { icon: ShoppingBag, title: 'Revisa al recibir', desc: 'Paga con seguridad total' }
+                                { icon: Truck, title: 'Entrega en Sucursal', desc: 'Dentro del área urbana' },
+                                { icon: ShoppingBag, title: 'Apersonate a Caja', desc: 'Paga con seguridad total' }
                             ].map((item, i) => (
                                 <div key={i} className="flex gap-6 p-8 rounded-[2.5rem] bg-muted/30 border-2 border-border/50 hover:bg-muted/50 transition-colors">
                                     <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
@@ -217,7 +194,7 @@ export default function Checkout() {
                             <div className="bg-primary p-8 text-primary-foreground">
                                 <CardTitle className="text-3xl font-black flex items-center gap-4">
                                     <ShoppingBag className="h-8 w-8" />
-                                    Tu Compra
+                                    Tus Platillos
                                 </CardTitle>
                             </div>
                             <CardContent className="p-8 space-y-8">
@@ -249,21 +226,9 @@ export default function Checkout() {
                                 <Separator className="h-1 bg-border/50 rounded-full" />
 
                                 <div className="space-y-4">
-                                    <div className="flex justify-between font-black text-lg">
-                                        <span className="text-muted-foreground">Monto Bruto</span>
-                                        <span>{formatPrice(subtotal)}</span>
-                                    </div>
-                                    <div className="flex justify-between font-black text-lg text-green-600">
-                                        <span>Logística Miranda</span>
-                                        <span className="uppercase text-sm tracking-widest">Sin costo</span>
-                                    </div>
-                                    <Separator className="h-1" />
-                                    <div className="flex justify-between text-4xl font-black pt-4">
-                                        <span>Inversión</span>
-                                        <div className="flex flex-col items-end">
-                                            <span className="text-primary leading-none">{formatPrice(subtotal)}</span>
-                                            <span className="text-[10px] text-muted-foreground uppercase opacity-50 tracking-[0.2em] mt-1">Neto Final</span>
-                                        </div>
+                                    <div className="flex justify-between font-black">
+                                        <span className="text-muted-foreground text-lg">Monto Total a Cancelar</span>
+                                        <span className="text-2xl">{formatPrice(subtotal)}</span>
                                     </div>
                                 </div>
 
@@ -274,7 +239,7 @@ export default function Checkout() {
                                     className="w-full h-24 rounded-[2rem] text-2xl font-black gap-4 shadow-3xl shadow-primary/30 mt-6 active:scale-95 transition-all group overflow-hidden relative"
                                 >
                                     <div className="bg-white/10 absolute inset-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                                    <span className="relative z-10">{processing ? 'Procesando...' : 'Confirmar Pedido'}</span>
+                                    <span className="relative z-10">{processing ? 'Procesando...' : 'Confirmar Reserva'}</span>
                                     <ArrowRight className="h-8 w-8 transition-transform group-hover:translate-x-3 relative z-10" />
                                 </Button>
                             </CardContent>

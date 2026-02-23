@@ -51,7 +51,7 @@ export function Navbar({ auth }: { auth: { user?: any } }) {
                                 />
                             </div>
                             <span className="hidden text-2xl font-black tracking-tighter uppercase sm:inline-block">
-                                Miracode
+                                Restaurant Miracode
                             </span>
                         </Link>
 
@@ -60,8 +60,7 @@ export function Navbar({ auth }: { auth: { user?: any } }) {
                             {[
                                 { name: 'Inicio', path: '/' },
                                 { name: 'La Carta', path: '/tienda' },
-                                { name: 'Pedidos', path: '/pedido' },
-                                { name: 'Verificar pedido', path: '/qr' },
+                                { name: 'Mi Reserva', path: '/tienda/checkout' },
                             ].map((item) => (
                                 <Link
                                     key={item.name}
