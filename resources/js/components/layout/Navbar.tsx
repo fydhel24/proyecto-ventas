@@ -1,12 +1,18 @@
 import { ColorThemeSelector } from '@/components/color-theme-selector';
 import { CartDrawer } from '@/components/shop/CartDrawer';
 import { Button } from '@/components/ui/button';
-import { SearchInput } from '@/components/ui/SearchInput';
+import {
+    NavigationMenu,
+    NavigationMenuItem,
+    NavigationMenuLink,
+    NavigationMenuList,
+    navigationMenuTriggerStyle,
+} from '@/components/ui/navigation-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useCart } from '@/hooks/use-cart';
 import { cn } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
-import { Menu, Search, ShoppingCart, User } from 'lucide-react';
+import { Menu, ShoppingCart, Utensils } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 export function Navbar({ auth }: { auth: { user?: any } }) {
@@ -30,159 +36,132 @@ export function Navbar({ auth }: { auth: { user?: any } }) {
             <nav
                 ref={navRef}
                 className={cn(
-                    'fixed top-0 z-50 w-full border-b p-2 backdrop-blur-md transition-all duration-300',
+                    'fixed top-0 z-50 w-full transition-all duration-500 ease-in-out',
                     scrolled
-                        ? 'h-16 border-border bg-background/80 shadow-sm'
-                        : 'h-20 border-transparent bg-background',
+                        ? 'h-16 border-b border-border bg-background/60 shadow-[0_2px_20px_-10px_rgba(0,0,0,0.1)] backdrop-blur-xl'
+                        : 'h-24 border-b border-transparent bg-transparent',
                 )}
             >
-                <div className="container mx-auto flex h-full items-center justify-between gap-4">
-                    {/* Logo */}
-                    <div className="flex items-center gap-10">
+                <div className="container mx-auto flex h-full items-center justify-between px-6">
+                    {/* Brand / Logo - Left */}
+                    <div className="flex-1">
                         <Link
                             href="/"
-                            className="group flex items-center space-x-2"
+                            className="group flex w-fit items-center gap-3 transition-opacity hover:opacity-90"
                         >
-                            <div className="flex h-10 w-10 items-center justify-center bg-transparent transition-transform group-hover:scale-110">
-                                <img
-                                    src="/favicon.ico"
-                                    className="h-10 w-10 object-contain"
-                                    alt="Logo"
-                                />
+                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 transition-all duration-300 group-hover:scale-105 group-hover:bg-primary/20">
+                                <Utensils className="h-6 w-6 text-primary" />
                             </div>
-                            <span className="hidden text-2xl font-black tracking-tighter uppercase sm:inline-block">
-                                Restaurant Miracode
-                            </span>
+                            <div className="flex flex-col leading-none">
+                                <span className="text-xl font-black tracking-tighter uppercase italic">
+                                    Miracode
+                                </span>
+                                <span className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
+                                    Gourmet
+                                </span>
+                            </div>
                         </Link>
-
-                        {/* Links con Texto XL */}
-                        <div className="hidden items-center gap-8 lg:flex">
-                            {[
-                                { name: 'Inicio', path: '/' },
-                                { name: 'La Carta', path: '/tienda' },
-                                { name: 'Mi Reserva', path: '/tienda/checkout' },
-                            ].map((item) => (
-                                <Link
-                                    key={item.name}
-                                    href={item.path}
-                                    className="group relative text-xl font-bold text-muted-foreground transition-colors hover:text-primary"
-                                >
-                                    {item.name}
-                                    <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" />
-                                </Link>
-                            ))}
-                        </div>
                     </div>
 
-                    {/* Derecha: Buscador y Acciones */}
-                    <div className="flex flex-1 items-center justify-end gap-2">
-                        {/* Buscador */}
-                        <div className="flex flex-1 items-center justify-end md:flex-initial">
-                            <div
-                                className={cn(
-                                    'w-full transition-all md:w-auto',
-                                    isSearchOpen
-                                        ? 'fixed top-20 right-0 left-0 z-[60] md:relative md:top-auto md:max-w-sm'
-                                        : 'hidden md:block md:max-w-sm',
-                                )}
-                            >
-                                <div
-                                    className={cn(
-                                        'w-full px-2 md:p-0',
-                                        isSearchOpen &&
-                                            'rounded-b-xl bg-background/95 p-2 backdrop-blur-sm md:bg-transparent',
-                                    )}
-                                >
-                                    <SearchInput
-                                        onClose={() => setIsSearchOpen(false)}
-                                        autoFocus={isSearchOpen}
-                                        className="w-full"
-                                    />
-                                </div>
-                            </div>
+                    {/* Navigation Menu - Center */}
+                    <div className="hidden flex-1 justify-center lg:flex">
+                        <NavigationMenu>
+                            <NavigationMenuList className="gap-2">
+                                {[
+                                    { name: 'Inicio', path: '/' },
+                                    { name: 'La Carta', path: '/tienda' },
+                                    {
+                                        name: 'Mi Reserva',
+                                        path: '/tienda/checkout',
+                                    },
+                                ].map((item) => (
+                                    <NavigationMenuItem key={item.name}>
+                                        <Link href={item.path}>
+                                            <NavigationMenuLink
+                                                className={cn(
+                                                    navigationMenuTriggerStyle(),
+                                                    'h-10 bg-transparent px-5 text-sm font-bold tracking-widest uppercase transition-all hover:bg-primary/5 hover:text-primary active:scale-95',
+                                                )}
+                                            >
+                                                {item.name}
+                                            </NavigationMenuLink>
+                                        </Link>
+                                    </NavigationMenuItem>
+                                ))}
+                            </NavigationMenuList>
+                        </NavigationMenu>
+                    </div>
 
-                            {!isSearchOpen && (
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-11 w-11 md:hidden"
-                                    onClick={() => setIsSearchOpen(true)}
-                                >
-                                    <Search className="h-6 w-6" />
-                                </Button>
-                            )}
-                        </div>
-
-                        <div className="flex items-center gap-1">
+                    {/* Actions - Right */}
+                    <div className="flex flex-1 items-center justify-end gap-3">
+                        <div className="flex items-center gap-1.5">
                             <ColorThemeSelector />
 
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="relative h-11 w-11"
+                                className="relative h-11 w-11 rounded-2xl transition-all hover:bg-primary/10 hover:text-primary"
                                 onClick={() => setIsCartOpen(true)}
                             >
-                                <ShoppingCart className="h-6 w-6" />
+                                <ShoppingCart className="h-5 w-5" />
                                 {itemCount > 0 && (
-                                    <span className="absolute top-1 right-1 flex h-5 w-5 animate-in items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground zoom-in">
+                                    <span className="absolute top-2 right-2 flex h-4 w-4 animate-in items-center justify-center rounded-full bg-primary text-[10px] font-black text-primary-foreground zoom-in">
                                         {itemCount}
                                     </span>
                                 )}
                             </Button>
 
-                            <div className="mx-2 hidden h-8 w-[1px] bg-border sm:block" />
+                            <div className="mx-3 hidden h-6 w-px bg-border/60 lg:block" />
 
-                            <div className="hidden items-center gap-2 sm:flex">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-11 w-11"
-                                >
-                                    <User className="h-6 w-6" />
-                                </Button>
+                            <div className="hidden items-center gap-3 lg:flex">
                                 <Button
                                     asChild
-                                    className="h-10 rounded-xl px-6 font-bold"
+                                    className="h-11 rounded-2xl bg-primary px-8 text-xs font-black tracking-widest uppercase shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:bg-primary/90 active:scale-95"
                                 >
                                     <Link
                                         href={
                                             auth.user ? '/dashboard' : '/login'
                                         }
                                     >
-                                        {auth.user
-                                            ? 'Sistema'
-                                            : 'Iniciar sesión'}
+                                        {auth.user ? 'Sistema' : 'Ingresar'}
                                     </Link>
                                 </Button>
                             </div>
 
-                            {/* Mobile Menu */}
+                            {/* Mobile Toggle */}
                             <div className="lg:hidden">
                                 <Sheet>
                                     <SheetTrigger asChild>
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-11 w-11"
+                                            className="h-11 w-11 rounded-2xl"
                                         >
-                                            <Menu className="h-7 w-7" />
+                                            <Menu className="h-6 w-6" />
                                         </Button>
                                     </SheetTrigger>
-                                    <SheetContent>
-                                        <nav className="mt-12 flex flex-col gap-6">
+                                    <SheetContent
+                                        side="right"
+                                        className="flex w-[300px] flex-col border-l-0 p-8 shadow-2xl"
+                                    >
+                                        <div className="mb-12 flex items-center gap-3">
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                                                <Utensils className="h-5 w-5 text-primary" />
+                                            </div>
+                                            <span className="text-2xl font-black tracking-tighter uppercase italic">
+                                                Miracode
+                                            </span>
+                                        </div>
+                                        <nav className="flex flex-col gap-2">
                                             {[
                                                 { name: 'Inicio', path: '/' },
                                                 {
-                                                    name: 'Tienda',
+                                                    name: 'La Carta',
                                                     path: '/tienda',
                                                 },
                                                 {
-                                                    name: 'Pedidos',
-                                                    path: '/pedido',
-                                                },
-                                                {
-                                                    name: 'Verificar pedido',
-                                                    path: '/qr',
+                                                    name: 'Mi reserva',
+                                                    path: '/tienda/checkout',
                                                 },
                                                 {
                                                     name: auth.user
@@ -196,12 +175,20 @@ export function Navbar({ auth }: { auth: { user?: any } }) {
                                                 <Link
                                                     key={item.name}
                                                     href={item.path}
-                                                    className="border-b pb-2 text-2xl font-black"
+                                                    className="group flex flex-col gap-1 py-4"
                                                 >
-                                                    {item.name}
+                                                    <span className="text-xl font-black tracking-tight uppercase transition-colors group-hover:text-primary">
+                                                        {item.name}
+                                                    </span>
+                                                    <div className="h-1 w-0 bg-primary/20 transition-all group-hover:w-full" />
                                                 </Link>
                                             ))}
                                         </nav>
+                                        <div className="mt-auto border-t pt-8 text-center">
+                                            <p className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
+                                                Restaurante Miracode
+                                            </p>
+                                        </div>
                                     </SheetContent>
                                 </Sheet>
                             </div>
