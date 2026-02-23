@@ -131,7 +131,7 @@ export default function CuadernosIndex({
 }: {
     cuadernos?: PaginatedResponse<Cuaderno>;
     productos: ProductoModal[];
-    filters: { search?: string };
+    filters: { search?: string; filter?: string };
 }) {
     const [localState, setLocalState] = useState<LocalState>({});
     const [modalOpen, setModalOpen] = useState(false);

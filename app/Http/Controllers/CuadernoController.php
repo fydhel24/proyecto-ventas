@@ -81,60 +81,47 @@ class CuadernoController extends Controller
             $productos = collect();
         }
 
-        return Inertia::render('Cuadernos/Index', [
-            'cuadernos' => (function () use ($search, $filter) {
-                // Manejar errores de forma segura para que nunca rompa PHP-FPM
-                try {
-                    $cuadernosQuery = Cuaderno::with([
-                        'productos:id,nombre,laboratorio_id,categoria_id,color_id',
-                        'productos.laboratorio:id,nombre_lab',
-                        'productos.categoria:id,nombre_cat',
-                        'productos.color:id,codigo_color',
-                        'imagenes',
-                    ])
-                        ->when($search, function ($query, $search) {
-                            $query->where(function ($q) use ($search) {
-                                $q->where('nombre', 'like', "%{$search}%")
-                                    ->orWhere('ci', 'like', "%{$search}%")
-                                    ->orWhere('celular', 'like', "%{$search}%")
-                                    ->orWhere('departamento', 'like', "%{$search}%")
-                                    ->orWhere('provincia', 'like', "%{$search}%")
-                                    ->orWhere('id', 'like', "%{$search}%");
-                            });
-                        })
-                        ->when($filter, function ($query, $filter) {
-                            switch ($filter) {
-                                case 'la_paz':
-                                    $query->where('la_paz', true);
-                                    break;
-                                case 'enviado':
-                                    $query->where('enviado', true);
-                                    break;
-                                case 'p_listo':
-                                    $query->where('p_listo', true);
-                                    break;
-                                case 'p_pendiente':
-                                    $query->where('p_pendiente', true);
-                                    break;
-                            }
-                        })
-                        ->select('id', 'nombre', 'ci', 'celular', 'departamento', 'provincia', 'tipo', 'estado', 'detalle', 'la_paz', 'enviado', 'p_listo', 'p_pendiente', 'monto_total', 'created_at')
-                        ->orderBy('created_at', 'desc');
-
-                    // Ejecutar paginación dentro del try
-                    try {
-                        return $cuadernosQuery->paginate(20)->withQueryString();
-                    } catch (\Exception $e) {
-                        \Log::error('Error paginando cuadernos: ' . $e->getMessage());
-                        return collect(); // fallback vacío
-                    }
-                } catch (\Exception $e) {
-                    \Log::error('Error cargando cuadernos: ' . $e->getMessage());
-                    return collect(); // fallback vacío
+        $cuadernosQuery = Cuaderno::with([
+            'productos',
+            'productos.laboratorio',
+            'productos.categoria',
+            'productos.color',
+            'imagenes',
+        ])
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nombre', 'like', "%{$search}%")
+                        ->orWhere('ci', 'like', "%{$search}%")
+                        ->orWhere('celular', 'like', "%{$search}%")
+                        ->orWhere('departamento', 'like', "%{$search}%")
+                        ->orWhere('provincia', 'like', "%{$search}%")
+                        ->orWhere('id', 'like', "%{$search}%");
+                });
+            })
+            ->when($filter, function ($query, $filter) {
+                switch ($filter) {
+                    case 'la_paz':
+                        $query->where('la_paz', true);
+                        break;
+                    case 'enviado':
+                        $query->where('enviado', true);
+                        break;
+                    case 'p_listo':
+                        $query->where('p_listo', true);
+                        break;
+                    case 'p_pendiente':
+                        $query->where('p_pendiente', true);
+                        break;
                 }
-            })(),
+            })
+            ->orderBy('created_at', 'desc');
+
+        $cuadernosPaginated = $cuadernosQuery->paginate(20)->withQueryString();
+
+        return Inertia::render('Cuadernos/Index', [
+            'cuadernos' => $cuadernosPaginated,
             'productos' => $productos,
-            'filters' => $request->only(['search']),
+            'filters' => $request->only(['search', 'filter']),
         ]);
     }
 

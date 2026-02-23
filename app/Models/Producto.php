@@ -47,6 +47,11 @@ class Producto extends Model
         return $this->belongsTo(Categoria::class);
     }
 
+    public function color()
+    {
+        return $this->belongsTo(Color::class);
+    }
+
     public function lotes()
     {
         return $this->hasMany(Lote::class);
