@@ -61,6 +61,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware('can:editar productos')->group(function () {
             Route::get('/{producto}/edit', [ProductoController::class, 'edit'])->name('edit');
             Route::put('/{producto}', [ProductoController::class, 'update'])->name('update');
+            // cambiar estado mediante botón o radio
+            Route::post('/{producto}/toggle-status', [ProductoController::class, 'toggleStatus'])->name('toggleStatus');
         });
 
         Route::middleware('can:eliminar productos')->group(function () {

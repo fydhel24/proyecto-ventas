@@ -307,8 +307,10 @@ private function processPhotos(Producto $producto, array $files): void
     public function toggleStatus(Producto $producto)
     {
         try {
+            // tratamos el campo como string '1' / '0'
+            $nuevo = $producto->estado === '1' ? '0' : '1';
             $producto->update([
-                'estado' => !$producto->estado
+                'estado' => $nuevo
             ]);
 
             return back()->with('success', 'Estado del producto actualizado correctamente');

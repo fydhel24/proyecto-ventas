@@ -93,26 +93,6 @@ const mainNavItems: NavItem[] = [
                 href: cuadernos.index().url,
                 icon: List,
             },
-            {
-                title: 'La Paz',
-                href: cuadernos.index({ filter: 'la_paz' }).url,
-                icon: MapPin,
-            },
-            {
-                title: 'Enviado',
-                href: cuadernos.index({ filter: 'enviado' }).url,
-                icon: Send,
-            },
-            {
-                title: 'Listo',
-                href: cuadernos.index({ filter: 'p_listo' }).url,
-                icon: CheckCircle2,
-            },
-            {
-                title: 'Pendiente',
-                href: cuadernos.index({ filter: 'p_pendiente' }).url,
-                icon: Clock,
-            },
         ],
     },
     {
@@ -125,18 +105,6 @@ const mainNavItems: NavItem[] = [
                 title: 'Administrar Stock',
                 href: inventarios.index().url,
                 icon: Boxes,
-            },
-            {
-                title: 'Solicitudes',
-                href: solicitudes.index().url,
-                icon: Send,
-                permission: 'ver solicitudes',
-            },
-            {
-                title: 'Envíos',
-                href: envios.index().url,
-                icon: Truck,
-                permission: 'ver envios',
             },
         ],
     },
@@ -182,18 +150,8 @@ const mainNavItems: NavItem[] = [
                 href: '/reports/orders',
                 icon: CheckCircle2,
             },
-            {
-                title: 'Productos',
-                href: '/reports/products',
-                icon: Package,
-            },
+           
         ],
-    },
-    {
-        title: 'WhatsApp Bot',
-        href: whatsappMiranda().url,
-        icon: MessageCircle,
-        permission: 'ver whatsapp',
     },
     {
         title: 'Cajas',

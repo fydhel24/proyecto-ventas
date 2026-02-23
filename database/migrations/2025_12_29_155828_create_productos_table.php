@@ -17,10 +17,10 @@ return new class extends Migration
             $table->string('nombre');
             $table->text('caracteristicas')->nullable();
 
-            $table->foreignId('marca_id')
+            $table->foreignId('marca_id')->nullable()
                 ->constrained('marcas');
 
-            $table->foreignId('categoria_id')
+            $table->foreignId('categoria_id')->nullable()
                 ->constrained('categorias');
 
             $table->foreignId('color_id')->nullable()

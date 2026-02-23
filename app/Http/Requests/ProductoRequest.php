@@ -22,7 +22,9 @@ class ProductoRequest extends FormRequest
             'marca_id' => 'required|exists:marcas,id',
             'categoria_id' => 'required|exists:categorias,id',
             // 'stock' removed as it's not in the model
-            'estado' => 'required|boolean',
+            // el estado se guarda como string '1' o '0' (activo / inactivo)
+            // recibir solo esos valores para mantener consistencia
+            'estado' => 'required|string|in:0,1',
             'fecha' => 'required|date',
             'precio_compra' => 'required|numeric|min:0',
             'precio_1' => 'required|numeric|min:0',

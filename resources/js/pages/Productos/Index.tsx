@@ -9,6 +9,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import AppLayout from '@/layouts/app-layout';
 import productosRoutes from '@/routes/productos';
 import { Link, router, usePage } from '@inertiajs/react';
@@ -39,6 +40,7 @@ import {
 interface Producto {
     id: number;
     nombre: string;
+    estado: '0' | '1'; // activo o inactivo como string
     precio_1: string;
     marca: { nombre_marca: string } | null;
     categoria: { nombre_cat: string } | null;
@@ -228,8 +230,8 @@ export default function Index({ productos, filters }: Props) {
                                                             Nombre
                                                         </div>
                                                     </TableHead>
-                                                    <TableHead className="text-[11px] uppercase font-black tracking-widest text-muted-foreground h-12">
-                                                        Marca
+                                                    <TableHead className="text-[11px] uppercase font-black tracking-widest text-muted-foreground h-12 text-center">
+                                                        Estado
                                                     </TableHead>
                                                     <TableHead className="text-[11px] uppercase font-black tracking-widest text-muted-foreground h-12">
                                                         Categoría
@@ -252,7 +254,19 @@ export default function Index({ productos, filters }: Props) {
                                                         className="group hover:bg-primary/[0.02] dark:hover:bg-primary/[0.05] transition-colors border-b border-border/20"
                                                     >
                                                         <TableCell className="font-bold text-sm py-4">{p.nombre}</TableCell>
-                                                        <TableCell className="text-xs font-medium text-muted-foreground">{p.marca?.nombre_marca || '—'}</TableCell>
+                                                        <TableCell className="text-xs font-medium text-center">
+                                                            <div className="flex items-center justify-center gap-2">
+                                                                <Switch
+                                                                    checked={p.estado === '1'}
+                                                                    onCheckedChange={() => {
+                                                                        router.post(productosRoutes.toggleStatus(p.id), {}, { preserveState: true });
+                                                                    }}
+                                                                />
+                                                                <span className={`text-xs ${p.estado === '1' ? 'text-green-500' : 'text-muted-foreground'}`}>
+                                                                    {p.estado === '1' ? 'Activo' : 'Inactivo'}
+                                                                </span>
+                                                            </div>
+                                                        </TableCell>
                                                         <TableCell className="text-xs font-medium text-muted-foreground">{p.categoria?.nombre_cat || '—'}</TableCell>
                                                         <TableCell className="text-center">
                                                             <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-xl bg-primary/5 border border-primary/20 text-primary font-black text-sm shadow-sm">
