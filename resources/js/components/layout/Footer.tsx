@@ -16,152 +16,150 @@ export function Footer() {
     const { name } = usePage<SharedData>().props;
 
     return (
-        <footer className="w-full border-t border-border/40 bg-card/30 pt-20 pb-12 backdrop-blur-sm">
+        <footer className="w-full border-t border-border/40 bg-card/50 pt-20 pb-12 backdrop-blur-md">
             <div className="container mx-auto px-6">
-                <div className="flex flex-col items-center text-center">
-                    {/* Brand Identity - Centered */}
-                    <div className="mb-12 flex flex-col items-center space-y-4">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-primary/10 shadow-inner">
-                            <Utensils className="h-8 w-8 text-primary transition-transform hover:scale-110" />
+                <div className="grid grid-cols-1 gap-12 lg:grid-cols-4 lg:gap-8">
+                    {/* Brand Identity & Socials */}
+                    <div className="flex flex-col space-y-6">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 shadow-inner">
+                                <Utensils className="h-6 w-6 text-primary" />
+                            </div>
+                            <div className="flex flex-col leading-none">
+                                <h2 className="text-2xl font-black tracking-tighter uppercase italic">
+                                    {name}
+                                </h2>
+                                <span className="mt-0.5 text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
+                                    Miracode Gourmet
+                                </span>
+                            </div>
                         </div>
-                        <div className="flex flex-col">
-                            <h2 className="text-4xl leading-none font-black tracking-tighter uppercase italic">
-                                {name}
-                            </h2>
-                            <span className="mt-1 text-[10px] font-bold tracking-[0.4em] text-muted-foreground uppercase">
-                                Experiencia Gourmet
-                            </span>
-                        </div>
-                        <p className="max-w-md text-sm leading-relaxed font-medium text-muted-foreground/80">
-                            Fusión perfecta entre tradición culinaria e
-                            innovación constante. Creamos momentos inolvidables
-                            en cada platillo.
+                        <p className="max-w-xs text-sm leading-relaxed font-medium text-muted-foreground/80">
+                            Excelencia en cada ingrediente. Disfruta de la mejor
+                            experiencia gastronómica de Santa Cruz ahora en tu
+                            mesa.
                         </p>
+                        <div className="flex gap-3 pt-2">
+                            {[
+                                { Icon: Facebook, label: 'Facebook' },
+                                { Icon: Instagram, label: 'Instagram' },
+                                { Icon: Twitter, label: 'Twitter' },
+                            ].map(({ Icon, label }, i) => (
+                                <a
+                                    key={i}
+                                    href="#"
+                                    aria-label={label}
+                                    className="flex size-10 items-center justify-center rounded-xl bg-muted/50 text-muted-foreground shadow-sm transition-all duration-300 hover:scale-110 hover:bg-primary hover:text-white"
+                                >
+                                    <Icon className="size-5" />
+                                </a>
+                            ))}
+                        </div>
                     </div>
 
-                    {/* Social Links - Premium Pills */}
-                    <div className="mb-16 flex gap-3">
-                        {[
-                            { Icon: Facebook, label: 'Facebook' },
-                            { Icon: Instagram, label: 'Instagram' },
-                            { Icon: Twitter, label: 'Twitter' },
-                            { Icon: Mail, label: 'Email' },
-                        ].map(({ Icon, label }, i) => (
-                            <a
-                                key={i}
-                                href="#"
-                                aria-label={label}
-                                className="group flex size-12 items-center justify-center rounded-2xl bg-muted/50 shadow-sm transition-all duration-300 hover:scale-110 hover:bg-primary hover:text-white"
-                            >
-                                <Icon className="size-5 transition-transform group-hover:rotate-6" />
-                            </a>
-                        ))}
+                    {/* Quick Menu - Menu Section */}
+                    <div className="flex flex-col space-y-6 lg:pl-8">
+                        <h3 className="text-[11px] font-black tracking-[0.25em] text-primary uppercase">
+                            Explora la Carta
+                        </h3>
+                        <ul className="space-y-4 text-sm font-bold tracking-tight uppercase">
+                            <li>
+                                <Link
+                                    href="/"
+                                    className="group flex items-center gap-2 transition-colors hover:text-primary"
+                                >
+                                    <div className="h-1 w-0 bg-primary transition-all group-hover:w-3" />
+                                    Inicio
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
+                                    href="/tienda"
+                                    className="group flex items-center gap-2 transition-colors hover:text-primary"
+                                >
+                                    <div className="h-1 w-0 bg-primary transition-all group-hover:w-3" />
+                                    La Carta
+                                </Link>
+                            </li>
+                        </ul>
                     </div>
 
-                    {/* Navigation Grid - Balanced */}
-                    <div className="mb-20 grid w-full grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-3 lg:max-w-4xl">
-                        <div className="space-y-6">
-                            <h3 className="text-[10px] font-black tracking-[0.3em] text-primary uppercase">
-                                Menú
-                            </h3>
-                            <ul className="space-y-4 text-sm font-bold tracking-wider uppercase">
-                                <li>
-                                    <Link
-                                        href="/"
-                                        className="transition-colors hover:text-primary"
-                                    >
-                                        Inicio
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link
-                                        href="/tienda"
-                                        className="transition-colors hover:text-primary"
-                                    >
-                                        La Carta
-                                    </Link>
-                                </li>
-                            </ul>
-                        </div>
+                    {/* Support / Client Section */}
+                    <div className="flex flex-col space-y-6">
+                        <h3 className="text-[11px] font-black tracking-[0.25em] text-primary uppercase">
+                            Tu Reserva
+                        </h3>
+                        <ul className="space-y-4 text-sm font-bold tracking-tight uppercase">
+                            <li>
+                                <Link
+                                    href="/tienda/checkout"
+                                    className="group flex items-center gap-2 transition-colors hover:text-primary"
+                                >
+                                    <div className="h-1 w-0 bg-primary transition-all group-hover:w-3" />
+                                    Mi Reserva
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
+                                    href="/login"
+                                    className="group flex items-center gap-2 transition-colors hover:text-primary"
+                                >
+                                    <div className="h-1 w-0 bg-primary transition-all group-hover:w-3" />
+                                    Acceso Sistema
+                                </Link>
+                            </li>
+                        </ul>
+                    </div>
 
-                        <div className="space-y-6">
-                            <h3 className="text-[10px] font-black tracking-[0.3em] text-primary uppercase">
-                                Cliente
-                            </h3>
-                            <ul className="space-y-4 text-sm font-bold tracking-wider uppercase">
-                                <li>
-                                    <Link
-                                        href="/tienda/checkout"
-                                        className="transition-colors hover:text-primary"
-                                    >
-                                        Mi Reserva
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link
-                                        href="/login"
-                                        className="transition-colors hover:text-primary"
-                                    >
-                                        Ingresar
-                                    </Link>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div className="col-span-2 space-y-6 md:col-span-1">
-                            <h3 className="text-[10px] font-black tracking-[0.3em] text-primary uppercase">
-                                Ubicación
-                            </h3>
-                            <div className="flex flex-col items-center gap-2 text-sm font-medium text-muted-foreground">
-                                <div className="flex items-center gap-2">
-                                    <MapPin className="size-4 text-primary" />
-                                    <span>Bolivia - Santa Cruz</span>
+                    {/* Newsletter & Contact */}
+                    <div className="flex flex-col space-y-6">
+                        <h3 className="text-[11px] font-black tracking-[0.25em] text-primary uppercase">
+                            Suscríbete
+                        </h3>
+                        <div className="space-y-4">
+                            <p className="text-xs font-medium text-muted-foreground">
+                                Recibe ofertas exclusivas y novedades de nuestro
+                                menú semanal.
+                            </p>
+                            <div className="flex flex-col gap-2">
+                                <div className="relative">
+                                    <Mail className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                                    <input
+                                        type="email"
+                                        placeholder="Tu correo"
+                                        className="h-11 w-full rounded-xl border-border/50 bg-muted/30 pr-4 pl-10 text-xs font-medium transition-all focus:border-primary/50 focus:bg-background focus:ring-4 focus:ring-primary/10 focus:outline-none"
+                                    />
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Phone className="size-4 text-primary" />
-                                    <span>+591 700 00000</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Subscription Section - Premium Card */}
-                    <div className="relative mb-20 w-full max-w-2xl overflow-hidden rounded-[3rem] border-2 border-border/50 bg-muted/40 p-1">
-                        <div className="rounded-[2.8rem] bg-card/80 p-10 backdrop-blur-md">
-                            <div className="mb-8 space-y-2">
-                                <h3 className="text-2xl font-black tracking-tight uppercase italic">
-                                    Únete al club{' '}
-                                    <span className="text-primary">
-                                        Miracode
-                                    </span>
-                                </h3>
-                                <p className="text-sm font-medium text-muted-foreground">
-                                    Sé el primero en conocer nuestros eventos
-                                    exclusivos y lanzamientos de temporada.
-                                </p>
-                            </div>
-                            <div className="mx-auto flex max-w-md flex-col gap-3 sm:flex-row">
-                                <input
-                                    type="email"
-                                    placeholder="correo@ejemplo.com"
-                                    className="h-12 flex-1 rounded-2xl border-transparent bg-muted/50 px-6 text-sm font-medium transition-all focus:border-primary/50 focus:bg-background focus:ring-4 focus:ring-primary/10 focus:outline-none"
-                                />
-                                <Button className="h-12 rounded-2xl bg-primary px-8 font-black tracking-widest uppercase shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:bg-primary/90 active:scale-95">
-                                    Suscribirme
+                                <Button className="h-11 w-full rounded-xl bg-primary text-xs font-black tracking-widest uppercase shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                                    Unirme ahora
                                 </Button>
+                            </div>
+                        </div>
+                        <div className="flex flex-col space-y-3 pt-2">
+                            <div className="flex items-center gap-3 text-xs font-medium text-muted-foreground">
+                                <MapPin className="size-4 shrink-0 text-primary" />
+                                <span>Equipetrol Sur, Santa Cruz - BO</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-xs font-medium text-muted-foreground">
+                                <Phone className="size-4 shrink-0 text-primary" />
+                                <span>+591 700 88221</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <Separator className="mb-10 bg-border/40" />
+                <Separator className="my-12 bg-border/40" />
 
                 {/* Bottom Bar */}
-                <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-                    <p className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
-                        © {new Date().getFullYear()} {name} Gourmet · Sabor &
-                        Tecnología
-                    </p>
+                <div className="flex flex-col items-center justify-between gap-6 text-start md:flex-row lg:items-end">
+                    <div className="flex flex-col gap-1">
+                        <p className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
+                            © {new Date().getFullYear()} {name} Gourmet
+                        </p>
+                        <p className="text-[9px] font-medium tracking-widest text-muted-foreground/60 uppercase">
+                            Desarrollado con precisión por Miracode Tech
+                        </p>
+                    </div>
                     <div className="flex gap-8 text-[10px] font-black tracking-[0.2em] text-muted-foreground uppercase">
                         <a
                             href="#"
