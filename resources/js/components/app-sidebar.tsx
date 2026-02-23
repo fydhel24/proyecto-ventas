@@ -46,67 +46,6 @@ const mainNavItems: NavItem[] = [
         permission: 'ver dashboard',
     },
     {
-        title: 'Productos',
-        href: productos.index().url,
-        icon: Package,
-        permission: 'ver productos',
-    },
-    {
-        title: 'Ventas',
-        href: '/ventas',
-        icon: ShoppingCart,
-        permission: 'ver ventas',
-        items: [
-            {
-                title: 'Venta Rápida',
-                href: '/ventas/create',
-                icon: Plus,
-            },
-            {
-                title: 'Monitor Cocina',
-                href: '/ventas/cocina',
-                icon: Utensils,
-            },
-            {
-                title: 'Historial',
-                href: '/ventas/historial',
-                icon: List,
-            },
-        ],
-    },
-    {
-        title: 'Reservas Llevar',
-        href: cuadernos.index().url,
-        icon: Clock,
-        permission: 'ver ventas',
-        items: [
-            {
-                title: 'Ver Todas',
-                href: cuadernos.index().url,
-                icon: List,
-            },
-        ],
-    },
-    {
-        title: 'Inventarios',
-        href: inventarios.index().url,
-        icon: Boxes,
-        permission: 'ver inventarios',
-        items: [
-            {
-                title: 'Administrar Stock',
-                href: inventarios.index().url,
-                icon: Boxes,
-            },
-        ],
-    },
-    {
-        title: 'Sucursales',
-        href: sucursales.index().url,
-        icon: Building,
-        permission: 'ver sucursales',
-    },
-    {
         title: 'Administración',
         href: '#',
         icon: ShieldCheck,
@@ -127,17 +66,10 @@ const mainNavItems: NavItem[] = [
         ],
     },
     {
-        title: 'Reportes',
-        href: '/reportes/ventas',
-        icon: BarChart3,
-        permission: 'ver reportes',
-        items: [
-            {
-                title: 'Ventas',
-                href: '/reportes/ventas',
-                icon: BarChart3,
-            },
-        ],
+        title: 'Platillos',
+        href: productos.index().url,
+        icon: Package,
+        permission: 'ver productos',
     },
     {
         title: 'Cajas',
@@ -145,6 +77,77 @@ const mainNavItems: NavItem[] = [
         icon: Wallet,
         permission: 'ver cajas',
     },
+    {
+        title: 'Sucursales',
+        href: sucursales.index().url,
+        icon: Building,
+        permission: 'ver sucursales',
+    },
+    {
+        title: 'Ventas',
+        href: '/ventas',
+        icon: ShoppingCart,
+        permission: 'ver ventas',
+        items: [
+            {
+                title: 'Venta Rápida',
+                href: '/ventas/create',
+                icon: Plus,
+            },
+            {
+                title: 'Monitor Cocina',
+                href: '/ventas/cocina',
+                icon: Utensils,
+            },
+            {
+                title: 'Historial de ventas',
+                href: '/ventas/historial',
+                icon: List,
+            },
+        ],
+    },
+    {
+        title: 'Reservas Llevar',
+        href: cuadernos.index().url,
+        icon: Clock,
+        permission: 'ver ventas',
+        items: [
+            {
+                title: 'Ver Todas',
+                href: cuadernos.index().url,
+                icon: List,
+            },
+        ],
+    },
+    {
+        title: 'Reparticion',
+        href: inventarios.index().url,
+        icon: Boxes,
+        permission: 'ver inventarios',
+        items: [
+            {
+                title: 'Administrar Cantidades',
+                href: inventarios.index().url,
+                icon: Boxes,
+            },
+        ],
+    },
+    
+    
+    {
+        title: 'Reportes',
+        href: '/reportes/ventas',
+        icon: BarChart3,
+        permission: 'ver reportes',
+        items: [
+            {
+                title: 'Ventas de ventas',
+                href: '/reportes/ventas',
+                icon: BarChart3,
+            },
+        ],
+    },
+    
 ];
 
 const footerNavItems: NavItem[] = [];

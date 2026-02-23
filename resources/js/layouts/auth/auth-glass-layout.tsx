@@ -26,7 +26,7 @@ export default function AuthGlassLayout({
                     playsInline
                     className="h-full w-full object-cover  "
                 >
-                    <source src="/videos/fondologin.mp4" type="video/mp4" />
+                    <source src="/videos/fondologin1.mp4" type="video/mp4" />
                 </video>
                 <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-transparent to-black/60" />
             </div>
