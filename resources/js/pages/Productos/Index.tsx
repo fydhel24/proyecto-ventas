@@ -44,6 +44,7 @@ interface Producto {
     precio_1: string;
     marca: { nombre_marca: string } | null;
     categoria: { nombre_cat: string } | null;
+    fotos?: { url: string }[]; // relación cargada en controlador
 }
 
 interface Props {
@@ -231,6 +232,9 @@ export default function Index({ productos, filters }: Props) {
                                                         </div>
                                                     </TableHead>
                                                     <TableHead className="text-[11px] uppercase font-black tracking-widest text-muted-foreground h-12 text-center">
+                                                        Fotos
+                                                    </TableHead>
+                                                    <TableHead className="text-[11px] uppercase font-black tracking-widest text-muted-foreground h-12 text-center">
                                                         Estado
                                                     </TableHead>
                                                     <TableHead className="text-[11px] uppercase font-black tracking-widest text-muted-foreground h-12">
@@ -254,6 +258,17 @@ export default function Index({ productos, filters }: Props) {
                                                         className="group hover:bg-primary/[0.02] dark:hover:bg-primary/[0.05] transition-colors border-b border-border/20"
                                                     >
                                                         <TableCell className="font-bold text-sm py-4">{p.nombre}</TableCell>
+                                                        <TableCell className="text-xs text-center py-4">
+                                                            {p.fotos && p.fotos.length > 0 ? (
+                                                                <img
+                                                                    src={`/storage/${p.fotos[0].url}`}
+                                                                    alt={p.nombre}
+                                                                    className="h-10 w-10 object-cover rounded"
+                                                                />
+                                                            ) : (
+                                                                <PackageIcon className="h-6 w-6 text-muted-foreground opacity-50" />
+                                                            )}
+                                                        </TableCell>
                                                         <TableCell className="text-xs font-medium text-center">
                                                             <div className="flex items-center justify-center gap-2">
                                                                 <Switch
