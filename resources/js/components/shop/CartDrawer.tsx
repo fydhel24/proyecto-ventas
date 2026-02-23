@@ -142,7 +142,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                                 asChild
                                 onClick={() => onOpenChange(false)}
                             >
-                                <Link href={`/?reserva=${encodeURIComponent(items.map(i => `${i.cantidad}x ${i.nombre}`).join(', '))}#reservas`}>
+                                <Link href="/reservar">
                                     FINALIZAR MI RESERVA 💖
                                 </Link>
                             </Button>

@@ -24,7 +24,8 @@ class Cuaderno extends Model
         'la_paz',
         'enviado',
         'p_listo',
-        'p_pendiente'
+        'p_pendiente',
+        'monto_total'
     ];
 
     // Importante para que los checkboxes funcionen bien en el frontend

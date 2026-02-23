@@ -369,6 +369,14 @@ public function pedidos(Request $request)
 }
 
 /**
+ * Renderiza la página dedicada de reserva.
+ */
+public function publicReservationPage()
+{
+    return Inertia::render('Reservar');
+}
+
+/**
  * Almacena una reserva pública desde la página de inicio o medicamentos.
  */
 public function storePublic(Request $request)
@@ -397,22 +405,29 @@ public function storePublic(Request $request)
 
         if ($request->has('productos')) {
             $productosData = [];
+            $total = 0;
             foreach ($request->productos as $item) {
-                // Para reservas web, no descontamos stock automáticamente hasta que sea confirmada
-                // pero capturamos el precio_venta actual si se provee
+                $subtotal = ($item['precio_venta'] ?? 0) * ($item['cantidad'] ?? 1);
+                $total += $subtotal;
                 $productosData[$item['id']] = [
                     'cantidad' => $item['cantidad'] ?? 1,
                     'precio_venta' => $item['precio_venta'] ?? 0,
+                    // Note: 'subtotal' should only be added if it exists in pivot, 
+                    // otherwise it's just helpful for calculation.
                 ];
             }
             $cuaderno->productos()->attach($productosData);
+
+            if ($total > 0) {
+                $cuaderno->update(['monto_total' => $total]);
+            }
         }
 
         DB::commit();
 
         return response()->json([
             'success' => true,
-            'message' => '¡Reserva recibida! Nos pondremos en contacto contigo pronto.',
+            'message' => '¡Reserva Registrada Exitosamente! Nos contactaremos contigo pronto. 💖',
             'reserva_id' => $cuaderno->id
         ]);
 
