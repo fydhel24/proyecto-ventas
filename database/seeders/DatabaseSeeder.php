@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call(RolesAndPermissionsSeeder::class);
 
         // Run pharmacy seeder
-        $this->call(PharmacySeeder::class);
+       
 
         // Create default admin user
         $user = User::firstOrCreate(
